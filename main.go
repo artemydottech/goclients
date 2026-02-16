@@ -6,11 +6,43 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os" // ← добавить
 	"strconv"
 	"unicode/utf8"
 
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+func main() {
+	if err := godotenv.Load(".env"); err != nil {
+		log.Printf("Не найден .env файл. Пожалуйста, создайте его используя .env.example: %v", err)
+	}
+
+	dbPath := os.Getenv("DB_PATH")
+	if dbPath == "" {
+		dbPath = "./data.db"  
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"  
+	}
+
+	service, err := NewService(dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer service.DB.Close()
+
+	http.HandleFunc("POST /users", service.CreateUser)
+	http.HandleFunc("GET /users", service.GetUsersList)
+	http.HandleFunc("GET /users/", service.GetUserByID)
+
+	log.Printf("Сервер на :%s", port) 
+	log.Fatal(http.ListenAndServe(port, nil))
+}
+
 
 type Service struct {
 	DB *sql.DB
@@ -123,17 +155,3 @@ func (s *Service) GetUsersList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string][]User{"users": users})
 }
 
-func main() {
-	service, err := NewService("./data.db")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer service.DB.Close()
-
-	http.HandleFunc("POST /users", service.CreateUser)
-	http.HandleFunc("GET /users", service.GetUsersList)
-	http.HandleFunc("GET /users/", service.GetUserByID)
-
-	log.Println("Сервер на :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
-}
