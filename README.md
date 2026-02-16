@@ -4,7 +4,7 @@
 
 ## Быстрый старт
 
-Для компиляции `go-sqlite3` требуется установка `GCC`.
+Для компиляции `go-sqlite3` требуется установка `GCC` сервиса.
 
 ```bash
 git clone https://github.com/artemydottech/goclients.git
