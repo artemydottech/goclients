@@ -11,13 +11,14 @@ type UserRepo interface {
 	Create(name string) (int64, error)
 	GetAllUsers() ([]models.User, error)
 	GetUserById(id int) (models.User, error)
+	DeleteUserById(id int) error
 }
 
 type UserService struct {
 	repo UserRepo
 }
 
-func NewUserService (repo UserRepo) *UserService {
+func NewUserService(repo UserRepo) *UserService {
 	return &UserService{repo: repo}
 }
 
@@ -38,10 +39,14 @@ func (s *UserService) RegisterUser(name string) (int64, error) {
 	return id, nil
 }
 
-func (s* UserService) GetAllUsers() ([]models.User, error) {
+func (s *UserService) GetAllUsers() ([]models.User, error) {
 	return s.repo.GetAllUsers()
 }
 
-func (s* UserService) GetUserById(id int) (models.User, error) {
+func (s *UserService) GetUserById(id int) (models.User, error) {
 	return s.repo.GetUserById(id)
+}
+
+func (s *UserService) DeleteUserById(id int) error {
+	return s.repo.DeleteUserById(id)
 }

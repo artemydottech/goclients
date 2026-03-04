@@ -35,7 +35,7 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 
 	var users []models.User
 
-	for rows.Next(){
+	for rows.Next() {
 		var user models.User
 
 		err := rows.Scan(&user.ID, &user.Name)
@@ -64,17 +64,35 @@ func (r *UserRepository) GetUserById(id int) (models.User, error) {
 	return user, nil
 }
 
+func (r *UserRepository) DeleteUserById(id int) error {
+	res, err := r.db.Exec("DELETE FROM users WHERE id = ?", id)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
+}
+
 func (r *UserRepository) TestRows() {
 	rows, _ := r.db.Query("SELECT id, name FROM users")
 
 	defer rows.Close()
 
 	count := 0
-	for rows.Next(){
+	for rows.Next() {
 		var id int
 		var name string
-		rows.Scan(&id, &name) 
-    log.Printf("Строка #%d: ID=%d Name=%s", count, id, name)
+		rows.Scan(&id, &name)
+		log.Printf("Строка #%d: ID=%d Name=%s", count, id, name)
 		count++
 	}
 	log.Printf("Всего строк: %d", count)

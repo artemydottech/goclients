@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,6 +15,7 @@ type UserServ interface {
 	RegisterUser(name string) (int64, error)
 	GetAllUsers() ([]models.User, error)
 	GetUserById(id int) (models.User, error)
+	DeleteUserById(id int) error
 }
 
 type UserHandler struct {
@@ -90,4 +93,36 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
+}
+
+func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "DELETE" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idString := strings.TrimPrefix(r.URL.Path, "/users/")
+	if idString == "" {
+		http.Error(w, "ID обязателен", http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(idString)
+	if err != nil {
+		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.DeleteUserById(id)
+	if errors.Is(err, sql.ErrNoRows) {
+		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 }
