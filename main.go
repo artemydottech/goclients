@@ -37,13 +37,13 @@ func main() {
 
 	userRepo := repository.NewUserRepository(db)
 	userServ := service.NewUserService(userRepo)
-	userHdl  := handlers.NewUserHandler(userServ)
+	userHandlers  := handlers.NewUserHandler(userServ)
 
 	mux := http.NewServeMux()
 	
 	// handlers
-	mux.HandleFunc("POST /users", userHdl.CreateUser)
-	mux.HandleFunc("GET /users", userHdl.GetAllUsers)
+	mux.HandleFunc("POST /users", userHandlers.CreateUser)
+	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
 
 	port := os.Getenv("PORT")
 	if port == "" {
