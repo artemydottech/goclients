@@ -37,11 +37,15 @@ func main() {
 
 	userRepo := repository.NewUserRepository(db)
 	userServ := service.NewUserService(userRepo)
-	userHandlers  := handlers.NewUserHandler(userServ)
+	userHandlers := handlers.NewUserHandler(userServ)
 
 	mux := http.NewServeMux()
-	
+
+	// handlers
 	mux.HandleFunc("POST /users", userHandlers.CreateUser)
+	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
+	mux.HandleFunc("GET /users/", userHandlers.GetUserById)
+	mux.HandleFunc("DELETE /users/", userHandlers.DeleteUser)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -49,6 +53,7 @@ func main() {
 	}
 
 	log.Printf("Сервер запущен на :%s", port)
+	userRepo.TestRows()
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
