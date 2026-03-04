@@ -10,6 +10,7 @@ import (
 type UserRepo interface {
 	Create(name string) (int64, error)
 	GetAllUsers() ([]models.User, error)
+	GetUserById(id int) (models.User, error)
 }
 
 type UserService struct {
@@ -39,4 +40,8 @@ func (s *UserService) RegisterUser(name string) (int64, error) {
 
 func (s* UserService) GetAllUsers() ([]models.User, error) {
 	return s.repo.GetAllUsers()
+}
+
+func (s* UserService) GetUserById(id int) (models.User, error) {
+	return s.repo.GetUserById(id)
 }

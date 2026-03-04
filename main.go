@@ -44,6 +44,7 @@ func main() {
 	// handlers
 	mux.HandleFunc("POST /users", userHandlers.CreateUser)
 	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
+	mux.HandleFunc("GET /users/", userHandlers.GetUserById)
 
 	port := os.Getenv("PORT")
 	if port == "" {

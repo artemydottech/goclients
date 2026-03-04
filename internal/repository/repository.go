@@ -53,7 +53,18 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func (r* UserRepository) TestRows() {
+func (r *UserRepository) GetUserById(id int) (models.User, error) {
+	var user models.User
+
+	err := r.db.QueryRow("SELECT id, name FROM users WHERE id = ?", id).Scan(&user.ID, &user.Name)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepository) TestRows() {
 	rows, _ := r.db.Query("SELECT id, name FROM users")
 
 	defer rows.Close()
