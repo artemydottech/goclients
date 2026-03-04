@@ -3,10 +3,13 @@ package service
 import (
 	"errors"
 	"unicode/utf8"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type UserRepo interface {
 	Create(name string) (int64, error)
+	GetAllUsers() ([]models.User, error)
 }
 
 type UserService struct {
@@ -23,7 +26,7 @@ func (s *UserService) RegisterUser(name string) (int64, error) {
 	}
 
 	if utf8.RuneCountInString(name) > 100 {
-		return 0, errors.New("Имя слишком длинное! Не превышай 100 символов")
+		return 0, errors.New("Имя слишком длинное! Не превышайте 100 символов")
 	}
 
 	id, err := s.repo.Create(name)
@@ -32,4 +35,8 @@ func (s *UserService) RegisterUser(name string) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (s* UserService) GetAllUsers() ([]models.User, error) {
+	return s.repo.GetAllUsers()
 }
