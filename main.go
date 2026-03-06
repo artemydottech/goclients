@@ -35,17 +35,44 @@ func main() {
 		log.Fatal(err)
 	}
 
+	_, err = db.Exec(`
+    CREATE TABLE IF NOT EXISTS companies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        address TEXT,
+        geolocation TEXT,
+        schedule TEXT,
+        site TEXT,
+        socials TEXT,  
+        logo TEXT
+    )`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	userRepo := repository.NewUserRepository(db)
 	userServ := service.NewUserService(userRepo)
 	userHandlers := handlers.NewUserHandler(userServ)
 
+	companiesRepo := repository.NewCompanyRepository(db)
+	companiesServ := service.NewCompanyService(companiesRepo)
+	companiesHandlers := handlers.NewCompanyHandler(companiesServ)
+
 	mux := http.NewServeMux()
 
 	// handlers
+
+	//users
 	mux.HandleFunc("POST /users", userHandlers.CreateUser)
 	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
 	mux.HandleFunc("GET /users/", userHandlers.GetUserById)
 	mux.HandleFunc("DELETE /users/", userHandlers.DeleteUser)
+
+	//companies
+	mux.HandleFunc("POST /companies", companiesHandlers.CreateCompany)
+	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
+	mux.HandleFunc("GEt /companies/", companiesHandlers.GetCompanyById)
+	mux.HandleFunc("DELETE /companies/", companiesHandlers.DeleteCompany)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -54,6 +81,7 @@ func main() {
 
 	log.Printf("Сервер запущен на :%s", port)
 	userRepo.TestRows()
+	companiesRepo.TestRows()
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
