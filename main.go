@@ -71,7 +71,7 @@ func main() {
 	//companies
 	mux.HandleFunc("POST /companies", companiesHandlers.CreateCompany)
 	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
-	mux.HandleFunc("GEt /companies/", companiesHandlers.GetCompanyById)
+	mux.HandleFunc("GET /companies/", companiesHandlers.GetCompanyById)
 	mux.HandleFunc("DELETE /companies/", companiesHandlers.DeleteCompany)
 
 	port := os.Getenv("PORT")
