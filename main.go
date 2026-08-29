@@ -50,6 +50,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	_, err = db.Exec(`
+    CREATE TABLE IF NOT EXISTS employees (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        surname TEXT NOT NULL,
+        position TEXT,
+        avatar TEXT
+    )`)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	userRepo := repository.NewUserRepository(db)
 	userServ := service.NewUserService(userRepo)
 	userHandlers := handlers.NewUserHandler(userServ)
@@ -57,6 +70,10 @@ func main() {
 	companiesRepo := repository.NewCompanyRepository(db)
 	companiesServ := service.NewCompanyService(companiesRepo)
 	companiesHandlers := handlers.NewCompanyHandler(companiesServ)
+
+	employeesRepo := repository.NewEmployeeRepository(db)
+	employeesServ := service.NewEmployeeService(employeesRepo)
+	employeesHandlers := handlers.NewEmployeeHandler(employeesServ)
 
 	mux := http.NewServeMux()
 
@@ -74,6 +91,12 @@ func main() {
 	mux.HandleFunc("GET /companies/", companiesHandlers.GetCompanyById)
 	mux.HandleFunc("DELETE /companies/", companiesHandlers.DeleteCompany)
 
+	//employees
+	mux.HandleFunc("POST /employees", employeesHandlers.CreateEmployee)
+	mux.HandleFunc("GET /employees", employeesHandlers.GetAllEmployees)
+	mux.HandleFunc("GET /employees/", employeesHandlers.GetEmployeeById)
+	mux.HandleFunc("DELETE /employees/", employeesHandlers.DeleteEmployee)
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -82,6 +105,7 @@ func main() {
 	log.Printf("Сервер запущен на :%s", port)
 	userRepo.TestRows()
 	companiesRepo.TestRows()
+	employeesRepo.TestRows()
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
