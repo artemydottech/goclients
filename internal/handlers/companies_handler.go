@@ -84,7 +84,7 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 
 	company, err := h.service.GetCompanyById(id)
 	if err != nil {
-		http.Error(w, "Компания не найдена", http.StatusInternalServerError)
+		http.Error(w, "Компания не найдена", http.StatusNotFound)
 		return
 	}
 
