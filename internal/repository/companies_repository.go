@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -103,19 +102,4 @@ func (r *CompanyRepository) DeleteCompanyById(id int) error {
 	}
 
 	return nil
-}
-
-func (r *CompanyRepository) TestRows() {
-	rows, _ := r.db.Query("SELECT id, name, socials FROM companies")
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		var id int
-		var name, socials string
-		rows.Scan(&id, &name, &socials)
-		log.Printf("Компания #%d: ID=%d Name=%s Socials=%s", count, id, name, socials)
-		count++
-	}
-	log.Printf("Всего компаний: %d", count)
 }

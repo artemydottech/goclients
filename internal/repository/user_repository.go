@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -80,20 +79,4 @@ func (r *UserRepository) DeleteUserById(id int) error {
 	}
 
 	return nil
-}
-
-func (r *UserRepository) TestRows() {
-	rows, _ := r.db.Query("SELECT id, name FROM users")
-
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		var id int
-		var name string
-		rows.Scan(&id, &name)
-		log.Printf("Строка #%d: ID=%d Name=%s", count, id, name)
-		count++
-	}
-	log.Printf("Всего строк: %d", count)
 }

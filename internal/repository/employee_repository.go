@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"log"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -83,19 +82,4 @@ func (r *EmployeeRepository) DeleteEmployeeById(id int) error {
 	}
 
 	return nil
-}
-
-func (r *EmployeeRepository) TestRows() {
-	rows, _ := r.db.Query("SELECT id, name, position FROM employees")
-	defer rows.Close()
-
-	count := 0
-	for rows.Next() {
-		var id int
-		var name, position string
-		rows.Scan(&id, &name, &position)
-		log.Printf("Сотрудник #%d: ID=%d Name=%s position=%s", count, id, name, position)
-		count++
-	}
-	log.Printf("Всего сотрудников: %d", count)
 }

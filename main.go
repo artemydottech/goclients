@@ -103,9 +103,6 @@ func main() {
 	}
 
 	log.Printf("Сервер запущен на :%s", port)
-	userRepo.TestRows()
-	companiesRepo.TestRows()
-	employeesRepo.TestRows()
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatal(err)
 	}
