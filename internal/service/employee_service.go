@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -24,27 +23,27 @@ func NewEmployeeService(repo EmployeeRepo) *EmployeeService {
 
 func (s *EmployeeService) CreateEmployee(e models.Employee) (int64, error) {
 	if e.Name == "" {
-		return 0, errors.New("Имя сотрудника не может быть пустым!")
+		return 0, models.Invalid("Имя сотрудника не может быть пустым!")
 	}
 
 	if e.Surname == "" {
-		return 0, errors.New("Фамилия сотрудника не может быть пустой!")
+		return 0, models.Invalid("Фамилия сотрудника не может быть пустой!")
 	}
 
 	if utf8.RuneCountInString(e.Name) > 200 {
-		return 0, errors.New("Имя слишком длинное! Не превышайте 200 символов")
+		return 0, models.Invalid("Имя слишком длинное! Не превышайте 200 символов")
 	}
 
 	if utf8.RuneCountInString(e.Surname) > 200 {
-		return 0, errors.New("Фамилия слишком длинная! Не превышайте 200 символов")
+		return 0, models.Invalid("Фамилия слишком длинная! Не превышайте 200 символов")
 	}
 
 	if e.Position != "" && len(e.Position) > 500 {
-		return 0, errors.New("Должность слишком длинная! Не превышайте 500 символов")
+		return 0, models.Invalid("Должность слишком длинная! Не превышайте 500 символов")
 	}
 
 	if e.Avatar != "" && len(e.Avatar) > 500 {
-		return 0, errors.New("Ссылка на аватар слишком длинная! Не превышайте 500 символов")
+		return 0, models.Invalid("Ссылка на аватар слишком длинная! Не превышайте 500 символов")
 	}
 
 	id, err := s.repo.Create(e)

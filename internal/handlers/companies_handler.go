@@ -35,8 +35,13 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := h.service.CreateCompany(input)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		return
+	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка сохранения компании", http.StatusInternalServerError)
 		return
 	}
 

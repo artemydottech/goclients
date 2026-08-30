@@ -1,7 +1,5 @@
 package models
 
-import "fmt"
-
 type Company struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name"`
@@ -18,7 +16,7 @@ func (s Socials) Validate() error {
 		switch network {
 		case SocialVK, SocialTelegram, SocialWhatsApp, SocialViber:
 		default:
-			return fmt.Errorf("Неподдерживаемая соц. сеть %s", network)
+			return Invalid("Неподдерживаемая соц. сеть %s", network)
 		}
 	}
 	return nil

@@ -37,8 +37,13 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	id, err := h.service.RegisterUser(input.Name)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		return
+	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка сохранения пользователя", http.StatusInternalServerError)
 		return
 	}
 

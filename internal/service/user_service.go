@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -24,11 +23,11 @@ func NewUserService(repo UserRepo) *UserService {
 
 func (s *UserService) RegisterUser(name string) (int64, error) {
 	if name == "" {
-		return 0, errors.New("Имя не может быть пустым!")
+		return 0, models.Invalid("Имя не может быть пустым!")
 	}
 
 	if utf8.RuneCountInString(name) > 100 {
-		return 0, errors.New("Имя слишком длинное! Не превышайте 100 символов")
+		return 0, models.Invalid("Имя слишком длинное! Не превышайте 100 символов")
 	}
 
 	id, err := s.repo.Create(name)

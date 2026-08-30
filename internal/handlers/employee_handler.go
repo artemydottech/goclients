@@ -35,8 +35,13 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 	}
 
 	id, err := h.service.CreateEmployee(input)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		return
+	}
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка сохранения сотрудника", http.StatusInternalServerError)
 		return
 	}
 

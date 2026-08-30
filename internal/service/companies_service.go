@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -24,23 +23,23 @@ func NewCompanyService(repo CompanyRepo) *CompanyService {
 
 func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 	if c.Name == "" {
-		return 0, errors.New("Название компании не может быть пустым!")
+		return 0, models.Invalid("Название компании не может быть пустым!")
 	}
 
 	if utf8.RuneCountInString(c.Name) > 200 {
-		return 0, errors.New("Название компании слишком длинное! Не превышайте 200 символов")
+		return 0, models.Invalid("Название компании слишком длинное! Не превышайте 200 символов")
 	}
 
 	if c.Address != "" && utf8.RuneCountInString(c.Address) > 500 {
-		return 0, errors.New("Адрес слишком длинный! Не превышайте 500 символов")
+		return 0, models.Invalid("Адрес слишком длинный! Не превышайте 500 символов")
 	}
 
 	if c.Site != "" && len(c.Site) > 500 {
-		return 0, errors.New("Сайт слишком длинный! Не превышайте 500 символов")
+		return 0, models.Invalid("Сайт слишком длинный! Не превышайте 500 символов")
 	}
 
 	if c.Logo != "" && len(c.Logo) > 500 {
-		return 0, errors.New("Ссылка на логотип слишком длинная! Не превышайте 500 символов")
+		return 0, models.Invalid("Ссылка на логотип слишком длинная! Не превышайте 500 символов")
 	}
 
 	if err := c.Socials.Validate(); err != nil {
