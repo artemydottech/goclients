@@ -57,6 +57,20 @@ func TestCreateEmployeeValidation(t *testing.T) {
 	}
 }
 
+// Лимиты свободных полей тоже считаются в рунах: 500 кириллических символов
+// занимают 1000 байт и обязаны проходить.
+func TestCreateEmployeeCountsRunesInPosition(t *testing.T) {
+	employee := models.Employee{
+		Name:     "Артемий",
+		Surname:  "Зверев",
+		Position: strings.Repeat("я", 500),
+	}
+
+	if _, err := NewEmployeeService(&stubEmployeeRepo{}).CreateEmployee(employee); err != nil {
+		t.Fatalf("ожидался успех, получена ошибка %v", err)
+	}
+}
+
 func TestCreateEmployeeAcceptsValidInput(t *testing.T) {
 	employee := models.Employee{
 		CompanyID: 1,

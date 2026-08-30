@@ -38,11 +38,11 @@ func (s *EmployeeService) CreateEmployee(e models.Employee) (int64, error) {
 		return 0, models.Invalid("Фамилия слишком длинная! Не превышайте 200 символов")
 	}
 
-	if e.Position != "" && len(e.Position) > 500 {
+	if e.Position != "" && utf8.RuneCountInString(e.Position) > 500 {
 		return 0, models.Invalid("Должность слишком длинная! Не превышайте 500 символов")
 	}
 
-	if e.Avatar != "" && len(e.Avatar) > 500 {
+	if e.Avatar != "" && utf8.RuneCountInString(e.Avatar) > 500 {
 		return 0, models.Invalid("Ссылка на аватар слишком длинная! Не превышайте 500 символов")
 	}
 

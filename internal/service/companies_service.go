@@ -34,11 +34,11 @@ func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 		return 0, models.Invalid("Адрес слишком длинный! Не превышайте 500 символов")
 	}
 
-	if c.Site != "" && len(c.Site) > 500 {
+	if c.Site != "" && utf8.RuneCountInString(c.Site) > 500 {
 		return 0, models.Invalid("Сайт слишком длинный! Не превышайте 500 символов")
 	}
 
-	if c.Logo != "" && len(c.Logo) > 500 {
+	if c.Logo != "" && utf8.RuneCountInString(c.Logo) > 500 {
 		return 0, models.Invalid("Ссылка на логотип слишком длинная! Не превышайте 500 символов")
 	}
 
