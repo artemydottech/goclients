@@ -51,11 +51,6 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	companies, err := h.service.GetAllCompanies()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,11 +63,6 @@ func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	idString := strings.TrimPrefix(r.URL.Path, "/companies/")
 
 	if idString == "" {
@@ -103,11 +93,6 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "DELETE" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	idString := strings.TrimPrefix(r.URL.Path, "/companies/")
 	if idString == "" {
 		http.Error(w, "ID обязателен", http.StatusBadRequest)

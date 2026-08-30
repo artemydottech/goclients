@@ -51,11 +51,6 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	employees, err := h.service.GetAllEmployees()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,11 +63,6 @@ func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request
 }
 
 func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	idString := strings.TrimPrefix(r.URL.Path, "/employees/")
 
 	if idString == "" {
@@ -103,11 +93,6 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 }
 
 func (h *EmployeeHandler) DeleteEmployee(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "DELETE" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 	idString := strings.TrimPrefix(r.URL.Path, "/employees/")
 	if idString == "" {
 		http.Error(w, "ID обязателен", http.StatusBadRequest)
