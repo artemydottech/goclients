@@ -83,8 +83,12 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 	}
 
 	employee, err := h.service.GetEmployeeById(id)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
 		http.Error(w, "Сотрудник не найден", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
 		return
 	}
 

@@ -85,8 +85,12 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.service.GetUserById(id)
+	if errors.Is(err, sql.ErrNoRows) {
+		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		return
+	}
 	if err != nil {
-		http.Error(w, "Пользователь не найден", http.StatusInternalServerError)
+		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
 		return
 	}
 
