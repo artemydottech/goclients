@@ -36,7 +36,7 @@ func (r *EmployeeRepository) GetAllEmployees() ([]models.Employee, error) {
 	}
 	defer rows.Close()
 
-	var employees []models.Employee
+	employees := []models.Employee{}
 	for rows.Next() {
 		var e models.Employee
 		err := rows.Scan(&e.ID, &e.CompanyID, &e.Name, &e.Surname, &e.Position, &e.Avatar)

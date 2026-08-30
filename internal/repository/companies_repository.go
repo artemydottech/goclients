@@ -42,7 +42,7 @@ func (r *CompanyRepository) GetAllCompanies() ([]models.Company, error) {
 	}
 	defer rows.Close()
 
-	var companies []models.Company
+	companies := []models.Company{}
 	for rows.Next() {
 		var c models.Company
 		var socialJSON sql.NullString
