@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepo interface {
-	Create(name string) (int64, error)
+	Create(u models.User) (int64, error)
 	GetAllUsers() ([]models.User, error)
 	GetUserById(id int) (models.User, error)
 	DeleteUserById(id int) error
@@ -21,16 +21,24 @@ func NewUserService(repo UserRepo) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) RegisterUser(name string) (int64, error) {
-	if name == "" {
+func (s *UserService) RegisterUser(u models.User) (int64, error) {
+	if u.Name == "" {
 		return 0, models.Invalid("Имя не может быть пустым!")
 	}
 
-	if utf8.RuneCountInString(name) > 100 {
+	if utf8.RuneCountInString(u.Name) > 100 {
 		return 0, models.Invalid("Имя слишком длинное! Не превышайте 100 символов")
 	}
 
-	id, err := s.repo.Create(name)
+	if utf8.RuneCountInString(u.Surname) > 100 {
+		return 0, models.Invalid("Фамилия слишком длинная! Не превышайте 100 символов")
+	}
+
+	if utf8.RuneCountInString(u.Username) > 50 {
+		return 0, models.Invalid("Логин слишком длинный! Не превышайте 50 символов")
+	}
+
+	id, err := s.repo.Create(u)
 	if err != nil {
 		return 0, err
 	}

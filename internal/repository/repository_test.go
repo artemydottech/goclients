@@ -29,7 +29,9 @@ func newTestDB(t *testing.T) *sql.DB {
 func TestUserRepositoryRoundTrip(t *testing.T) {
 	repo := NewUserRepository(newTestDB(t))
 
-	id, err := repo.Create("Артемий")
+	want := models.User{Name: "Артемий", Surname: "Зверев", Username: "artemy", Avatar: "a.png"}
+
+	id, err := repo.Create(want)
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
@@ -38,8 +40,10 @@ func TestUserRepositoryRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	if user.Name != "Артемий" {
-		t.Errorf("name = %q", user.Name)
+
+	want.ID = int(id)
+	if user != want {
+		t.Errorf("got %+v, want %+v", user, want)
 	}
 
 	all, err := repo.GetAllUsers()
@@ -123,5 +127,38 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 	}
 	if len(left) != 0 {
 		t.Errorf("company gone but %d employees left behind", len(left))
+	}
+}
+
+func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "old.db")
+
+	db, err := Open(path)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer db.Close()
+
+	if _, err := db.Exec(`CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)`); err != nil {
+		t.Fatalf("old schema: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO users (name) VALUES ('Артемий')`); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	if err := Migrate(db); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	users, err := NewUserRepository(db).GetAllUsers()
+	if err != nil {
+		t.Fatalf("read after migrate: %v", err)
+	}
+	if len(users) != 1 || users[0].Name != "Артемий" || users[0].Surname != "" {
+		t.Errorf("got %+v", users)
+	}
+
+	if err := Migrate(db); err != nil {
+		t.Errorf("second migrate: %v", err)
 	}
 }

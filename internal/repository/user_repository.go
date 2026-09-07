@@ -14,8 +14,11 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) Create(name string) (int64, error) {
-	res, err := r.db.Exec("INSERT INTO users (name) VALUES (?)", name)
+func (r *UserRepository) Create(u models.User) (int64, error) {
+	res, err := r.db.Exec(
+		"INSERT INTO users (name, surname, username, avatar) VALUES (?, ?, ?, ?)",
+		u.Name, u.Surname, u.Username, u.Avatar,
+	)
 	if err != nil {
 		return 0, err
 	}
@@ -24,7 +27,7 @@ func (r *UserRepository) Create(name string) (int64, error) {
 }
 
 func (r *UserRepository) GetAllUsers() ([]models.User, error) {
-	rows, err := r.db.Query("SELECT id, name FROM users")
+	rows, err := r.db.Query("SELECT id, name, surname, username, avatar FROM users")
 
 	if err != nil {
 		return nil, err
@@ -37,7 +40,7 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 	for rows.Next() {
 		var user models.User
 
-		err := rows.Scan(&user.ID, &user.Name)
+		err := rows.Scan(&user.ID, &user.Name, &user.Surname, &user.Username, &user.Avatar)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +58,8 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 func (r *UserRepository) GetUserById(id int) (models.User, error) {
 	var user models.User
 
-	err := r.db.QueryRow("SELECT id, name FROM users WHERE id = ?", id).Scan(&user.ID, &user.Name)
+	err := r.db.QueryRow("SELECT id, name, surname, username, avatar FROM users WHERE id = ?", id).
+		Scan(&user.ID, &user.Name, &user.Surname, &user.Username, &user.Avatar)
 	if err != nil {
 		return models.User{}, err
 	}

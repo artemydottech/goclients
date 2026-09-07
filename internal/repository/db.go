@@ -8,7 +8,10 @@ import (
 const schema = `
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT
+    name TEXT NOT NULL,
+    surname TEXT NOT NULL DEFAULT '',
+    username TEXT NOT NULL DEFAULT '',
+    avatar TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS companies (
@@ -55,10 +58,56 @@ func Open(path string) (*sql.DB, error) {
 	return db, nil
 }
 
+// Columns added to users after the first release. SQLite has no
+// ADD COLUMN IF NOT EXISTS, so each one is checked before it is added.
+var addedUserColumns = []string{"surname", "username", "avatar"}
+
 func Migrate(db *sql.DB) error {
 	if _, err := db.Exec(schema); err != nil {
 		return fmt.Errorf("applying schema: %w", err)
 	}
 
+	for _, column := range addedUserColumns {
+		exists, err := columnExists(db, "users", column)
+		if err != nil {
+			return err
+		}
+		if exists {
+			continue
+		}
+
+		statement := fmt.Sprintf("ALTER TABLE users ADD COLUMN %s TEXT NOT NULL DEFAULT ''", column)
+		if _, err := db.Exec(statement); err != nil {
+			return fmt.Errorf("adding users.%s: %w", column, err)
+		}
+	}
+
 	return nil
+}
+
+func columnExists(db *sql.DB, table, column string) (bool, error) {
+	rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return false, fmt.Errorf("reading %s columns: %w", table, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			cid        int
+			name       string
+			columnType string
+			notNull    int
+			defaultVal sql.NullString
+			primaryKey int
+		)
+		if err := rows.Scan(&cid, &name, &columnType, &notNull, &defaultVal, &primaryKey); err != nil {
+			return false, fmt.Errorf("reading %s columns: %w", table, err)
+		}
+		if name == column {
+			return true, nil
+		}
+	}
+
+	return false, rows.Err()
 }

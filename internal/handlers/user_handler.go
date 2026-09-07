@@ -12,7 +12,7 @@ import (
 )
 
 type UserServ interface {
-	RegisterUser(name string) (int64, error)
+	RegisterUser(u models.User) (int64, error)
 	GetAllUsers() ([]models.User, error)
 	GetUserById(id int) (models.User, error)
 	DeleteUserById(id int) error
@@ -27,16 +27,14 @@ func NewUserHandler(s UserServ) *UserHandler {
 }
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Name string `json:"name"`
-	}
+	var input models.User
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	id, err := h.service.RegisterUser(input.Name)
+	id, err := h.service.RegisterUser(input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		http.Error(w, validationErr.Error(), http.StatusBadRequest)
