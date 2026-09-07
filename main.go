@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/artemydottech/goclients/internal/handlers"
 	"github.com/artemydottech/goclients/internal/repository"
@@ -72,8 +73,17 @@ func main() {
 		port = "8080"
 	}
 
+	server := &http.Server{
+		Addr:              ":" + port,
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
 	log.Printf("Сервер запущен на :%s", port)
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
+	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }
