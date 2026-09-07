@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -24,42 +23,13 @@ func main() {
 		dbPath = "./data.db"
 	}
 
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := repository.Open(dbPath)
 	if err != nil {
-		log.Fatal("Ошибка подключения к БД:", err)
+		log.Fatal("Ошибка подключения к БД: ", err)
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(`
-    CREATE TABLE IF NOT EXISTS companies (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        address TEXT,
-        geolocation TEXT,
-        schedule TEXT,
-        site TEXT,
-        socials TEXT,  
-        logo TEXT
-    )`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = db.Exec(`
-    CREATE TABLE IF NOT EXISTS employees (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-        name TEXT NOT NULL,
-        surname TEXT NOT NULL,
-        position TEXT,
-        avatar TEXT
-    )`)
-	if err != nil {
+	if err := repository.Migrate(db); err != nil {
 		log.Fatal(err)
 	}
 
