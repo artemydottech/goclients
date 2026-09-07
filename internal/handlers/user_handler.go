@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -67,14 +66,7 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
-	idString := strings.TrimPrefix(r.URL.Path, "/users/")
-
-	if idString == "" {
-		http.Error(w, "ID обязателен", http.StatusBadRequest)
-		return
-	}
-
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
 		http.Error(w, "Неправильный ID", http.StatusBadRequest)
@@ -97,13 +89,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	idString := strings.TrimPrefix(r.URL.Path, "/users/")
-	if idString == "" {
-		http.Error(w, "ID обязателен", http.StatusBadRequest)
-		return
-	}
-
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Неправильный ID", http.StatusBadRequest)
 		return

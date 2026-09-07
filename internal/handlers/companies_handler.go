@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -65,14 +64,7 @@ func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) {
-	idString := strings.TrimPrefix(r.URL.Path, "/companies/")
-
-	if idString == "" {
-		http.Error(w, "ID обязателен", http.StatusBadRequest)
-		return
-	}
-
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
 		http.Error(w, "Неправильный ID", http.StatusBadRequest)
@@ -95,13 +87,7 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
-	idString := strings.TrimPrefix(r.URL.Path, "/companies/")
-	if idString == "" {
-		http.Error(w, "ID обязателен", http.StatusBadRequest)
-		return
-	}
-
-	id, err := strconv.Atoi(idString)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "Неправильный ID", http.StatusBadRequest)
 		return

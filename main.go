@@ -52,20 +52,20 @@ func main() {
 	//users
 	mux.HandleFunc("POST /users", userHandlers.CreateUser)
 	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
-	mux.HandleFunc("GET /users/", userHandlers.GetUserById)
-	mux.HandleFunc("DELETE /users/", userHandlers.DeleteUser)
+	mux.HandleFunc("GET /users/{id}", userHandlers.GetUserById)
+	mux.HandleFunc("DELETE /users/{id}", userHandlers.DeleteUser)
 
 	//companies
 	mux.HandleFunc("POST /companies", companiesHandlers.CreateCompany)
 	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
-	mux.HandleFunc("GET /companies/", companiesHandlers.GetCompanyById)
-	mux.HandleFunc("DELETE /companies/", companiesHandlers.DeleteCompany)
+	mux.HandleFunc("GET /companies/{id}", companiesHandlers.GetCompanyById)
+	mux.HandleFunc("DELETE /companies/{id}", companiesHandlers.DeleteCompany)
 
 	//employees
 	mux.HandleFunc("POST /employees", employeesHandlers.CreateEmployee)
 	mux.HandleFunc("GET /employees", employeesHandlers.GetAllEmployees)
-	mux.HandleFunc("GET /employees/", employeesHandlers.GetEmployeeById)
-	mux.HandleFunc("DELETE /employees/", employeesHandlers.DeleteEmployee)
+	mux.HandleFunc("GET /employees/{id}", employeesHandlers.GetEmployeeById)
+	mux.HandleFunc("DELETE /employees/{id}", employeesHandlers.DeleteEmployee)
 
 	port := os.Getenv("PORT")
 	if port == "" {
