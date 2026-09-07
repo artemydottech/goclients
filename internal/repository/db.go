@@ -35,7 +35,10 @@ CREATE TABLE IF NOT EXISTS employees (
 // Open connects to the database and checks that it answers — sql.Open alone
 // only parses the path, so a broken one surfaces at the first request instead.
 func Open(path string) (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", path)
+	// SQLite ignores foreign keys unless the pragma is set, and it has to ride
+	// on the DSN: database/sql pools connections, so a one-off PRAGMA would
+	// only cover whichever connection happened to run it.
+	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", path))
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
 	}
