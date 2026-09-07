@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,7 +54,8 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request) {
 	companies, err := h.service.GetAllCompanies()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("GetAllCompanies: %v", err)
+		http.Error(w, "Ошибка запроса компаний", http.StatusInternalServerError)
 		return
 	}
 

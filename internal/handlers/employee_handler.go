@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,7 +54,8 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	employees, err := h.service.GetAllEmployees()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("GetAllEmployees: %v", err)
+		http.Error(w, "Ошибка запроса сотрудников", http.StatusInternalServerError)
 		return
 	}
 
