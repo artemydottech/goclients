@@ -44,6 +44,14 @@ CREATE TABLE IF NOT EXISTS services (
 );
 
 CREATE INDEX IF NOT EXISTS idx_services_company ON services(company_id);
+
+CREATE TABLE IF NOT EXISTS employee_services (
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    PRIMARY KEY (employee_id, service_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_employee_services_service ON employee_services(service_id);
 `
 
 // Open connects to the database and checks that it answers — sql.Open alone

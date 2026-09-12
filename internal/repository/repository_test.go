@@ -238,3 +238,120 @@ func TestServicesGoAwayWithTheirCompany(t *testing.T) {
 		t.Errorf("услуга пережила удаление компании: %v", err)
 	}
 }
+
+func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
+	db := newTestDB(t)
+	companies := NewCompanyRepository(db)
+	employees := NewEmployeeRepository(db)
+	services := NewServiceRepository(db)
+	assignments := NewAssignmentRepository(db)
+
+	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	employeeID, err := employees.Create(models.Employee{
+		CompanyID: int(companyID), Name: "Анна", Surname: "Иванова",
+	})
+	if err != nil {
+		t.Fatalf("create employee: %v", err)
+	}
+
+	first, err := services.Create(models.Service{
+		CompanyID: int(companyID), Name: "Стрижка", Duration: 45,
+	})
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+
+	second, err := services.Create(models.Service{
+		CompanyID: int(companyID), Name: "Окрашивание", Duration: 120,
+	})
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+
+	if err := assignments.SetEmployeeServices(int(employeeID), []int{int(first), int(second)}); err != nil {
+		t.Fatalf("set services: %v", err)
+	}
+
+	got, err := assignments.GetServicesByEmployee(int(employeeID))
+	if err != nil {
+		t.Fatalf("get services: %v", err)
+	}
+	if len(got) != 2 {
+		t.Fatalf("услуг сотрудника: %d, ожидалось 2", len(got))
+	}
+
+	if err := assignments.SetEmployeeServices(int(employeeID), []int{int(second)}); err != nil {
+		t.Fatalf("replace services: %v", err)
+	}
+
+	got, err = assignments.GetServicesByEmployee(int(employeeID))
+	if err != nil {
+		t.Fatalf("get services: %v", err)
+	}
+	if len(got) != 1 || got[0].ID != int(second) {
+		t.Fatalf("после замены получено %+v", got)
+	}
+
+	masters, err := assignments.GetEmployeesByService(int(second))
+	if err != nil {
+		t.Fatalf("get employees: %v", err)
+	}
+	if len(masters) != 1 || masters[0].ID != int(employeeID) {
+		t.Fatalf("мастера услуги: %+v", masters)
+	}
+
+	performs, err := assignments.EmployeePerformsService(int(employeeID), int(first))
+	if err != nil {
+		t.Fatalf("performs: %v", err)
+	}
+	if performs {
+		t.Error("снятая услуга всё ещё числится за сотрудником")
+	}
+}
+
+func TestAssignmentsGoAwayWithTheService(t *testing.T) {
+	db := newTestDB(t)
+	companies := NewCompanyRepository(db)
+	employees := NewEmployeeRepository(db)
+	services := NewServiceRepository(db)
+	assignments := NewAssignmentRepository(db)
+
+	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	employeeID, err := employees.Create(models.Employee{
+		CompanyID: int(companyID), Name: "Анна", Surname: "Иванова",
+	})
+	if err != nil {
+		t.Fatalf("create employee: %v", err)
+	}
+
+	serviceID, err := services.Create(models.Service{
+		CompanyID: int(companyID), Name: "Стрижка", Duration: 45,
+	})
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+
+	if err := assignments.SetEmployeeServices(int(employeeID), []int{int(serviceID)}); err != nil {
+		t.Fatalf("set services: %v", err)
+	}
+
+	if err := services.DeleteServiceById(int(serviceID)); err != nil {
+		t.Fatalf("delete service: %v", err)
+	}
+
+	got, err := assignments.GetServicesByEmployee(int(employeeID))
+	if err != nil {
+		t.Fatalf("get services: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("связка пережила удаление услуги: %+v", got)
+	}
+}
