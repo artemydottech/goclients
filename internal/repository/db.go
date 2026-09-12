@@ -52,6 +52,16 @@ CREATE TABLE IF NOT EXISTS employee_services (
 );
 
 CREATE INDEX IF NOT EXISTS idx_employee_services_service ON employee_services(service_id);
+
+CREATE TABLE IF NOT EXISTS clients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
+    comment TEXT NOT NULL DEFAULT '',
+    UNIQUE (company_id, phone)
+);
 `
 
 // Open connects to the database and checks that it answers — sql.Open alone
