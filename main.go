@@ -58,6 +58,12 @@ func main() {
 	clientsServ := service.NewClientService(clientsRepo)
 	clientsHandlers := handlers.NewClientHandler(clientsServ)
 
+	appointmentsRepo := repository.NewAppointmentRepository(db)
+	appointmentsServ := service.NewAppointmentService(
+		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo,
+	)
+	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
+
 	mux := http.NewServeMux()
 
 	// handlers
@@ -96,6 +102,13 @@ func main() {
 	mux.HandleFunc("GET /clients", clientsHandlers.GetAllClients)
 	mux.HandleFunc("GET /clients/{id}", clientsHandlers.GetClientById)
 	mux.HandleFunc("DELETE /clients/{id}", clientsHandlers.DeleteClient)
+
+	//appointments
+	mux.HandleFunc("POST /appointments", appointmentsHandlers.CreateAppointment)
+	mux.HandleFunc("GET /appointments", appointmentsHandlers.GetAllAppointments)
+	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
+	mux.HandleFunc("PUT /appointments/{id}/status", appointmentsHandlers.SetStatus)
+	mux.HandleFunc("DELETE /appointments/{id}", appointmentsHandlers.DeleteAppointment)
 
 	port := os.Getenv("PORT")
 	if port == "" {

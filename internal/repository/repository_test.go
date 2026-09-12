@@ -5,6 +5,7 @@ import (
 	"errors"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/artemydottech/goclients/internal/models"
 	_ "github.com/mattn/go-sqlite3"
@@ -353,5 +354,170 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 	}
 	if len(got) != 0 {
 		t.Errorf("связка пережила удаление услуги: %+v", got)
+	}
+}
+
+// bookingFixture заводит компанию, мастера, услугу и клиента — минимум, без
+// которого запись не создать.
+func bookingFixture(t *testing.T, db *sql.DB) (companyID, employeeID, serviceID, clientID int) {
+	t.Helper()
+
+	company, err := NewCompanyRepository(db).Create(models.Company{Name: "Ромашка"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	employee, err := NewEmployeeRepository(db).Create(models.Employee{
+		CompanyID: int(company), Name: "Анна", Surname: "Иванова",
+	})
+	if err != nil {
+		t.Fatalf("create employee: %v", err)
+	}
+
+	service, err := NewServiceRepository(db).Create(models.Service{
+		CompanyID: int(company), Name: "Стрижка", Duration: 60,
+	})
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+
+	client, err := NewClientRepository(db).Create(models.Client{
+		CompanyID: int(company), Name: "Пётр", Phone: "79991234567",
+	})
+	if err != nil {
+		t.Fatalf("create client: %v", err)
+	}
+
+	return int(company), int(employee), int(service), int(client)
+}
+
+func TestAppointmentRepositoryRoundTrip(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	want := models.Appointment{
+		CompanyID:  companyID,
+		ClientID:   clientID,
+		EmployeeID: employeeID,
+		ServiceID:  serviceID,
+		StartsAt:   startsAt,
+		EndsAt:     startsAt.Add(time.Hour),
+		Status:     models.AppointmentPending,
+		Comment:    "первый визит",
+	}
+
+	id, err := repo.Create(want)
+	if err != nil {
+		t.Fatalf("create appointment: %v", err)
+	}
+
+	got, err := repo.GetAppointmentById(int(id))
+	if err != nil {
+		t.Fatalf("get appointment: %v", err)
+	}
+
+	want.ID = int(id)
+	if !got.StartsAt.Equal(want.StartsAt) || !got.EndsAt.Equal(want.EndsAt) {
+		t.Errorf("время не сходится: %v–%v против %v–%v", got.StartsAt, got.EndsAt, want.StartsAt, want.EndsAt)
+	}
+	if got.Status != want.Status || got.Comment != want.Comment {
+		t.Errorf("got %+v, want %+v", got, want)
+	}
+}
+
+func TestHasOverlapTreatsTouchingIntervalsAsFree(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	if _, err := repo.Create(models.Appointment{
+		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentConfirmed,
+	}); err != nil {
+		t.Fatalf("create appointment: %v", err)
+	}
+
+	cases := map[string]struct {
+		from, to time.Time
+		want     bool
+	}{
+		"впритык после":  {startsAt.Add(time.Hour), startsAt.Add(2 * time.Hour), false},
+		"впритык до":     {startsAt.Add(-time.Hour), startsAt, false},
+		"внахлёст":       {startsAt.Add(30 * time.Minute), startsAt.Add(90 * time.Minute), true},
+		"целиком внутри": {startsAt.Add(10 * time.Minute), startsAt.Add(20 * time.Minute), true},
+		"накрывает":      {startsAt.Add(-time.Hour), startsAt.Add(2 * time.Hour), true},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			busy, err := repo.HasOverlap(employeeID, tc.from, tc.to)
+			if err != nil {
+				t.Fatalf("overlap: %v", err)
+			}
+			if busy != tc.want {
+				t.Errorf("HasOverlap = %v, ожидалось %v", busy, tc.want)
+			}
+		})
+	}
+}
+
+func TestCancelledAppointmentFreesTheSlot(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	id, err := repo.Create(models.Appointment{
+		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentConfirmed,
+	})
+	if err != nil {
+		t.Fatalf("create appointment: %v", err)
+	}
+
+	busy, err := repo.HasOverlap(employeeID, startsAt, startsAt.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("overlap: %v", err)
+	}
+	if !busy {
+		t.Fatal("подтверждённая запись должна занимать слот")
+	}
+
+	if err := repo.UpdateStatus(int(id), models.AppointmentCancelled); err != nil {
+		t.Fatalf("update status: %v", err)
+	}
+
+	busy, err = repo.HasOverlap(employeeID, startsAt, startsAt.Add(time.Hour))
+	if err != nil {
+		t.Fatalf("overlap: %v", err)
+	}
+	if busy {
+		t.Error("после отмены слот должен освободиться")
+	}
+}
+
+func TestAppointmentsGoAwayWithTheClient(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	id, err := repo.Create(models.Appointment{
+		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentPending,
+	})
+	if err != nil {
+		t.Fatalf("create appointment: %v", err)
+	}
+
+	if err := NewClientRepository(db).DeleteClientById(clientID); err != nil {
+		t.Fatalf("delete client: %v", err)
+	}
+
+	if _, err := repo.GetAppointmentById(int(id)); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("запись пережила удаление клиента: %v", err)
 	}
 }

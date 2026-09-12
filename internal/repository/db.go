@@ -62,6 +62,21 @@ CREATE TABLE IF NOT EXISTS clients (
     comment TEXT NOT NULL DEFAULT '',
     UNIQUE (company_id, phone)
 );
+
+CREATE TABLE IF NOT EXISTS appointments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_id INTEGER NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    service_id INTEGER NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    starts_at TEXT NOT NULL,
+    ends_at TEXT NOT NULL,
+    status TEXT NOT NULL,
+    comment TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_appointments_employee ON appointments(employee_id, starts_at);
+CREATE INDEX IF NOT EXISTS idx_appointments_client ON appointments(client_id);
 `
 
 // Open connects to the database and checks that it answers — sql.Open alone
