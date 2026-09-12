@@ -46,6 +46,10 @@ func main() {
 	employeesServ := service.NewEmployeeService(employeesRepo)
 	employeesHandlers := handlers.NewEmployeeHandler(employeesServ)
 
+	servicesRepo := repository.NewServiceRepository(db)
+	catalogServ := service.NewCatalogService(servicesRepo)
+	servicesHandlers := handlers.NewServiceHandler(catalogServ)
+
 	mux := http.NewServeMux()
 
 	// handlers
@@ -67,6 +71,12 @@ func main() {
 	mux.HandleFunc("GET /employees", employeesHandlers.GetAllEmployees)
 	mux.HandleFunc("GET /employees/{id}", employeesHandlers.GetEmployeeById)
 	mux.HandleFunc("DELETE /employees/{id}", employeesHandlers.DeleteEmployee)
+
+	//services
+	mux.HandleFunc("POST /services", servicesHandlers.CreateService)
+	mux.HandleFunc("GET /services", servicesHandlers.GetAllServices)
+	mux.HandleFunc("GET /services/{id}", servicesHandlers.GetServiceById)
+	mux.HandleFunc("DELETE /services/{id}", servicesHandlers.DeleteService)
 
 	port := os.Getenv("PORT")
 	if port == "" {

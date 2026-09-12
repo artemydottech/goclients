@@ -162,3 +162,79 @@ func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 		t.Errorf("second migrate: %v", err)
 	}
 }
+
+func TestServiceRepositoryRoundTrip(t *testing.T) {
+	db := newTestDB(t)
+	companies := NewCompanyRepository(db)
+	services := NewServiceRepository(db)
+
+	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	want := models.Service{
+		CompanyID:   int(companyID),
+		Name:        "Стрижка",
+		Description: "Мужская",
+		Duration:    45,
+		Price:       1500,
+	}
+
+	id, err := services.Create(want)
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+
+	got, err := services.GetServiceById(int(id))
+	if err != nil {
+		t.Fatalf("get service: %v", err)
+	}
+
+	want.ID = int(id)
+	if got != want {
+		t.Errorf("got %+v, want %+v", got, want)
+	}
+
+	byCompany, err := services.GetServicesByCompany(int(companyID))
+	if err != nil {
+		t.Fatalf("get by company: %v", err)
+	}
+	if len(byCompany) != 1 {
+		t.Fatalf("услуг компании: %d, ожидалась 1", len(byCompany))
+	}
+
+	other, err := services.GetServicesByCompany(int(companyID) + 1000)
+	if err != nil {
+		t.Fatalf("get by unknown company: %v", err)
+	}
+	if len(other) != 0 {
+		t.Errorf("чужая компания вернула %d услуг", len(other))
+	}
+}
+
+func TestServicesGoAwayWithTheirCompany(t *testing.T) {
+	db := newTestDB(t)
+	companies := NewCompanyRepository(db)
+	services := NewServiceRepository(db)
+
+	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	serviceID, err := services.Create(models.Service{
+		CompanyID: int(companyID), Name: "Стрижка", Duration: 45,
+	})
+	if err != nil {
+		t.Fatalf("create service: %v", err)
+	}
+
+	if err := companies.DeleteCompanyById(int(companyID)); err != nil {
+		t.Fatalf("delete company: %v", err)
+	}
+
+	if _, err := services.GetServiceById(int(serviceID)); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("услуга пережила удаление компании: %v", err)
+	}
+}
