@@ -77,6 +77,14 @@ CREATE TABLE IF NOT EXISTS appointments (
 
 CREATE INDEX IF NOT EXISTS idx_appointments_employee ON appointments(employee_id, starts_at);
 CREATE INDEX IF NOT EXISTS idx_appointments_client ON appointments(client_id);
+
+CREATE TABLE IF NOT EXISTS employee_schedules (
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    weekday INTEGER NOT NULL,
+    starts_at TEXT NOT NULL,
+    ends_at TEXT NOT NULL,
+    PRIMARY KEY (employee_id, weekday)
+);
 `
 
 // Open connects to the database and checks that it answers — sql.Open alone

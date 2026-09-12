@@ -64,6 +64,13 @@ func main() {
 	)
 	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
 
+	schedulesRepo := repository.NewScheduleRepository(db)
+	schedulesServ := service.NewScheduleService(schedulesRepo, employeesRepo)
+	slotsServ := service.NewSlotsService(
+		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo,
+	)
+	schedulesHandlers := handlers.NewScheduleHandler(schedulesServ, slotsServ)
+
 	mux := http.NewServeMux()
 
 	// handlers
@@ -109,6 +116,11 @@ func main() {
 	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
 	mux.HandleFunc("PUT /appointments/{id}/status", appointmentsHandlers.SetStatus)
 	mux.HandleFunc("DELETE /appointments/{id}", appointmentsHandlers.DeleteAppointment)
+
+	//график работы и свободные слоты
+	mux.HandleFunc("PUT /employees/{id}/schedule", schedulesHandlers.SetEmployeeSchedule)
+	mux.HandleFunc("GET /employees/{id}/schedule", schedulesHandlers.GetEmployeeSchedule)
+	mux.HandleFunc("GET /slots", schedulesHandlers.GetFreeSlots)
 
 	port := os.Getenv("PORT")
 	if port == "" {
