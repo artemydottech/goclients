@@ -624,3 +624,62 @@ func TestMigrateAddsTimezoneToAnOldCompaniesTable(t *testing.T) {
 		t.Errorf("старой компании достался пояс %q, ожидался UTC", company.Timezone)
 	}
 }
+
+func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	base := models.Appointment{
+		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+		Status: models.AppointmentConfirmed,
+	}
+
+	own := base
+	own.StartsAt, own.EndsAt = startsAt, startsAt.Add(time.Hour)
+	ownID, err := repo.Create(own)
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	other := base
+	other.StartsAt, other.EndsAt = startsAt.Add(2*time.Hour), startsAt.Add(3*time.Hour)
+	if _, err := repo.Create(other); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	shifted := own
+	shifted.StartsAt, shifted.EndsAt = startsAt.Add(30*time.Minute), startsAt.Add(90*time.Minute)
+	busy, err := repo.MoveIfFree(int(ownID), shifted)
+	if err != nil {
+		t.Fatalf("move: %v", err)
+	}
+	if busy {
+		t.Fatal("сдвиг внутри собственного интервала посчитан конфликтом")
+	}
+
+	got, err := repo.GetAppointmentById(int(ownID))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if !got.StartsAt.Equal(shifted.StartsAt) {
+		t.Errorf("запись осталась на %v", got.StartsAt)
+	}
+
+	clash := own
+	clash.StartsAt, clash.EndsAt = startsAt.Add(150*time.Minute), startsAt.Add(210*time.Minute)
+	busy, err = repo.MoveIfFree(int(ownID), clash)
+	if err != nil {
+		t.Fatalf("move: %v", err)
+	}
+	if !busy {
+		t.Error("перенос на чужую запись должен отклоняться")
+	}
+
+	free := own
+	free.StartsAt, free.EndsAt = startsAt.Add(5*time.Hour), startsAt.Add(6*time.Hour)
+	if _, err := repo.MoveIfFree(9999, free); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("перенос несуществующей записи: %v", err)
+	}
+}

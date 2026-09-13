@@ -16,6 +16,7 @@ type AppointmentRepo interface {
 	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
 	CreateIfFree(a models.Appointment) (int64, bool, error)
+	MoveIfFree(id int, a models.Appointment) (bool, error)
 	UpdateStatus(id int, status models.AppointmentStatus) error
 	DeleteAppointmentById(id int) error
 }
@@ -63,52 +64,104 @@ func NewAppointmentService(
 // Book заводит запись. Конец интервала считается здесь: если бы его присылал
 // клиент, он мог бы занять мастера на пять минут вместо часа.
 func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
+	prepared, err := s.prepare(a)
+	if err != nil {
+		return 0, err
+	}
+
+	id, busy, err := s.repo.CreateIfFree(prepared)
+	if err != nil {
+		return 0, err
+	}
+	if busy {
+		return 0, models.Invalid("Это время у сотрудника уже занято!")
+	}
+
+	return id, nil
+}
+
+// Reschedule переносит запись на другое время и, если указан, к другому мастеру.
+// Перенос проходит те же проверки, что и новая запись: иначе через него можно
+// было бы обойти график или посадить клиента к мастеру без нужной услуги.
+func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
+	existing, err := s.repo.GetAppointmentById(id)
+	if err != nil {
+		return models.Appointment{}, err
+	}
+
+	if !existing.Status.Blocks() || existing.Status == models.AppointmentCompleted {
+		return models.Appointment{}, models.Invalid("Перенести можно только активную запись!")
+	}
+
+	candidate := existing
+	candidate.StartsAt = startsAt
+	if employeeID != 0 {
+		candidate.EmployeeID = employeeID
+	}
+
+	prepared, err := s.prepare(candidate)
+	if err != nil {
+		return models.Appointment{}, err
+	}
+
+	busy, err := s.repo.MoveIfFree(id, prepared)
+	if err != nil {
+		return models.Appointment{}, err
+	}
+	if busy {
+		return models.Appointment{}, models.Invalid("Это время у сотрудника уже занято!")
+	}
+
+	return prepared, nil
+}
+
+func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, error) {
 	if a.StartsAt.IsZero() {
-		return 0, models.Invalid("Не указано время записи!")
+		return a, models.Invalid("Не указано время записи!")
 	}
 
 	if !a.StartsAt.After(s.now()) {
-		return 0, models.Invalid("Записаться можно только на будущее время!")
+		return a, models.Invalid("Записаться можно только на будущее время!")
 	}
 
 	if utf8.RuneCountInString(a.Comment) > 1000 {
-		return 0, models.Invalid("Комментарий слишком длинный! Не превышайте 1000 символов")
+		return a, models.Invalid("Комментарий слишком длинный! Не превышайте 1000 символов")
 	}
 
 	client, err := s.clients.GetClientById(a.ClientID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, models.Invalid("Клиент %d не найден!", a.ClientID)
+		return a, models.Invalid("Клиент %d не найден!", a.ClientID)
 	}
 	if err != nil {
-		return 0, err
+		return a, err
 	}
 
 	employee, err := s.employees.GetEmployeeById(a.EmployeeID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, models.Invalid("Сотрудник %d не найден!", a.EmployeeID)
+		return a, models.Invalid("Сотрудник %d не найден!", a.EmployeeID)
 	}
 	if err != nil {
-		return 0, err
+		return a, err
 	}
 
 	item, err := s.services.GetServiceById(a.ServiceID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return 0, models.Invalid("Услуга %d не найдена!", a.ServiceID)
+		return a, models.Invalid("Услуга %d не найдена!", a.ServiceID)
 	}
 	if err != nil {
-		return 0, err
+		return a, err
 	}
 
 	if client.CompanyID != employee.CompanyID || item.CompanyID != employee.CompanyID {
-		return 0, models.Invalid("Клиент, сотрудник и услуга должны быть из одной компании!")
+		return a, models.Invalid("Клиент, сотрудник и услуга должны быть из одной компании!")
 	}
 
 	performs, err := s.assignments.EmployeePerformsService(a.EmployeeID, a.ServiceID)
 	if err != nil {
-		return 0, err
+		return a, err
 	}
 	if !performs {
-		return 0, models.Invalid("Сотрудник %d не оказывает услугу %d!", a.EmployeeID, a.ServiceID)
+		return a, models.Invalid("Сотрудник %d не оказывает услугу %d!", a.EmployeeID, a.ServiceID)
 	}
 
 	a.CompanyID = employee.CompanyID
@@ -119,12 +172,12 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 		a.Status = models.AppointmentPending
 	}
 	if !a.Status.Valid() {
-		return 0, models.Invalid("Неизвестный статус записи %s!", a.Status)
+		return a, models.Invalid("Неизвестный статус записи %s!", a.Status)
 	}
 
 	loc, err := companyLocation(s.companies, employee.CompanyID)
 	if err != nil {
-		return 0, err
+		return a, err
 	}
 
 	local := a.StartsAt.In(loc)
@@ -132,27 +185,19 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 
 	opens, closes, isWorkingDay, err := workingWindow(s.schedule, a.EmployeeID, day)
 	if err != nil {
-		return 0, err
+		return a, err
 	}
 	if !isWorkingDay {
-		return 0, models.Invalid("У сотрудника в этот день выходной!")
+		return a, models.Invalid("У сотрудника в этот день выходной!")
 	}
 	if a.StartsAt.Before(opens) || a.EndsAt.After(closes) {
-		return 0, models.Invalid(
+		return a, models.Invalid(
 			"Запись выходит за рабочее время сотрудника (%s–%s)!",
 			opens.Format("15:04"), closes.Format("15:04"),
 		)
 	}
 
-	id, busy, err := s.repo.CreateIfFree(a)
-	if err != nil {
-		return 0, err
-	}
-	if busy {
-		return 0, models.Invalid("Это время у сотрудника уже занято!")
-	}
-
-	return id, nil
+	return a, nil
 }
 
 func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {

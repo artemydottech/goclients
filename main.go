@@ -116,6 +116,7 @@ func main() {
 	mux.HandleFunc("GET /appointments", appointmentsHandlers.GetAllAppointments)
 	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
 	mux.HandleFunc("PUT /appointments/{id}/status", appointmentsHandlers.SetStatus)
+	mux.HandleFunc("PUT /appointments/{id}/time", appointmentsHandlers.Reschedule)
 	mux.HandleFunc("DELETE /appointments/{id}", appointmentsHandlers.DeleteAppointment)
 
 	//график работы и свободные слоты

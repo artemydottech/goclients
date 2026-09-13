@@ -19,6 +19,7 @@ type AppointmentServ interface {
 	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
 	SetStatus(id int, status models.AppointmentStatus) error
+	Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error)
 	DeleteAppointmentById(id int) error
 }
 
@@ -222,4 +223,41 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+type rescheduleInput struct {
+	StartsAt   time.Time `json:"starts_at"`
+	EmployeeID int       `json:"employee_id"`
+}
+
+func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		return
+	}
+
+	var input rescheduleInput
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	appointment, err := h.service.Reschedule(id, input.StartsAt, input.EmployeeID)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		return
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		http.Error(w, "Запись не найдена", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Printf("Reschedule: %v", err)
+		http.Error(w, "Ошибка переноса записи", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, appointment)
 }

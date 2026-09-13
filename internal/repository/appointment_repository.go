@@ -29,7 +29,7 @@ func (r *AppointmentRepository) CreateIfFree(a models.Appointment) (int64, bool,
 	}
 	defer tx.Rollback()
 
-	busy, err := hasOverlap(tx, a.EmployeeID, a.StartsAt, a.EndsAt)
+	busy, err := hasOverlap(tx, a.EmployeeID, a.StartsAt, a.EndsAt, 0)
 	if err != nil {
 		return 0, false, err
 	}
@@ -149,22 +149,59 @@ func (r *AppointmentRepository) GetAppointmentById(id int) (models.Appointment, 
 // HasOverlap ищет чужую запись, накрывающую интервал того же мастера.
 // Границы касаются, а не пересекаются: запись 10:00–11:00 не мешает 11:00–12:00.
 func (r *AppointmentRepository) HasOverlap(employeeID int, from, to time.Time) (bool, error) {
-	return hasOverlap(r.db, employeeID, from, to)
+	return hasOverlap(r.db, employeeID, from, to, 0)
+}
+
+// MoveIfFree переносит запись, если новое время свободно. Сама переносимая
+// запись в проверку не попадает — сдвиг на полчаса внутри своего же интервала
+// не конфликт.
+func (r *AppointmentRepository) MoveIfFree(id int, a models.Appointment) (bool, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+
+	busy, err := hasOverlap(tx, a.EmployeeID, a.StartsAt, a.EndsAt, id)
+	if err != nil {
+		return false, err
+	}
+	if busy {
+		return true, nil
+	}
+
+	res, err := tx.Exec(
+		"UPDATE appointments SET employee_id = ?, starts_at = ?, ends_at = ? WHERE id = ?",
+		a.EmployeeID, a.StartsAt.UTC().Format(timeLayout), a.EndsAt.UTC().Format(timeLayout), id,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if rows == 0 {
+		return false, sql.ErrNoRows
+	}
+
+	return false, tx.Commit()
 }
 
 type querier interface {
 	QueryRow(query string, args ...any) *sql.Row
 }
 
-func hasOverlap(q querier, employeeID int, from, to time.Time) (bool, error) {
+func hasOverlap(q querier, employeeID int, from, to time.Time, excludeID int) (bool, error) {
 	var exists int
 
 	err := q.QueryRow(`
         SELECT 1 FROM appointments
-        WHERE employee_id = ? AND status != ?
+        WHERE employee_id = ? AND status != ? AND id != ?
           AND starts_at < ? AND ends_at > ?
         LIMIT 1`,
-		employeeID, string(models.AppointmentCancelled),
+		employeeID, string(models.AppointmentCancelled), excludeID,
 		to.UTC().Format(timeLayout), from.UTC().Format(timeLayout),
 	).Scan(&exists)
 	if err == sql.ErrNoRows {

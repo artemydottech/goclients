@@ -10,9 +10,12 @@ import (
 )
 
 type stubAppointmentRepo struct {
-	created models.Appointment
-	calls   int
-	overlap bool
+	created  models.Appointment
+	calls    int
+	overlap  bool
+	existing *models.Appointment
+	moved    models.Appointment
+	moves    int
 }
 
 func (r *stubAppointmentRepo) Create(a models.Appointment) (int64, error) {
@@ -34,7 +37,19 @@ func (r *stubAppointmentRepo) GetAppointmentsByClient(int) ([]models.Appointment
 }
 
 func (r *stubAppointmentRepo) GetAppointmentById(int) (models.Appointment, error) {
-	return models.Appointment{}, nil
+	if r.existing == nil {
+		return models.Appointment{}, sql.ErrNoRows
+	}
+	return *r.existing, nil
+}
+
+func (r *stubAppointmentRepo) MoveIfFree(_ int, a models.Appointment) (bool, error) {
+	if r.overlap {
+		return true, nil
+	}
+	r.moves++
+	r.moved = a
+	return false, nil
 }
 
 func (r *stubAppointmentRepo) CreateIfFree(a models.Appointment) (int64, bool, error) {
@@ -370,5 +385,96 @@ func TestBookReadsWorkingHoursInTheCompanyTimezone(t *testing.T) {
 				t.Fatal("запись вне рабочего времени по местному поясу прошла")
 			}
 		})
+	}
+}
+
+func existingAppointment(status models.AppointmentStatus) *models.Appointment {
+	startsAt := slotsDate.Add(12 * time.Hour)
+	return &models.Appointment{
+		ID: 5, CompanyID: 10, ClientID: 1, EmployeeID: 2, ServiceID: 3,
+		StartsAt: startsAt, EndsAt: startsAt.Add(90 * time.Minute),
+		Status: status, Comment: "у окна",
+	}
+}
+
+func TestRescheduleMovesKeepingDurationAndDetails(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
+
+	newStart := slotsDate.Add(15 * time.Hour)
+	moved, err := newAppointmentService(repo).Reschedule(5, newStart, 0)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	if !moved.StartsAt.Equal(newStart) || moved.EndsAt.Sub(moved.StartsAt) != 90*time.Minute {
+		t.Errorf("перенесено на %v–%v", moved.StartsAt, moved.EndsAt)
+	}
+	if moved.Status != models.AppointmentConfirmed || moved.Comment != "у окна" || moved.ClientID != 1 {
+		t.Errorf("перенос потерял детали записи: %+v", moved)
+	}
+	if repo.moves != 1 {
+		t.Errorf("MoveIfFree вызван %d раз, ожидался 1", repo.moves)
+	}
+}
+
+func TestRescheduleRejectsInactiveAppointments(t *testing.T) {
+	for _, status := range []models.AppointmentStatus{models.AppointmentCancelled, models.AppointmentCompleted} {
+		t.Run(string(status), func(t *testing.T) {
+			repo := &stubAppointmentRepo{existing: existingAppointment(status)}
+
+			_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("ожидалась ValidationError, получено %v", err)
+			}
+			if repo.moves != 0 {
+				t.Error("неактивная запись не должна переноситься")
+			}
+		})
+	}
+}
+
+func TestRescheduleRunsTheBookingChecks(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentPending)}
+
+	_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(3*time.Hour), 0)
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("перенос на ночь должен отклоняться графиком, получено %v", err)
+	}
+	if repo.moves != 0 {
+		t.Error("перенос вне рабочего времени не должен сохраняться")
+	}
+}
+
+func TestRescheduleRejectsBusyTime(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentPending), overlap: true}
+
+	_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("ожидалась ValidationError, получено %v", err)
+	}
+}
+
+func TestRescheduleCanChangeTheMaster(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentPending)}
+
+	moved, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 2)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+	if moved.EmployeeID != 2 {
+		t.Errorf("employee_id %d, ожидался 2", moved.EmployeeID)
+	}
+}
+
+func TestRescheduleReportsMissingAppointment(t *testing.T) {
+	_, err := newAppointmentService(&stubAppointmentRepo{}).Reschedule(404, slotsDate.Add(15*time.Hour), 0)
+	if !errors.Is(err, sql.ErrNoRows) {
+		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
 	}
 }
