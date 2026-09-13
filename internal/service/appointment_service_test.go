@@ -37,8 +37,12 @@ func (r *stubAppointmentRepo) GetAppointmentById(int) (models.Appointment, error
 	return models.Appointment{}, nil
 }
 
-func (r *stubAppointmentRepo) HasOverlap(int, time.Time, time.Time) (bool, error) {
-	return r.overlap, nil
+func (r *stubAppointmentRepo) CreateIfFree(a models.Appointment) (int64, bool, error) {
+	if r.overlap {
+		return 0, true, nil
+	}
+	id, err := r.Create(a)
+	return id, false, err
 }
 
 func (r *stubAppointmentRepo) UpdateStatus(int, models.AppointmentStatus) error { return nil }

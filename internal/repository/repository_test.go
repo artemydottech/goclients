@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -519,5 +520,57 @@ func TestAppointmentsGoAwayWithTheClient(t *testing.T) {
 
 	if _, err := repo.GetAppointmentById(int(id)); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("запись пережила удаление клиента: %v", err)
+	}
+}
+
+func TestCreateIfFreeLetsOnlyOneConcurrentBookingThrough(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	booking := models.Appointment{
+		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentPending,
+	}
+
+	const attempts = 20
+
+	var (
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+		created int
+	)
+
+	for range attempts {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			_, busy, err := repo.CreateIfFree(booking)
+			if err != nil {
+				t.Errorf("create if free: %v", err)
+				return
+			}
+			if !busy {
+				mu.Lock()
+				created++
+				mu.Unlock()
+			}
+		}()
+	}
+
+	wg.Wait()
+
+	if created != 1 {
+		t.Fatalf("на один слот создано %d записей, ожидалась 1", created)
+	}
+
+	all, err := repo.GetAllAppointments()
+	if err != nil {
+		t.Fatalf("get all: %v", err)
+	}
+	if len(all) != 1 {
+		t.Errorf("в базе %d записей, ожидалась 1", len(all))
 	}
 }

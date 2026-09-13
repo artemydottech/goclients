@@ -15,7 +15,7 @@ type AppointmentRepo interface {
 	GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
-	HasOverlap(employeeID int, from, to time.Time) (bool, error)
+	CreateIfFree(a models.Appointment) (int64, bool, error)
 	UpdateStatus(id int, status models.AppointmentStatus) error
 	DeleteAppointmentById(id int) error
 }
@@ -116,7 +116,7 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 		return 0, models.Invalid("Неизвестный статус записи %s!", a.Status)
 	}
 
-	busy, err := s.repo.HasOverlap(a.EmployeeID, a.StartsAt, a.EndsAt)
+	id, busy, err := s.repo.CreateIfFree(a)
 	if err != nil {
 		return 0, err
 	}
@@ -124,7 +124,7 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 		return 0, models.Invalid("Это время у сотрудника уже занято!")
 	}
 
-	return s.repo.Create(a)
+	return id, nil
 }
 
 func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {

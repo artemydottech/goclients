@@ -19,8 +19,42 @@ func NewAppointmentRepository(db *sql.DB) *AppointmentRepository {
 	return &AppointmentRepository{db: db}
 }
 
+// CreateIfFree проверяет пересечение и вставляет запись в одной транзакции.
+// Раздельные HasOverlap и Create пропускали два параллельных запроса на один
+// слот: оба видели свободное время и оба вставляли.
+func (r *AppointmentRepository) CreateIfFree(a models.Appointment) (int64, bool, error) {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, false, err
+	}
+	defer tx.Rollback()
+
+	busy, err := hasOverlap(tx, a.EmployeeID, a.StartsAt, a.EndsAt)
+	if err != nil {
+		return 0, false, err
+	}
+	if busy {
+		return 0, true, nil
+	}
+
+	id, err := insertAppointment(tx, a)
+	if err != nil {
+		return 0, false, err
+	}
+
+	return id, false, tx.Commit()
+}
+
+type execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
 func (r *AppointmentRepository) Create(a models.Appointment) (int64, error) {
-	res, err := r.db.Exec(`
+	return insertAppointment(r.db, a)
+}
+
+func insertAppointment(e execer, a models.Appointment) (int64, error) {
+	res, err := e.Exec(`
         INSERT INTO appointments
             (company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -115,9 +149,17 @@ func (r *AppointmentRepository) GetAppointmentById(id int) (models.Appointment, 
 // HasOverlap ищет чужую запись, накрывающую интервал того же мастера.
 // Границы касаются, а не пересекаются: запись 10:00–11:00 не мешает 11:00–12:00.
 func (r *AppointmentRepository) HasOverlap(employeeID int, from, to time.Time) (bool, error) {
+	return hasOverlap(r.db, employeeID, from, to)
+}
+
+type querier interface {
+	QueryRow(query string, args ...any) *sql.Row
+}
+
+func hasOverlap(q querier, employeeID int, from, to time.Time) (bool, error) {
 	var exists int
 
-	err := r.db.QueryRow(`
+	err := q.QueryRow(`
         SELECT 1 FROM appointments
         WHERE employee_id = ? AND status != ?
           AND starts_at < ? AND ends_at > ?
