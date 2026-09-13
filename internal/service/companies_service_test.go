@@ -79,3 +79,25 @@ func TestCreateCompanyAcceptsKnownSocials(t *testing.T) {
 		t.Errorf("ожидался id 3, получен %d", id)
 	}
 }
+
+func TestCreateCompanyRejectsUnknownTimezone(t *testing.T) {
+	_, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(models.Company{
+		Name:     "Ромашка",
+		Timezone: "Mars/Olympus",
+	})
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("ожидалась ValidationError, получено %v", err)
+	}
+}
+
+func TestCreateCompanyAcceptsIANATimezone(t *testing.T) {
+	_, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(models.Company{
+		Name:     "Ромашка",
+		Timezone: "Asia/Yekaterinburg",
+	})
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+}

@@ -17,6 +17,16 @@ func (s stubSchedule) WorkingDay(int, int) (models.WorkingDay, bool, error) {
 	return s.day, s.working, nil
 }
 
+type stubCompanyLookup struct {
+	company models.Company
+}
+
+func (l stubCompanyLookup) GetCompanyById(int) (models.Company, error) {
+	return l.company, nil
+}
+
+var utcCompany = stubCompanyLookup{company: models.Company{ID: 10, Timezone: "UTC"}}
+
 type stubCalendar struct {
 	booked []models.Appointment
 }
@@ -36,6 +46,7 @@ func newSlotsService(schedule stubSchedule, calendar stubCalendar) *SlotsService
 		stubEmployeeLookup{employee: models.Employee{ID: 2, CompanyID: 10}},
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 60}}},
 		stubAssignments{performs: true},
+		utcCompany,
 	)
 	svc.now = func() time.Time { return slotsDate.AddDate(0, 0, -1) }
 
@@ -156,6 +167,7 @@ func TestFreeSlotsRejectMasterWhoDoesNotPerformTheService(t *testing.T) {
 		stubEmployeeLookup{employee: models.Employee{ID: 2, CompanyID: 10}},
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 60}}},
 		stubAssignments{performs: false},
+		utcCompany,
 	)
 
 	_, err := svc.FreeSlots(2, 3, slotsDate, 60)
@@ -178,5 +190,28 @@ func TestFreeSlotsFallBackToTheDefaultStep(t *testing.T) {
 	}
 	if slots[1].Format("15:04") != "10:15" {
 		t.Errorf("второй слот %s, ожидался 10:15", slots[1].Format("15:04"))
+	}
+}
+
+func TestFreeSlotsFollowTheCompanyTimezone(t *testing.T) {
+	svc := newSlotsService(workingDay("10:00", "12:00"), stubCalendar{})
+	svc.companies = stubCompanyLookup{company: models.Company{ID: 10, Timezone: "Asia/Yekaterinburg"}}
+
+	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	if len(slots) != 2 {
+		t.Fatalf("получено %d слотов, ожидалось 2: %v", len(slots), slots)
+	}
+
+	want := time.Date(2030, 3, 4, 5, 0, 0, 0, time.UTC)
+	if !slots[0].Equal(want) {
+		t.Errorf("первый слот %v, ожидалось 10:00 по Екатеринбургу = %v", slots[0], want)
+	}
+
+	if got := slots[0].Format("15:04 -07:00"); got != "10:00 +05:00" {
+		t.Errorf("слот отдан как %s, ожидалось местное время с поясом", got)
 	}
 }

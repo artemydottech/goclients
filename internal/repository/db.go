@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS companies (
     schedule TEXT,
     site TEXT,
     socials TEXT,
-    logo TEXT
+    logo TEXT,
+    timezone TEXT NOT NULL DEFAULT 'UTC'
 );
 
 CREATE TABLE IF NOT EXISTS employees (
@@ -120,18 +121,27 @@ func Migrate(db *sql.DB) error {
 	}
 
 	for _, column := range addedUserColumns {
-		exists, err := columnExists(db, "users", column)
-		if err != nil {
+		if err := addColumn(db, "users", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
 		}
-		if exists {
-			continue
-		}
+	}
 
-		statement := fmt.Sprintf("ALTER TABLE users ADD COLUMN %s TEXT NOT NULL DEFAULT ''", column)
-		if _, err := db.Exec(statement); err != nil {
-			return fmt.Errorf("adding users.%s: %w", column, err)
-		}
+	if err := addColumn(db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func addColumn(db *sql.DB, table, column, definition string) error {
+	exists, err := columnExists(db, table, column)
+	if err != nil || exists {
+		return err
+	}
+
+	statement := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", table, column, definition)
+	if _, err := db.Exec(statement); err != nil {
+		return fmt.Errorf("adding %s.%s: %w", table, column, err)
 	}
 
 	return nil

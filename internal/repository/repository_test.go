@@ -574,3 +574,53 @@ func TestCreateIfFreeLetsOnlyOneConcurrentBookingThrough(t *testing.T) {
 		t.Errorf("в базе %d записей, ожидалась 1", len(all))
 	}
 }
+
+func TestCompanyRepositoryKeepsTimezone(t *testing.T) {
+	repo := NewCompanyRepository(newTestDB(t))
+
+	id, err := repo.Create(models.Company{Name: "Ромашка", Timezone: "Asia/Yekaterinburg"})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	company, err := repo.GetCompanyById(int(id))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+
+	if company.Timezone != "Asia/Yekaterinburg" {
+		t.Errorf("timezone %q, ожидался Asia/Yekaterinburg", company.Timezone)
+	}
+}
+
+func TestMigrateAddsTimezoneToAnOldCompaniesTable(t *testing.T) {
+	db, err := Open(filepath.Join(t.TempDir(), "old.db"))
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+
+	if _, err := db.Exec(`CREATE TABLE companies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        address TEXT, geolocation TEXT, schedule TEXT, site TEXT, socials TEXT, logo TEXT
+    )`); err != nil {
+		t.Fatalf("old schema: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO companies (name, address, geolocation, schedule, site, socials, logo)
+        VALUES ('Старая', '', '', '', '', 'null', '')`); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	if err := Migrate(db); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	company, err := NewCompanyRepository(db).GetCompanyById(1)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if company.Timezone != "UTC" {
+		t.Errorf("старой компании достался пояс %q, ожидался UTC", company.Timezone)
+	}
+}

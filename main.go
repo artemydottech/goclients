@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/artemydottech/goclients/internal/handlers"
 	"github.com/artemydottech/goclients/internal/repository"
@@ -63,11 +64,11 @@ func main() {
 
 	appointmentsRepo := repository.NewAppointmentRepository(db)
 	appointmentsServ := service.NewAppointmentService(
-		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ,
+		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ, companiesRepo,
 	)
 	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
 	slotsServ := service.NewSlotsService(
-		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo,
+		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo, companiesRepo,
 	)
 	schedulesHandlers := handlers.NewScheduleHandler(schedulesServ, slotsServ)
 

@@ -35,6 +35,7 @@ type AppointmentService struct {
 	services    ServiceLookup
 	assignments Assignments
 	schedule    Schedule
+	companies   CompanyLookup
 	now         func() time.Time
 }
 
@@ -45,6 +46,7 @@ func NewAppointmentService(
 	services ServiceLookup,
 	assignments Assignments,
 	schedule Schedule,
+	companies CompanyLookup,
 ) *AppointmentService {
 	return &AppointmentService{
 		repo:        repo,
@@ -53,6 +55,7 @@ func NewAppointmentService(
 		services:    services,
 		assignments: assignments,
 		schedule:    schedule,
+		companies:   companies,
 		now:         time.Now,
 	}
 }
@@ -119,7 +122,13 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 		return 0, models.Invalid("Неизвестный статус записи %s!", a.Status)
 	}
 
-	day := time.Date(a.StartsAt.Year(), a.StartsAt.Month(), a.StartsAt.Day(), 0, 0, 0, 0, time.UTC)
+	loc, err := companyLocation(s.companies, employee.CompanyID)
+	if err != nil {
+		return 0, err
+	}
+
+	local := a.StartsAt.In(loc)
+	day := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
 
 	opens, closes, isWorkingDay, err := workingWindow(s.schedule, a.EmployeeID, day)
 	if err != nil {

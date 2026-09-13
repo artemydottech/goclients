@@ -22,8 +22,8 @@ func (r *CompanyRepository) Create(c models.Company) (int64, error) {
 	}
 
 	res, err := r.db.Exec(
-		"INSERT INTO companies (name, address, geolocation, schedule, site, socials, logo) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		c.Name, c.Address, c.Geolocation, c.Schedule, c.Site, string(socialJSON), c.Logo,
+		"INSERT INTO companies (name, address, geolocation, schedule, site, socials, logo, timezone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		c.Name, c.Address, c.Geolocation, c.Schedule, c.Site, string(socialJSON), c.Logo, c.Timezone,
 	)
 	if err != nil {
 		return 0, err
@@ -34,7 +34,7 @@ func (r *CompanyRepository) Create(c models.Company) (int64, error) {
 
 func (r *CompanyRepository) GetAllCompanies() ([]models.Company, error) {
 	rows, err := r.db.Query(`
-        SELECT id, name, address, geolocation, schedule, site, socials, logo 
+        SELECT id, name, address, geolocation, schedule, site, socials, logo, timezone
         FROM companies`)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (r *CompanyRepository) GetAllCompanies() ([]models.Company, error) {
 		var socialJSON sql.NullString
 
 		err := rows.Scan(&c.ID, &c.Name, &c.Address, &c.Geolocation,
-			&c.Schedule, &c.Site, &socialJSON, &c.Logo)
+			&c.Schedule, &c.Site, &socialJSON, &c.Logo, &c.Timezone)
 		if err != nil {
 			return nil, err
 		}
@@ -71,10 +71,10 @@ func (r *CompanyRepository) GetCompanyById(id int) (models.Company, error) {
 	var socialJSON sql.NullString
 
 	err := r.db.QueryRow(`
-        SELECT id, name, address, geolocation, schedule, site, socials, logo 
+        SELECT id, name, address, geolocation, schedule, site, socials, logo, timezone
         FROM companies WHERE id = ?`, id).
 		Scan(&c.ID, &c.Name, &c.Address, &c.Geolocation,
-			&c.Schedule, &c.Site, &socialJSON, &c.Logo)
+			&c.Schedule, &c.Site, &socialJSON, &c.Logo, &c.Timezone)
 	if err != nil {
 		return models.Company{}, err
 	}

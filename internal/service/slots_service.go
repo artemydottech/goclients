@@ -26,7 +26,12 @@ type SlotsService struct {
 	employees   EmployeeLookup
 	services    ServiceLookup
 	assignments Assignments
+	companies   CompanyLookup
 	now         func() time.Time
+}
+
+type CompanyLookup interface {
+	GetCompanyById(id int) (models.Company, error)
 }
 
 func NewSlotsService(
@@ -35,6 +40,7 @@ func NewSlotsService(
 	employees EmployeeLookup,
 	services ServiceLookup,
 	assignments Assignments,
+	companies CompanyLookup,
 ) *SlotsService {
 	return &SlotsService{
 		schedule:    schedule,
@@ -42,20 +48,23 @@ func NewSlotsService(
 		employees:   employees,
 		services:    services,
 		assignments: assignments,
+		companies:   companies,
 		now:         time.Now,
 	}
 }
 
 // FreeSlots перечисляет время, на которое можно записаться к мастеру в
-// указанный день. Дата приходит без зоны, поэтому день считается в UTC.
+// указанный день. Дата приходит без зоны и понимается в поясе компании.
 func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
 	if step <= 0 {
 		step = defaultSlotStep
 	}
 
-	if _, err := s.employees.GetEmployeeById(employeeID); errors.Is(err, sql.ErrNoRows) {
+	employee, err := s.employees.GetEmployeeById(employeeID)
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, models.Invalid("Сотрудник %d не найден!", employeeID)
-	} else if err != nil {
+	}
+	if err != nil {
 		return nil, err
 	}
 
@@ -75,7 +84,12 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, models.Invalid("Сотрудник %d не оказывает услугу %d!", employeeID, serviceID)
 	}
 
-	day := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
+	loc, err := companyLocation(s.companies, employee.CompanyID)
+	if err != nil {
+		return nil, err
+	}
+
+	day := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, loc)
 
 	opens, closes, isWorkingDay, err := workingWindow(s.schedule, employeeID, day)
 	if err != nil {
@@ -91,7 +105,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 	}
 
 	duration := time.Duration(item.Duration) * time.Minute
-	now := s.now().UTC()
+	now := s.now()
 	slots := []time.Time{}
 
 	stepDuration := time.Duration(step) * time.Minute
@@ -141,8 +155,17 @@ func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time,
 		return time.Time{}, time.Time{}, false, err
 	}
 
-	opens := day.Add(time.Duration(startMinute) * time.Minute)
-	closes := day.Add(time.Duration(endMinute) * time.Minute)
+	opens := time.Date(day.Year(), day.Month(), day.Day(), 0, startMinute, 0, 0, day.Location())
+	closes := time.Date(day.Year(), day.Month(), day.Day(), 0, endMinute, 0, 0, day.Location())
 
 	return opens, closes, true, nil
+}
+
+func companyLocation(companies CompanyLookup, companyID int) (*time.Location, error) {
+	company, err := companies.GetCompanyById(companyID)
+	if err != nil {
+		return nil, err
+	}
+
+	return company.Location()
 }

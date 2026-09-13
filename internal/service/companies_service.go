@@ -46,6 +46,13 @@ func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 		return 0, err
 	}
 
+	if c.Timezone == "" {
+		c.Timezone = "UTC"
+	}
+	if _, err := c.Location(); err != nil {
+		return 0, models.Invalid("Неизвестный часовой пояс %s! Нужно имя из базы IANA, например Asia/Yekaterinburg", c.Timezone)
+	}
+
 	id, err := s.repo.Create(c)
 	if err != nil {
 		return 0, err

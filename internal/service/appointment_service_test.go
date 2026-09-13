@@ -76,6 +76,7 @@ func newAppointmentService(repo *stubAppointmentRepo, opts ...func(*AppointmentS
 		}},
 		stubAssignments{performs: true},
 		workingDay("10:00", "20:00"),
+		utcCompany,
 	)
 	svc.now = func() time.Time { return slotsDate.AddDate(0, 0, -1) }
 
@@ -191,6 +192,7 @@ func TestBookRejectsEmployeeWhoDoesNotPerformTheService(t *testing.T) {
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: false},
 		workingDay("10:00", "20:00"),
+		utcCompany,
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -211,6 +213,7 @@ func TestBookRejectsCrossCompanyParts(t *testing.T) {
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: true},
 		workingDay("10:00", "20:00"),
+		utcCompany,
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -235,6 +238,7 @@ func TestBookReportsMissingClient(t *testing.T) {
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: true},
 		workingDay("10:00", "20:00"),
+		utcCompany,
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -335,5 +339,36 @@ func TestBookRejectsDayOff(t *testing.T) {
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
 		t.Fatalf("ожидалась ValidationError, получено %v", err)
+	}
+}
+
+func TestBookReadsWorkingHoursInTheCompanyTimezone(t *testing.T) {
+	cases := map[string]struct {
+		startsAt time.Time
+		ok       bool
+	}{
+		"10:00 по Екатеринбургу":               {slotsDate.Add(5 * time.Hour), true},
+		"20:30 по Екатеринбургу, 15:30 по UTC": {slotsDate.Add(15*time.Hour + 30*time.Minute), false},
+		"09:00 по Екатеринбургу":               {slotsDate.Add(4 * time.Hour), false},
+	}
+
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := &stubAppointmentRepo{}
+			svc := newAppointmentService(repo, func(s *AppointmentService) {
+				s.companies = stubCompanyLookup{company: models.Company{ID: 10, Timezone: "Asia/Yekaterinburg"}}
+			})
+
+			booking := futureBooking()
+			booking.StartsAt = tc.startsAt
+
+			_, err := svc.Book(booking)
+			if tc.ok && err != nil {
+				t.Fatalf("запись должна пройти, получено %v", err)
+			}
+			if !tc.ok && err == nil {
+				t.Fatal("запись вне рабочего времени по местному поясу прошла")
+			}
+		})
 	}
 }

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Company struct {
 	ID          int     `json:"id"`
 	Name        string  `json:"name"`
@@ -9,6 +11,17 @@ type Company struct {
 	Logo        string  `json:"logo"`
 	Site        string  `json:"site"`
 	Socials     Socials `json:"socials,omitempty"`
+	Timezone    string  `json:"timezone"`
+}
+
+// Location — пояс, в котором написан график: «10:00» у салона в Екатеринбурге
+// и в Калининграде — разные моменты времени.
+func (c Company) Location() (*time.Location, error) {
+	if c.Timezone == "" {
+		return time.UTC, nil
+	}
+
+	return time.LoadLocation(c.Timezone)
 }
 
 func (s Socials) Validate() error {
