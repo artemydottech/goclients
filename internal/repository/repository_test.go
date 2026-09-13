@@ -731,3 +731,26 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 		t.Errorf("повторное удаление: %v", err)
 	}
 }
+
+func TestScheduleRepositoryKeepsTheBreak(t *testing.T) {
+	db := newTestDB(t)
+	_, employeeID, _, _ := bookingFixture(t, db)
+	repo := NewScheduleRepository(db)
+
+	want := models.WorkingDay{
+		EmployeeID: employeeID, Weekday: 2, StartsAt: "10:00", EndsAt: "20:00",
+		BreakStartsAt: "13:00", BreakEndsAt: "14:00",
+	}
+
+	if err := repo.SetEmployeeSchedule(employeeID, []models.WorkingDay{want}); err != nil {
+		t.Fatalf("set: %v", err)
+	}
+
+	got, err := repo.GetWorkingDay(employeeID, 2)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got != want {
+		t.Errorf("got %+v, want %+v", got, want)
+	}
+}

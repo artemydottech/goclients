@@ -503,3 +503,31 @@ func TestBookRejectsTimeOff(t *testing.T) {
 		t.Error("запись на время отгула не должна сохраняться")
 	}
 }
+
+func TestBookRejectsTheBreak(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.schedule = workingDayWithBreak("10:00", "20:00", "13:00", "14:00")
+	})
+
+	_, err := svc.Book(futureBooking())
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("90 минут с 12:00 задевают перерыв 13:00–14:00, получено %v", err)
+	}
+	if repo.calls != 0 {
+		t.Error("запись на перерыв не должна сохраняться")
+	}
+}
+
+func TestBookAroundTheBreak(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.schedule = workingDayWithBreak("10:00", "20:00", "13:30", "14:00")
+	})
+
+	if _, err := svc.Book(futureBooking()); err != nil {
+		t.Fatalf("12:00–13:30 заканчивается ровно к перерыву, получено %v", err)
+	}
+}

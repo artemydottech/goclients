@@ -28,15 +28,18 @@ func (r *ScheduleRepository) SetEmployeeSchedule(employeeID int, days []models.W
 	}
 
 	statement, err := tx.Prepare(`
-        INSERT INTO employee_schedules (employee_id, weekday, starts_at, ends_at)
-        VALUES (?, ?, ?, ?)`)
+        INSERT INTO employee_schedules
+            (employee_id, weekday, starts_at, ends_at, break_starts_at, break_ends_at)
+        VALUES (?, ?, ?, ?, ?, ?)`)
 	if err != nil {
 		return err
 	}
 	defer statement.Close()
 
 	for _, day := range days {
-		if _, err := statement.Exec(employeeID, day.Weekday, day.StartsAt, day.EndsAt); err != nil {
+		if _, err := statement.Exec(
+			employeeID, day.Weekday, day.StartsAt, day.EndsAt, day.BreakStartsAt, day.BreakEndsAt,
+		); err != nil {
 			return err
 		}
 	}
@@ -46,7 +49,7 @@ func (r *ScheduleRepository) SetEmployeeSchedule(employeeID int, days []models.W
 
 func (r *ScheduleRepository) GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error) {
 	rows, err := r.db.Query(`
-        SELECT employee_id, weekday, starts_at, ends_at
+        SELECT employee_id, weekday, starts_at, ends_at, break_starts_at, break_ends_at
         FROM employee_schedules WHERE employee_id = ? ORDER BY weekday`, employeeID)
 	if err != nil {
 		return nil, err
@@ -56,7 +59,9 @@ func (r *ScheduleRepository) GetEmployeeSchedule(employeeID int) ([]models.Worki
 	days := []models.WorkingDay{}
 	for rows.Next() {
 		var day models.WorkingDay
-		if err := rows.Scan(&day.EmployeeID, &day.Weekday, &day.StartsAt, &day.EndsAt); err != nil {
+		if err := rows.Scan(
+			&day.EmployeeID, &day.Weekday, &day.StartsAt, &day.EndsAt, &day.BreakStartsAt, &day.BreakEndsAt,
+		); err != nil {
 			return nil, err
 		}
 		days = append(days, day)
@@ -69,9 +74,9 @@ func (r *ScheduleRepository) GetWorkingDay(employeeID, weekday int) (models.Work
 	var day models.WorkingDay
 
 	err := r.db.QueryRow(`
-        SELECT employee_id, weekday, starts_at, ends_at
+        SELECT employee_id, weekday, starts_at, ends_at, break_starts_at, break_ends_at
         FROM employee_schedules WHERE employee_id = ? AND weekday = ?`, employeeID, weekday).
-		Scan(&day.EmployeeID, &day.Weekday, &day.StartsAt, &day.EndsAt)
+		Scan(&day.EmployeeID, &day.Weekday, &day.StartsAt, &day.EndsAt, &day.BreakStartsAt, &day.BreakEndsAt)
 	if err != nil {
 		return models.WorkingDay{}, err
 	}

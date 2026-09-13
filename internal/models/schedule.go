@@ -15,6 +15,13 @@ type WorkingDay struct {
 	Weekday    int    `json:"weekday"`
 	StartsAt   string `json:"starts_at"`
 	EndsAt     string `json:"ends_at"`
+
+	BreakStartsAt string `json:"break_starts_at,omitempty"`
+	BreakEndsAt   string `json:"break_ends_at,omitempty"`
+}
+
+func (d WorkingDay) HasBreak() bool {
+	return d.BreakStartsAt != "" || d.BreakEndsAt != ""
 }
 
 // ParseDayTime переводит «10:30» в минуты от полуночи.
@@ -62,6 +69,32 @@ func (d WorkingDay) Validate() error {
 
 	if end > minutesInDay {
 		return Invalid("Рабочий день не может выходить за сутки!")
+	}
+
+	if !d.HasBreak() {
+		return nil
+	}
+
+	if d.BreakStartsAt == "" || d.BreakEndsAt == "" {
+		return Invalid("У перерыва должны быть и начало, и конец!")
+	}
+
+	breakStart, err := ParseDayTime(d.BreakStartsAt)
+	if err != nil {
+		return Invalid("Начало перерыва: %v", err)
+	}
+
+	breakEnd, err := ParseDayTime(d.BreakEndsAt)
+	if err != nil {
+		return Invalid("Конец перерыва: %v", err)
+	}
+
+	if breakEnd <= breakStart {
+		return Invalid("Конец перерыва должен быть позже начала!")
+	}
+
+	if breakStart < start || breakEnd > end {
+		return Invalid("Перерыв должен лежать внутри рабочего дня!")
 	}
 
 	return nil

@@ -94,7 +94,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 
 	day := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, loc)
 
-	opens, closes, isWorkingDay, err := workingWindow(s.schedule, employeeID, day)
+	opens, closes, breaks, isWorkingDay, err := workingWindow(s.schedule, employeeID, day)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +111,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 	if err != nil {
 		return nil, err
 	}
+	absences = append(absences, breaks...)
 
 	duration := time.Duration(item.Duration) * time.Minute
 	now := s.now()
@@ -148,26 +149,49 @@ func overlapsAny(from, to time.Time, booked []models.Appointment) bool {
 
 // workingWindow переводит рабочий день мастера из графика в моменты времени
 // для конкретной даты. day — полночь нужного дня.
-func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, bool, error) {
+// Перерыв возвращается интервалом того же вида, что и отпуск: для слотов и
+// записи это одно и то же — время, когда мастер не принимает.
+func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, []models.TimeOff, bool, error) {
 	working, isWorkingDay, err := schedule.WorkingDay(employeeID, int(day.Weekday()))
 	if err != nil || !isWorkingDay {
-		return time.Time{}, time.Time{}, false, err
+		return time.Time{}, time.Time{}, nil, false, err
 	}
 
-	startMinute, err := models.ParseDayTime(working.StartsAt)
+	atMinute := func(value string) (time.Time, error) {
+		minute, err := models.ParseDayTime(value)
+		if err != nil {
+			return time.Time{}, err
+		}
+		return time.Date(day.Year(), day.Month(), day.Day(), 0, minute, 0, 0, day.Location()), nil
+	}
+
+	opens, err := atMinute(working.StartsAt)
 	if err != nil {
-		return time.Time{}, time.Time{}, false, err
+		return time.Time{}, time.Time{}, nil, false, err
 	}
 
-	endMinute, err := models.ParseDayTime(working.EndsAt)
+	closes, err := atMinute(working.EndsAt)
 	if err != nil {
-		return time.Time{}, time.Time{}, false, err
+		return time.Time{}, time.Time{}, nil, false, err
 	}
 
-	opens := time.Date(day.Year(), day.Month(), day.Day(), 0, startMinute, 0, 0, day.Location())
-	closes := time.Date(day.Year(), day.Month(), day.Day(), 0, endMinute, 0, 0, day.Location())
+	if !working.HasBreak() {
+		return opens, closes, nil, true, nil
+	}
 
-	return opens, closes, true, nil
+	breakStarts, err := atMinute(working.BreakStartsAt)
+	if err != nil {
+		return time.Time{}, time.Time{}, nil, false, err
+	}
+
+	breakEnds, err := atMinute(working.BreakEndsAt)
+	if err != nil {
+		return time.Time{}, time.Time{}, nil, false, err
+	}
+
+	breaks := []models.TimeOff{{EmployeeID: employeeID, StartsAt: breakStarts, EndsAt: breakEnds, Reason: "перерыв"}}
+
+	return opens, closes, breaks, true, nil
 }
 
 func companyLocation(companies CompanyLookup, companyID int) (*time.Location, error) {

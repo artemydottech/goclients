@@ -84,6 +84,8 @@ CREATE TABLE IF NOT EXISTS employee_schedules (
     weekday INTEGER NOT NULL,
     starts_at TEXT NOT NULL,
     ends_at TEXT NOT NULL,
+    break_starts_at TEXT NOT NULL DEFAULT '',
+    break_ends_at TEXT NOT NULL DEFAULT '',
     PRIMARY KEY (employee_id, weekday)
 );
 
@@ -138,6 +140,12 @@ func Migrate(db *sql.DB) error {
 
 	if err := addColumn(db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
 		return err
+	}
+
+	for _, column := range []string{"break_starts_at", "break_ends_at"} {
+		if err := addColumn(db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
+			return err
+		}
 	}
 
 	return nil

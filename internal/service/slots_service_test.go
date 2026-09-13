@@ -273,3 +273,48 @@ func TestFreeSlotsAreEmptyDuringVacation(t *testing.T) {
 		t.Errorf("в отпуске слотов быть не должно, получено %v", slots)
 	}
 }
+
+func workingDayWithBreak(from, to, breakFrom, breakTo string) stubSchedule {
+	schedule := workingDay(from, to)
+	schedule.day.BreakStartsAt = breakFrom
+	schedule.day.BreakEndsAt = breakTo
+	return schedule
+}
+
+func TestFreeSlotsSkipTheBreak(t *testing.T) {
+	slots, err := newSlotsService(workingDayWithBreak("10:00", "14:00", "12:00", "13:00"), stubCalendar{}).
+		FreeSlots(2, 3, slotsDate, 60)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	got := make([]string, 0, len(slots))
+	for _, slot := range slots {
+		got = append(got, slot.Format("15:04"))
+	}
+
+	want := []string{"10:00", "11:00", "13:00"}
+	if len(got) != len(want) {
+		t.Fatalf("слоты %v, ожидались %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("слоты %v, ожидались %v", got, want)
+			break
+		}
+	}
+}
+
+func TestFreeSlotsDoNotStraddleTheBreak(t *testing.T) {
+	slots, err := newSlotsService(workingDayWithBreak("10:00", "14:00", "12:00", "13:00"), stubCalendar{}).
+		FreeSlots(2, 3, slotsDate, 30)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	for _, slot := range slots {
+		if slot.Format("15:04") == "11:30" {
+			t.Fatalf("часовая услуга с 11:30 залезает на перерыв: %v", slots)
+		}
+	}
+}

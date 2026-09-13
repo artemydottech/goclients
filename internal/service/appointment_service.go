@@ -186,7 +186,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	local := a.StartsAt.In(loc)
 	day := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
 
-	opens, closes, isWorkingDay, err := workingWindow(s.schedule, a.EmployeeID, day)
+	opens, closes, breaks, isWorkingDay, err := workingWindow(s.schedule, a.EmployeeID, day)
 	if err != nil {
 		return a, err
 	}
@@ -197,6 +197,13 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid(
 			"Запись выходит за рабочее время сотрудника (%s–%s)!",
 			opens.Format("15:04"), closes.Format("15:04"),
+		)
+	}
+
+	if overlapsTimeOff(a.StartsAt, a.EndsAt, breaks) {
+		return a, models.Invalid(
+			"Запись попадает на перерыв сотрудника (%s–%s)!",
+			breaks[0].StartsAt.Format("15:04"), breaks[0].EndsAt.Format("15:04"),
 		)
 	}
 

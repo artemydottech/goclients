@@ -88,3 +88,48 @@ func TestParseAndFormatDayTimeRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+func TestSetEmployeeScheduleBreakValidation(t *testing.T) {
+	day := func(breakFrom, breakTo string) []models.WorkingDay {
+		return []models.WorkingDay{{
+			Weekday: 1, StartsAt: "10:00", EndsAt: "20:00",
+			BreakStartsAt: breakFrom, BreakEndsAt: breakTo,
+		}}
+	}
+
+	cases := map[string][]models.WorkingDay{
+		"только начало":           day("13:00", ""),
+		"только конец":            day("", "14:00"),
+		"конец раньше начала":     day("14:00", "13:00"),
+		"начинается до открытия":  day("09:00", "11:00"),
+		"заканчивается после дня": day("19:30", "20:30"),
+		"кривой формат":           day("13-00", "14:00"),
+	}
+
+	for name, days := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := &stubScheduleRepo{}
+
+			err := newScheduleService(repo).SetEmployeeSchedule(1, days)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("ожидалась ValidationError, получено %v", err)
+			}
+			if repo.called {
+				t.Error("график не должен сохраняться при невалидном перерыве")
+			}
+		})
+	}
+}
+
+func TestSetEmployeeScheduleAcceptsBreakOnTheEdges(t *testing.T) {
+	days := []models.WorkingDay{{
+		Weekday: 1, StartsAt: "10:00", EndsAt: "20:00",
+		BreakStartsAt: "10:00", BreakEndsAt: "11:00",
+	}}
+
+	if err := newScheduleService(&stubScheduleRepo{}).SetEmployeeSchedule(1, days); err != nil {
+		t.Fatalf("перерыв с самого открытия допустим, получено %v", err)
+	}
+}
