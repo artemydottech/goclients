@@ -77,22 +77,12 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 
 	day := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, time.UTC)
 
-	working, isWorkingDay, err := s.schedule.WorkingDay(employeeID, int(day.Weekday()))
+	opens, closes, isWorkingDay, err := workingWindow(s.schedule, employeeID, day)
 	if err != nil {
 		return nil, err
 	}
 	if !isWorkingDay {
 		return []time.Time{}, nil
-	}
-
-	startMinute, err := models.ParseDayTime(working.StartsAt)
-	if err != nil {
-		return nil, err
-	}
-
-	endMinute, err := models.ParseDayTime(working.EndsAt)
-	if err != nil {
-		return nil, err
 	}
 
 	booked, err := s.calendar.GetAppointmentsByEmployee(employeeID, day, day.AddDate(0, 0, 1))
@@ -104,8 +94,9 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 	now := s.now().UTC()
 	slots := []time.Time{}
 
-	for minute := startMinute; minute+item.Duration <= endMinute; minute += step {
-		start := day.Add(time.Duration(minute) * time.Minute)
+	stepDuration := time.Duration(step) * time.Minute
+
+	for start := opens; !start.Add(duration).After(closes); start = start.Add(stepDuration) {
 		if !start.After(now) {
 			continue
 		}
@@ -130,4 +121,28 @@ func overlapsAny(from, to time.Time, booked []models.Appointment) bool {
 	}
 
 	return false
+}
+
+// workingWindow переводит рабочий день мастера из графика в моменты времени
+// для конкретной даты. day — полночь нужного дня.
+func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, bool, error) {
+	working, isWorkingDay, err := schedule.WorkingDay(employeeID, int(day.Weekday()))
+	if err != nil || !isWorkingDay {
+		return time.Time{}, time.Time{}, false, err
+	}
+
+	startMinute, err := models.ParseDayTime(working.StartsAt)
+	if err != nil {
+		return time.Time{}, time.Time{}, false, err
+	}
+
+	endMinute, err := models.ParseDayTime(working.EndsAt)
+	if err != nil {
+		return time.Time{}, time.Time{}, false, err
+	}
+
+	opens := day.Add(time.Duration(startMinute) * time.Minute)
+	closes := day.Add(time.Duration(endMinute) * time.Minute)
+
+	return opens, closes, true, nil
 }

@@ -75,7 +75,9 @@ func newAppointmentService(repo *stubAppointmentRepo, opts ...func(*AppointmentS
 			3: {ID: 3, CompanyID: 10, Duration: 90},
 		}},
 		stubAssignments{performs: true},
+		workingDay("10:00", "20:00"),
 	)
+	svc.now = func() time.Time { return slotsDate.AddDate(0, 0, -1) }
 
 	for _, opt := range opts {
 		opt(svc)
@@ -89,7 +91,7 @@ func futureBooking() models.Appointment {
 		ClientID:   1,
 		EmployeeID: 2,
 		ServiceID:  3,
-		StartsAt:   time.Now().Add(24 * time.Hour),
+		StartsAt:   slotsDate.Add(12 * time.Hour),
 	}
 }
 
@@ -188,6 +190,7 @@ func TestBookRejectsEmployeeWhoDoesNotPerformTheService(t *testing.T) {
 		stubEmployeeLookup{employee: models.Employee{ID: 2, CompanyID: 10}},
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: false},
+		workingDay("10:00", "20:00"),
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -207,6 +210,7 @@ func TestBookRejectsCrossCompanyParts(t *testing.T) {
 		stubEmployeeLookup{employee: models.Employee{ID: 2, CompanyID: 10}},
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: true},
+		workingDay("10:00", "20:00"),
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -230,6 +234,7 @@ func TestBookReportsMissingClient(t *testing.T) {
 		stubEmployeeLookup{employee: models.Employee{ID: 2, CompanyID: 10}},
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: true},
+		workingDay("10:00", "20:00"),
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -276,5 +281,59 @@ func TestCancelledAppointmentsDoNotBlockTheSlot(t *testing.T) {
 		if !status.Blocks() {
 			t.Errorf("статус %q должен занимать время мастера", status)
 		}
+	}
+}
+
+func TestBookRejectsTimeOutsideWorkingHours(t *testing.T) {
+	cases := map[string]time.Time{
+		"до открытия":             slotsDate.Add(9 * time.Hour),
+		"не успевает до закрытия": slotsDate.Add(19*time.Hour + 30*time.Minute),
+		"ночью": slotsDate.Add(3 * time.Hour),
+	}
+
+	for name, startsAt := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := &stubAppointmentRepo{}
+
+			booking := futureBooking()
+			booking.StartsAt = startsAt
+
+			_, err := newAppointmentService(repo).Book(booking)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("ожидалась ValidationError, получено %v", err)
+			}
+
+			if repo.calls != 0 {
+				t.Error("запись вне рабочего времени не должна сохраняться")
+			}
+		})
+	}
+}
+
+func TestBookAcceptsTheLastSlotThatFits(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+
+	booking := futureBooking()
+	booking.StartsAt = slotsDate.Add(18*time.Hour + 30*time.Minute)
+
+	if _, err := newAppointmentService(repo).Book(booking); err != nil {
+		t.Fatalf("90-минутная услуга в 18:30 заканчивается ровно в 20:00, получено %v", err)
+	}
+}
+
+func TestBookRejectsDayOff(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.schedule = stubSchedule{working: false}
+	})
+
+	_, err := svc.Book(futureBooking())
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("ожидалась ValidationError, получено %v", err)
 	}
 }

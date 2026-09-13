@@ -58,14 +58,14 @@ func main() {
 	clientsServ := service.NewClientService(clientsRepo)
 	clientsHandlers := handlers.NewClientHandler(clientsServ)
 
-	appointmentsRepo := repository.NewAppointmentRepository(db)
-	appointmentsServ := service.NewAppointmentService(
-		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo,
-	)
-	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
-
 	schedulesRepo := repository.NewScheduleRepository(db)
 	schedulesServ := service.NewScheduleService(schedulesRepo, employeesRepo)
+
+	appointmentsRepo := repository.NewAppointmentRepository(db)
+	appointmentsServ := service.NewAppointmentService(
+		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ,
+	)
+	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
 	slotsServ := service.NewSlotsService(
 		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo,
 	)

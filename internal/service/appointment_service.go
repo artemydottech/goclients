@@ -34,6 +34,7 @@ type AppointmentService struct {
 	employees   EmployeeLookup
 	services    ServiceLookup
 	assignments Assignments
+	schedule    Schedule
 	now         func() time.Time
 }
 
@@ -43,6 +44,7 @@ func NewAppointmentService(
 	employees EmployeeLookup,
 	services ServiceLookup,
 	assignments Assignments,
+	schedule Schedule,
 ) *AppointmentService {
 	return &AppointmentService{
 		repo:        repo,
@@ -50,6 +52,7 @@ func NewAppointmentService(
 		employees:   employees,
 		services:    services,
 		assignments: assignments,
+		schedule:    schedule,
 		now:         time.Now,
 	}
 }
@@ -114,6 +117,22 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 	}
 	if !a.Status.Valid() {
 		return 0, models.Invalid("Неизвестный статус записи %s!", a.Status)
+	}
+
+	day := time.Date(a.StartsAt.Year(), a.StartsAt.Month(), a.StartsAt.Day(), 0, 0, 0, 0, time.UTC)
+
+	opens, closes, isWorkingDay, err := workingWindow(s.schedule, a.EmployeeID, day)
+	if err != nil {
+		return 0, err
+	}
+	if !isWorkingDay {
+		return 0, models.Invalid("У сотрудника в этот день выходной!")
+	}
+	if a.StartsAt.Before(opens) || a.EndsAt.After(closes) {
+		return 0, models.Invalid(
+			"Запись выходит за рабочее время сотрудника (%s–%s)!",
+			opens.Format("15:04"), closes.Format("15:04"),
+		)
 	}
 
 	id, busy, err := s.repo.CreateIfFree(a)
