@@ -86,6 +86,16 @@ CREATE TABLE IF NOT EXISTS employee_schedules (
     ends_at TEXT NOT NULL,
     PRIMARY KEY (employee_id, weekday)
 );
+
+CREATE TABLE IF NOT EXISTS employee_time_off (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    starts_at TEXT NOT NULL,
+    ends_at TEXT NOT NULL,
+    reason TEXT NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS idx_time_off_employee ON employee_time_off(employee_id, starts_at);
 `
 
 // Open connects to the database and checks that it answers — sql.Open alone

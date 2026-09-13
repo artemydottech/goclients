@@ -27,6 +27,7 @@ type SlotsService struct {
 	services    ServiceLookup
 	assignments Assignments
 	companies   CompanyLookup
+	timeOff     TimeOffCalendar
 	now         func() time.Time
 }
 
@@ -41,6 +42,7 @@ func NewSlotsService(
 	services ServiceLookup,
 	assignments Assignments,
 	companies CompanyLookup,
+	timeOff TimeOffCalendar,
 ) *SlotsService {
 	return &SlotsService{
 		schedule:    schedule,
@@ -49,6 +51,7 @@ func NewSlotsService(
 		services:    services,
 		assignments: assignments,
 		companies:   companies,
+		timeOff:     timeOff,
 		now:         time.Now,
 	}
 }
@@ -104,6 +107,11 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, err
 	}
 
+	absences, err := s.timeOff.GetTimeOffInRange(employeeID, day, day.AddDate(0, 0, 1))
+	if err != nil {
+		return nil, err
+	}
+
 	duration := time.Duration(item.Duration) * time.Minute
 	now := s.now()
 	slots := []time.Time{}
@@ -115,7 +123,8 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 			continue
 		}
 
-		if !overlapsAny(start, start.Add(duration), booked) {
+		end := start.Add(duration)
+		if !overlapsAny(start, end, booked) && !overlapsTimeOff(start, end, absences) {
 			slots = append(slots, start)
 		}
 	}

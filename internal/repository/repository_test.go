@@ -683,3 +683,51 @@ func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
 		t.Errorf("перенос несуществующей записи: %v", err)
 	}
 }
+
+func TestTimeOffRepositoryRangeLookup(t *testing.T) {
+	db := newTestDB(t)
+	_, employeeID, _, _ := bookingFixture(t, db)
+	repo := NewTimeOffRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
+	id, err := repo.Create(models.TimeOff{
+		EmployeeID: employeeID,
+		StartsAt:   startsAt,
+		EndsAt:     startsAt.AddDate(0, 0, 7),
+		Reason:     "отпуск",
+	})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	all, err := repo.GetTimeOffByEmployee(employeeID)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if len(all) != 1 || all[0].Reason != "отпуск" || !all[0].StartsAt.Equal(startsAt) {
+		t.Fatalf("получено %+v", all)
+	}
+
+	inside, err := repo.GetTimeOffInRange(employeeID, startsAt.AddDate(0, 0, 3), startsAt.AddDate(0, 0, 4))
+	if err != nil {
+		t.Fatalf("range: %v", err)
+	}
+	if len(inside) != 1 {
+		t.Errorf("день внутри отпуска не нашёл период: %+v", inside)
+	}
+
+	after, err := repo.GetTimeOffInRange(employeeID, startsAt.AddDate(0, 0, 7), startsAt.AddDate(0, 0, 8))
+	if err != nil {
+		t.Fatalf("range: %v", err)
+	}
+	if len(after) != 0 {
+		t.Errorf("день сразу после отпуска попал в период: %+v", after)
+	}
+
+	if err := repo.DeleteTimeOffById(int(id)); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	if err := repo.DeleteTimeOffById(int(id)); !errors.Is(err, sql.ErrNoRows) {
+		t.Errorf("повторное удаление: %v", err)
+	}
+}

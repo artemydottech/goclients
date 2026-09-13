@@ -37,6 +37,7 @@ type AppointmentService struct {
 	assignments Assignments
 	schedule    Schedule
 	companies   CompanyLookup
+	timeOff     TimeOffCalendar
 	now         func() time.Time
 }
 
@@ -48,6 +49,7 @@ func NewAppointmentService(
 	assignments Assignments,
 	schedule Schedule,
 	companies CompanyLookup,
+	timeOff TimeOffCalendar,
 ) *AppointmentService {
 	return &AppointmentService{
 		repo:        repo,
@@ -57,6 +59,7 @@ func NewAppointmentService(
 		assignments: assignments,
 		schedule:    schedule,
 		companies:   companies,
+		timeOff:     timeOff,
 		now:         time.Now,
 	}
 }
@@ -197,7 +200,22 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		)
 	}
 
+	absences, err := s.timeOff.GetTimeOffInRange(a.EmployeeID, a.StartsAt, a.EndsAt)
+	if err != nil {
+		return a, err
+	}
+	if len(absences) > 0 {
+		return a, models.Invalid("Сотрудник в это время не принимает (%s)!", absenceReason(absences[0]))
+	}
+
 	return a, nil
+}
+
+func absenceReason(t models.TimeOff) string {
+	if t.Reason == "" {
+		return "нерабочий период"
+	}
+	return t.Reason
 }
 
 func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {

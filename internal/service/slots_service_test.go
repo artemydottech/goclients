@@ -27,6 +27,22 @@ func (l stubCompanyLookup) GetCompanyById(int) (models.Company, error) {
 
 var utcCompany = stubCompanyLookup{company: models.Company{ID: 10, Timezone: "UTC"}}
 
+type stubTimeOff struct {
+	periods []models.TimeOff
+}
+
+func (s stubTimeOff) GetTimeOffInRange(_ int, from, to time.Time) ([]models.TimeOff, error) {
+	matching := []models.TimeOff{}
+	for _, period := range s.periods {
+		if from.Before(period.EndsAt) && to.After(period.StartsAt) {
+			matching = append(matching, period)
+		}
+	}
+	return matching, nil
+}
+
+var noTimeOff = stubTimeOff{}
+
 type stubCalendar struct {
 	booked []models.Appointment
 }
@@ -47,6 +63,7 @@ func newSlotsService(schedule stubSchedule, calendar stubCalendar) *SlotsService
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 60}}},
 		stubAssignments{performs: true},
 		utcCompany,
+		noTimeOff,
 	)
 	svc.now = func() time.Time { return slotsDate.AddDate(0, 0, -1) }
 
@@ -168,6 +185,7 @@ func TestFreeSlotsRejectMasterWhoDoesNotPerformTheService(t *testing.T) {
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 60}}},
 		stubAssignments{performs: false},
 		utcCompany,
+		noTimeOff,
 	)
 
 	_, err := svc.FreeSlots(2, 3, slotsDate, 60)
@@ -213,5 +231,45 @@ func TestFreeSlotsFollowTheCompanyTimezone(t *testing.T) {
 
 	if got := slots[0].Format("15:04 -07:00"); got != "10:00 +05:00" {
 		t.Errorf("слот отдан как %s, ожидалось местное время с поясом", got)
+	}
+}
+
+func TestFreeSlotsSkipTimeOff(t *testing.T) {
+	svc := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{})
+	svc.timeOff = stubTimeOff{periods: []models.TimeOff{{
+		StartsAt: slotsDate.Add(11 * time.Hour),
+		EndsAt:   slotsDate.Add(12 * time.Hour),
+		Reason:   "врач",
+	}}}
+
+	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	if len(slots) != 2 {
+		t.Fatalf("получено %d слотов, ожидалось 2: %v", len(slots), slots)
+	}
+	for _, slot := range slots {
+		if slot.Format("15:04") == "11:00" {
+			t.Fatalf("слот внутри отгула: %v", slots)
+		}
+	}
+}
+
+func TestFreeSlotsAreEmptyDuringVacation(t *testing.T) {
+	svc := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{})
+	svc.timeOff = stubTimeOff{periods: []models.TimeOff{{
+		StartsAt: slotsDate.AddDate(0, 0, -3),
+		EndsAt:   slotsDate.AddDate(0, 0, 10),
+		Reason:   "отпуск",
+	}}}
+
+	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+	if len(slots) != 0 {
+		t.Errorf("в отпуске слотов быть не должно, получено %v", slots)
 	}
 }

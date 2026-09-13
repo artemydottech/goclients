@@ -59,18 +59,23 @@ func main() {
 	clientsServ := service.NewClientService(clientsRepo)
 	clientsHandlers := handlers.NewClientHandler(clientsServ)
 
+	timeOffRepo := repository.NewTimeOffRepository(db)
+
 	schedulesRepo := repository.NewScheduleRepository(db)
 	schedulesServ := service.NewScheduleService(schedulesRepo, employeesRepo)
 
 	appointmentsRepo := repository.NewAppointmentRepository(db)
 	appointmentsServ := service.NewAppointmentService(
-		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ, companiesRepo,
+		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ, companiesRepo, timeOffRepo,
 	)
 	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
 	slotsServ := service.NewSlotsService(
-		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo, companiesRepo,
+		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo, companiesRepo, timeOffRepo,
 	)
 	schedulesHandlers := handlers.NewScheduleHandler(schedulesServ, slotsServ)
+
+	timeOffServ := service.NewTimeOffService(timeOffRepo, employeesRepo, appointmentsRepo)
+	timeOffHandlers := handlers.NewTimeOffHandler(timeOffServ)
 
 	mux := http.NewServeMux()
 
@@ -123,6 +128,11 @@ func main() {
 	mux.HandleFunc("PUT /employees/{id}/schedule", schedulesHandlers.SetEmployeeSchedule)
 	mux.HandleFunc("GET /employees/{id}/schedule", schedulesHandlers.GetEmployeeSchedule)
 	mux.HandleFunc("GET /slots", schedulesHandlers.GetFreeSlots)
+
+	//отпуска и больничные
+	mux.HandleFunc("POST /employees/{id}/time-off", timeOffHandlers.CreateTimeOff)
+	mux.HandleFunc("GET /employees/{id}/time-off", timeOffHandlers.GetTimeOff)
+	mux.HandleFunc("DELETE /time-off/{id}", timeOffHandlers.DeleteTimeOff)
 
 	port := os.Getenv("PORT")
 	if port == "" {

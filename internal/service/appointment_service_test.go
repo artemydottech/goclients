@@ -92,6 +92,7 @@ func newAppointmentService(repo *stubAppointmentRepo, opts ...func(*AppointmentS
 		stubAssignments{performs: true},
 		workingDay("10:00", "20:00"),
 		utcCompany,
+		noTimeOff,
 	)
 	svc.now = func() time.Time { return slotsDate.AddDate(0, 0, -1) }
 
@@ -208,6 +209,7 @@ func TestBookRejectsEmployeeWhoDoesNotPerformTheService(t *testing.T) {
 		stubAssignments{performs: false},
 		workingDay("10:00", "20:00"),
 		utcCompany,
+		noTimeOff,
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -229,6 +231,7 @@ func TestBookRejectsCrossCompanyParts(t *testing.T) {
 		stubAssignments{performs: true},
 		workingDay("10:00", "20:00"),
 		utcCompany,
+		noTimeOff,
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -254,6 +257,7 @@ func TestBookReportsMissingClient(t *testing.T) {
 		stubAssignments{performs: true},
 		workingDay("10:00", "20:00"),
 		utcCompany,
+		noTimeOff,
 	)
 
 	_, err := svc.Book(futureBooking())
@@ -476,5 +480,26 @@ func TestRescheduleReportsMissingAppointment(t *testing.T) {
 	_, err := newAppointmentService(&stubAppointmentRepo{}).Reschedule(404, slotsDate.Add(15*time.Hour), 0)
 	if !errors.Is(err, sql.ErrNoRows) {
 		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	}
+}
+
+func TestBookRejectsTimeOff(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.timeOff = stubTimeOff{periods: []models.TimeOff{{
+			StartsAt: slotsDate.Add(12 * time.Hour),
+			EndsAt:   slotsDate.Add(13 * time.Hour),
+			Reason:   "больничный",
+		}}}
+	})
+
+	_, err := svc.Book(futureBooking())
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("ожидалась ValidationError, получено %v", err)
+	}
+	if repo.calls != 0 {
+		t.Error("запись на время отгула не должна сохраняться")
 	}
 }
