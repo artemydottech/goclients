@@ -34,6 +34,28 @@ func (s AppointmentStatus) Valid() bool {
 	}
 }
 
+// statusTransitions — куда запись может перейти. Отменённая и завершённая —
+// конечные: возврат отменённой в работу занял бы слот, который к этому времени
+// мог уйти другому клиенту, в обход проверки пересечений.
+var statusTransitions = map[AppointmentStatus][]AppointmentStatus{
+	AppointmentPending:   {AppointmentConfirmed, AppointmentCancelled, AppointmentCompleted},
+	AppointmentConfirmed: {AppointmentCancelled, AppointmentCompleted},
+}
+
+func (s AppointmentStatus) CanBecome(next AppointmentStatus) bool {
+	if s == next {
+		return true
+	}
+
+	for _, allowed := range statusTransitions[s] {
+		if allowed == next {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Blocks сообщает, занимает ли запись время мастера. Отменённая — не занимает,
 // иначе освободившийся слот никто не смог бы забрать.
 func (s AppointmentStatus) Blocks() bool {

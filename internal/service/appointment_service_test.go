@@ -16,6 +16,8 @@ type stubAppointmentRepo struct {
 	existing *models.Appointment
 	moved    models.Appointment
 	moves    int
+
+	statusUpdates []models.AppointmentStatus
 }
 
 func (r *stubAppointmentRepo) Create(a models.Appointment) (int64, error) {
@@ -60,7 +62,10 @@ func (r *stubAppointmentRepo) CreateIfFree(a models.Appointment) (int64, bool, e
 	return id, false, err
 }
 
-func (r *stubAppointmentRepo) UpdateStatus(int, models.AppointmentStatus) error { return nil }
+func (r *stubAppointmentRepo) UpdateStatus(_ int, status models.AppointmentStatus) error {
+	r.statusUpdates = append(r.statusUpdates, status)
+	return nil
+}
 
 func (r *stubAppointmentRepo) DeleteAppointmentById(int) error { return nil }
 
@@ -529,5 +534,109 @@ func TestBookAroundTheBreak(t *testing.T) {
 
 	if _, err := svc.Book(futureBooking()); err != nil {
 		t.Fatalf("12:00–13:30 заканчивается ровно к перерыву, получено %v", err)
+	}
+}
+
+func TestSetStatusFollowsTheTransitionTable(t *testing.T) {
+	cases := []struct {
+		from, to models.AppointmentStatus
+		ok       bool
+	}{
+		{models.AppointmentPending, models.AppointmentConfirmed, true},
+		{models.AppointmentPending, models.AppointmentCancelled, true},
+		{models.AppointmentConfirmed, models.AppointmentCancelled, true},
+		{models.AppointmentConfirmed, models.AppointmentConfirmed, true},
+		{models.AppointmentConfirmed, models.AppointmentPending, false},
+		{models.AppointmentCancelled, models.AppointmentConfirmed, false},
+		{models.AppointmentCancelled, models.AppointmentPending, false},
+		{models.AppointmentCompleted, models.AppointmentCancelled, false},
+		{models.AppointmentCompleted, models.AppointmentPending, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(string(tc.from)+"→"+string(tc.to), func(t *testing.T) {
+			repo := &stubAppointmentRepo{existing: existingAppointment(tc.from)}
+
+			err := newAppointmentService(repo).SetStatus(5, tc.to)
+
+			if tc.ok {
+				if err != nil {
+					t.Fatalf("переход должен быть разрешён, получено %v", err)
+				}
+				if len(repo.statusUpdates) != 1 {
+					t.Error("разрешённый переход не дошёл до репозитория")
+				}
+				return
+			}
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("ожидалась ValidationError, получено %v", err)
+			}
+			if len(repo.statusUpdates) != 0 {
+				t.Error("запрещённый переход не должен сохраняться")
+			}
+		})
+	}
+}
+
+func TestSetStatusCannotCompleteAFutureAppointment(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
+
+	err := newAppointmentService(repo).SetStatus(5, models.AppointmentCompleted)
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("ожидалась ValidationError, получено %v", err)
+	}
+}
+
+func TestSetStatusCompletesAStartedAppointment(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.now = func() time.Time { return slotsDate.Add(13 * time.Hour) }
+	})
+
+	if err := svc.SetStatus(5, models.AppointmentCompleted); err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+}
+
+func TestSetStatusReportsMissingAppointment(t *testing.T) {
+	err := newAppointmentService(&stubAppointmentRepo{}).SetStatus(404, models.AppointmentConfirmed)
+	if !errors.Is(err, sql.ErrNoRows) {
+		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	}
+}
+
+func TestBookRefusesFinalStatuses(t *testing.T) {
+	for _, status := range []models.AppointmentStatus{models.AppointmentCancelled, models.AppointmentCompleted} {
+		t.Run(string(status), func(t *testing.T) {
+			repo := &stubAppointmentRepo{}
+
+			booking := futureBooking()
+			booking.Status = status
+
+			_, err := newAppointmentService(repo).Book(booking)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("ожидалась ValidationError, получено %v", err)
+			}
+			if repo.calls != 0 {
+				t.Error("запись с конечным статусом не должна создаваться")
+			}
+		})
+	}
+}
+
+func TestBookAcceptsConfirmed(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+
+	booking := futureBooking()
+	booking.Status = models.AppointmentConfirmed
+
+	if _, err := newAppointmentService(repo).Book(booking); err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 }

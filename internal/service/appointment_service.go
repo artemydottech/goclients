@@ -177,6 +177,9 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	if !a.Status.Valid() {
 		return a, models.Invalid("Неизвестный статус записи %s!", a.Status)
 	}
+	if a.Status != models.AppointmentPending && a.Status != models.AppointmentConfirmed {
+		return a, models.Invalid("Новая запись может быть только pending или confirmed!")
+	}
 
 	loc, err := companyLocation(s.companies, employee.CompanyID)
 	if err != nil {
@@ -244,6 +247,22 @@ func (s *AppointmentService) GetAppointmentById(id int) (models.Appointment, err
 func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) error {
 	if !status.Valid() {
 		return models.Invalid("Неизвестный статус записи %s!", status)
+	}
+
+	existing, err := s.repo.GetAppointmentById(id)
+	if err != nil {
+		return err
+	}
+
+	if !existing.Status.CanBecome(status) {
+		if existing.Status == models.AppointmentCancelled {
+			return models.Invalid("Отменённую запись нельзя вернуть — создайте новую!")
+		}
+		return models.Invalid("Нельзя сменить статус %s на %s!", existing.Status, status)
+	}
+
+	if status == models.AppointmentCompleted && s.now().Before(existing.StartsAt) {
+		return models.Invalid("Завершить можно только начавшуюся запись!")
 	}
 
 	return s.repo.UpdateStatus(id, status)
