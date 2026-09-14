@@ -640,3 +640,44 @@ func TestBookAcceptsConfirmed(t *testing.T) {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 }
+
+func TestBookSnapshotsTheServicePrice(t *testing.T) {
+	repo := &stubAppointmentRepo{}
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.services = stubServiceLookup{byID: map[int]models.Service{
+			3: {ID: 3, CompanyID: 10, Duration: 90, Price: 2500},
+		}}
+	})
+
+	booking := futureBooking()
+	booking.Price = 1
+
+	if _, err := svc.Book(booking); err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	if repo.created.Price != 2500 {
+		t.Errorf("цена записи %v, ожидалась 2500 из прайса — цену из тела запроса брать нельзя", repo.created.Price)
+	}
+}
+
+func TestRescheduleKeepsTheAgreedPrice(t *testing.T) {
+	existing := existingAppointment(models.AppointmentConfirmed)
+	existing.Price = 900
+
+	repo := &stubAppointmentRepo{existing: existing}
+	svc := newAppointmentService(repo, func(s *AppointmentService) {
+		s.services = stubServiceLookup{byID: map[int]models.Service{
+			3: {ID: 3, CompanyID: 10, Duration: 90, Price: 2500},
+		}}
+	})
+
+	moved, err := svc.Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+	if err != nil {
+		t.Fatalf("неожиданная ошибка: %v", err)
+	}
+
+	if moved.Price != 900 {
+		t.Errorf("после переноса цена %v, ожидалась прежняя 900", moved.Price)
+	}
+}

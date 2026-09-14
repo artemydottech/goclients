@@ -56,11 +56,11 @@ func (r *AppointmentRepository) Create(a models.Appointment) (int64, error) {
 func insertAppointment(e execer, a models.Appointment) (int64, error) {
 	res, err := e.Exec(`
         INSERT INTO appointments
-            (company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            (company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		a.CompanyID, a.ClientID, a.EmployeeID, a.ServiceID,
 		a.StartsAt.UTC().Format(timeLayout), a.EndsAt.UTC().Format(timeLayout),
-		string(a.Status), a.Comment,
+		string(a.Status), a.Comment, a.Price,
 	)
 	if err != nil {
 		return 0, err
@@ -71,13 +71,13 @@ func insertAppointment(e execer, a models.Appointment) (int64, error) {
 
 func (r *AppointmentRepository) GetAllAppointments() ([]models.Appointment, error) {
 	return r.query(`
-        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment
+        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments ORDER BY starts_at`)
 }
 
 func (r *AppointmentRepository) GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error) {
 	return r.query(`
-        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment
+        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments
         WHERE employee_id = ? AND starts_at < ? AND ends_at > ?
         ORDER BY starts_at`,
@@ -86,7 +86,7 @@ func (r *AppointmentRepository) GetAppointmentsByEmployee(employeeID int, from, 
 
 func (r *AppointmentRepository) GetAppointmentsByClient(clientID int) ([]models.Appointment, error) {
 	return r.query(`
-        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment
+        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments WHERE client_id = ? ORDER BY starts_at`, clientID)
 }
 
@@ -122,7 +122,7 @@ func scanAppointment(row rowScanner) (models.Appointment, error) {
 	)
 
 	err := row.Scan(&a.ID, &a.CompanyID, &a.ClientID, &a.EmployeeID, &a.ServiceID,
-		&startsAt, &endsAt, &status, &a.Comment)
+		&startsAt, &endsAt, &status, &a.Comment, &a.Price)
 	if err != nil {
 		return models.Appointment{}, err
 	}
@@ -140,7 +140,7 @@ func scanAppointment(row rowScanner) (models.Appointment, error) {
 
 func (r *AppointmentRepository) GetAppointmentById(id int) (models.Appointment, error) {
 	row := r.db.QueryRow(`
-        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment
+        SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments WHERE id = ?`, id)
 
 	return scanAppointment(row)

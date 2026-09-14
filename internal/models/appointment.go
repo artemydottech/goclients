@@ -23,6 +23,10 @@ type Appointment struct {
 	EndsAt     time.Time         `json:"ends_at"`
 	Status     AppointmentStatus `json:"status"`
 	Comment    string            `json:"comment"`
+
+	// Price — цена услуги на момент записи. Прайс потом меняется, а выручка
+	// и история клиента должны остаться такими, какими были.
+	Price float64 `json:"price"`
 }
 
 func (s AppointmentStatus) Valid() bool {

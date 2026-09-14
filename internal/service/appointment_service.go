@@ -107,6 +107,8 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 		return models.Appointment{}, err
 	}
 
+	prepared.Price = existing.Price
+
 	busy, err := s.repo.MoveIfFree(id, prepared)
 	if err != nil {
 		return models.Appointment{}, err
@@ -168,6 +170,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	}
 
 	a.CompanyID = employee.CompanyID
+	a.Price = item.Price
 	a.StartsAt = a.StartsAt.UTC()
 	a.EndsAt = a.StartsAt.Add(time.Duration(item.Duration) * time.Minute)
 

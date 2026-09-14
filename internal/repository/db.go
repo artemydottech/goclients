@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS appointments (
     starts_at TEXT NOT NULL,
     ends_at TEXT NOT NULL,
     status TEXT NOT NULL,
-    comment TEXT NOT NULL DEFAULT ''
+    comment TEXT NOT NULL DEFAULT '',
+    price REAL NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_appointments_employee ON appointments(employee_id, starts_at);
@@ -146,6 +147,10 @@ func Migrate(db *sql.DB) error {
 		if err := addColumn(db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
 		}
+	}
+
+	if err := addColumn(db, "appointments", "price", "REAL NOT NULL DEFAULT 0"); err != nil {
+		return err
 	}
 
 	return nil

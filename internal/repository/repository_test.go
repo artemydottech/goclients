@@ -754,3 +754,62 @@ func TestScheduleRepositoryKeepsTheBreak(t *testing.T) {
 		t.Errorf("got %+v, want %+v", got, want)
 	}
 }
+
+func TestAppointmentRepositoryKeepsThePrice(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
+	id, err := repo.Create(models.Appointment{
+		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentPending,
+		Price: 1750.5,
+	})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	got, err := repo.GetAppointmentById(int(id))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Price != 1750.5 {
+		t.Errorf("price %v, ожидалось 1750.5", got.Price)
+	}
+}
+
+func TestMigrateAddsPriceToOldAppointments(t *testing.T) {
+	db, err := Open(filepath.Join(t.TempDir(), "old.db"))
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+
+	if _, err := db.Exec(`CREATE TABLE appointments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_id INTEGER NOT NULL, client_id INTEGER NOT NULL,
+        employee_id INTEGER NOT NULL, service_id INTEGER NOT NULL,
+        starts_at TEXT NOT NULL, ends_at TEXT NOT NULL,
+        status TEXT NOT NULL, comment TEXT NOT NULL DEFAULT ''
+    )`); err != nil {
+		t.Fatalf("old schema: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO appointments
+        (company_id, client_id, employee_id, service_id, starts_at, ends_at, status)
+        VALUES (1, 1, 1, 1, '2026-10-01T10:00:00Z', '2026-10-01T11:00:00Z', 'completed')`); err != nil {
+		t.Fatalf("seed: %v", err)
+	}
+
+	if err := Migrate(db); err != nil {
+		t.Fatalf("migrate: %v", err)
+	}
+
+	got, err := NewAppointmentRepository(db).GetAppointmentById(1)
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Price != 0 {
+		t.Errorf("старой записи досталась цена %v, ожидался 0", got.Price)
+	}
+}
