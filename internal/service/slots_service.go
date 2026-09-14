@@ -8,8 +8,6 @@ import (
 	"github.com/artemydottech/goclients/internal/models"
 )
 
-// defaultSlotStep — шаг сетки записи. Услуга на 50 минут всё равно
-// предлагается с круглых значений, как в привычных календарях.
 const defaultSlotStep = 15
 
 type Schedule interface {
@@ -56,8 +54,6 @@ func NewSlotsService(
 	}
 }
 
-// FreeSlots перечисляет время, на которое можно записаться к мастеру в
-// указанный день. Дата приходит без зоны и понимается в поясе компании.
 func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
 	if step <= 0 {
 		step = defaultSlotStep
@@ -147,10 +143,6 @@ func overlapsAny(from, to time.Time, booked []models.Appointment) bool {
 	return false
 }
 
-// workingWindow переводит рабочий день мастера из графика в моменты времени
-// для конкретной даты. day — полночь нужного дня.
-// Перерыв возвращается интервалом того же вида, что и отпуск: для слотов и
-// записи это одно и то же — время, когда мастер не принимает.
 func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, []models.TimeOff, bool, error) {
 	working, isWorkingDay, err := schedule.WorkingDay(employeeID, int(day.Weekday()))
 	if err != nil || !isWorkingDay {

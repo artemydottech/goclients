@@ -79,45 +79,36 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// handlers
-
-	//users
 	mux.HandleFunc("POST /users", userHandlers.CreateUser)
 	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
 	mux.HandleFunc("GET /users/{id}", userHandlers.GetUserById)
 	mux.HandleFunc("DELETE /users/{id}", userHandlers.DeleteUser)
 
-	//companies
 	mux.HandleFunc("POST /companies", companiesHandlers.CreateCompany)
 	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
 	mux.HandleFunc("GET /companies/{id}", companiesHandlers.GetCompanyById)
 	mux.HandleFunc("DELETE /companies/{id}", companiesHandlers.DeleteCompany)
 
-	//employees
 	mux.HandleFunc("POST /employees", employeesHandlers.CreateEmployee)
 	mux.HandleFunc("GET /employees", employeesHandlers.GetAllEmployees)
 	mux.HandleFunc("GET /employees/{id}", employeesHandlers.GetEmployeeById)
 	mux.HandleFunc("DELETE /employees/{id}", employeesHandlers.DeleteEmployee)
 
-	//services
 	mux.HandleFunc("POST /services", servicesHandlers.CreateService)
 	mux.HandleFunc("GET /services", servicesHandlers.GetAllServices)
 	mux.HandleFunc("GET /services/{id}", servicesHandlers.GetServiceById)
 	mux.HandleFunc("DELETE /services/{id}", servicesHandlers.DeleteService)
 
-	//кто какие услуги оказывает
 	mux.HandleFunc("PUT /employees/{id}/services", assignmentsHandlers.SetEmployeeServices)
 	mux.HandleFunc("GET /employees/{id}/services", assignmentsHandlers.GetEmployeeServices)
 	mux.HandleFunc("GET /services/{id}/employees", assignmentsHandlers.GetServiceEmployees)
 
-	//clients
 	mux.HandleFunc("POST /clients", clientsHandlers.CreateClient)
 	mux.HandleFunc("GET /clients", clientsHandlers.GetAllClients)
 	mux.HandleFunc("GET /clients/{id}", clientsHandlers.GetClientById)
 	mux.HandleFunc("DELETE /clients/{id}", clientsHandlers.DeleteClient)
 	mux.HandleFunc("GET /clients/{id}/stats", appointmentsHandlers.GetClientStats)
 
-	//appointments
 	mux.HandleFunc("POST /appointments", appointmentsHandlers.CreateAppointment)
 	mux.HandleFunc("GET /appointments", appointmentsHandlers.GetAllAppointments)
 	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
@@ -125,12 +116,10 @@ func main() {
 	mux.HandleFunc("PUT /appointments/{id}/time", appointmentsHandlers.Reschedule)
 	mux.HandleFunc("DELETE /appointments/{id}", appointmentsHandlers.DeleteAppointment)
 
-	//график работы и свободные слоты
 	mux.HandleFunc("PUT /employees/{id}/schedule", schedulesHandlers.SetEmployeeSchedule)
 	mux.HandleFunc("GET /employees/{id}/schedule", schedulesHandlers.GetEmployeeSchedule)
 	mux.HandleFunc("GET /slots", schedulesHandlers.GetFreeSlots)
 
-	//отпуска и больничные
 	mux.HandleFunc("POST /employees/{id}/time-off", timeOffHandlers.CreateTimeOff)
 	mux.HandleFunc("GET /employees/{id}/time-off", timeOffHandlers.GetTimeOff)
 	mux.HandleFunc("DELETE /time-off/{id}", timeOffHandlers.DeleteTimeOff)

@@ -32,8 +32,6 @@ func NewAssignmentService(repo AssignmentRepo, employees EmployeeLookup, service
 	return &AssignmentService{repo: repo, employees: employees, services: services}
 }
 
-// SetEmployeeServices принимает набор услуг сотрудника. Услуга чужой компании
-// в наборе — ошибка ввода: мастер одного салона не оказывает услуги другого.
 func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int) error {
 	employee, err := s.employees.GetEmployeeById(employeeID)
 	if errors.Is(err, sql.ErrNoRows) {

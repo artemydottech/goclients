@@ -2,8 +2,6 @@ package models
 
 import "fmt"
 
-// ValidationError — некорректный ввод, а не сбой хранилища: обработчик
-// отвечает на неё 400, а не 500.
 type ValidationError struct {
 	Message string
 }

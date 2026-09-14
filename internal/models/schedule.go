@@ -8,8 +8,6 @@ import (
 
 const minutesInDay = 24 * 60
 
-// WorkingDay — рабочий день мастера в недельном графике. Время хранится как
-// «10:00»: так его читает и человек, и запрос календаря.
 type WorkingDay struct {
 	EmployeeID int    `json:"employee_id"`
 	Weekday    int    `json:"weekday"`
@@ -24,7 +22,6 @@ func (d WorkingDay) HasBreak() bool {
 	return d.BreakStartsAt != "" || d.BreakEndsAt != ""
 }
 
-// ParseDayTime переводит «10:30» в минуты от полуночи.
 func ParseDayTime(value string) (int, error) {
 	parts := strings.Split(value, ":")
 	if len(parts) != 2 {

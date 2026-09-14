@@ -6,7 +6,6 @@ import (
 	"github.com/artemydottech/goclients/internal/models"
 )
 
-// maxServiceDuration — сутки: запись длиннее рабочего дня не бронируется.
 const maxServiceDuration = 24 * 60
 
 type ServiceRepo interface {

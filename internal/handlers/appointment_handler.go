@@ -112,8 +112,6 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 	writeJSON(w, appointments)
 }
 
-// parseRange читает окно календаря. Без параметров берётся ближайшая неделя —
-// иначе выборка по мастеру вернула бы всю его историю.
 func parseRange(rawFrom, rawTo string) (time.Time, time.Time, error) {
 	from := time.Now().UTC()
 	to := from.AddDate(0, 0, 7)

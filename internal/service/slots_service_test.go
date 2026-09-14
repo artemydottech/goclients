@@ -51,9 +51,7 @@ func (c stubCalendar) GetAppointmentsByEmployee(int, time.Time, time.Time) ([]mo
 	return c.booked, nil
 }
 
-// день в прошлом относительно now в тестах не берём: слоты отсекают прошедшее,
-// поэтому вся арифметика считается на заведомо будущей дате.
-var slotsDate = time.Date(2030, 3, 4, 0, 0, 0, 0, time.UTC) // понедельник
+var slotsDate = time.Date(2030, 3, 4, 0, 0, 0, 0, time.UTC)
 
 func newSlotsService(schedule stubSchedule, calendar stubCalendar) *SlotsService {
 	svc := NewSlotsService(

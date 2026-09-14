@@ -14,8 +14,6 @@ func NewAssignmentRepository(db *sql.DB) *AssignmentRepository {
 	return &AssignmentRepository{db: db}
 }
 
-// SetEmployeeServices заменяет весь набор услуг сотрудника целиком: половина
-// записанного набора хуже, чем ни одной, поэтому всё в одной транзакции.
 func (r *AssignmentRepository) SetEmployeeServices(employeeID int, serviceIDs []int) error {
 	tx, err := r.db.Begin()
 	if err != nil {

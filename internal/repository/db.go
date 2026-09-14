@@ -101,19 +101,13 @@ CREATE TABLE IF NOT EXISTS employee_time_off (
 CREATE INDEX IF NOT EXISTS idx_time_off_employee ON employee_time_off(employee_id, starts_at);
 `
 
-// Open connects to the database and checks that it answers — sql.Open alone
-// only parses the path, so a broken one surfaces at the first request instead.
 func Open(path string) (*sql.DB, error) {
-	// SQLite ignores foreign keys unless the pragma is set, and it has to ride
-	// on the DSN: database/sql pools connections, so a one-off PRAGMA would
-	// only cover whichever connection happened to run it.
+
 	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on&_busy_timeout=5000", path))
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
 	}
 
-	// SQLite takes one writer at a time; without this the second concurrent
-	// request fails outright with "database is locked".
 	db.SetMaxOpenConns(1)
 
 	if err := db.Ping(); err != nil {
@@ -124,8 +118,6 @@ func Open(path string) (*sql.DB, error) {
 	return db, nil
 }
 
-// Columns added to users after the first release. SQLite has no
-// ADD COLUMN IF NOT EXISTS, so each one is checked before it is added.
 var addedUserColumns = []string{"surname", "username", "avatar"}
 
 func Migrate(db *sql.DB) error {

@@ -28,9 +28,6 @@ func NewTimeOffService(repo TimeOffRepo, employees EmployeeLookup, calendar Cale
 	return &TimeOffService{repo: repo, employees: employees, calendar: calendar}
 }
 
-// CreateTimeOff закрывает мастеру интервал. Если на это время уже есть живые
-// записи, отпуск не ставится: клиенты пришли бы к пустому креслу, пока их
-// не перенесут или не отменят.
 func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64, error) {
 	if _, err := s.employees.GetEmployeeById(employeeID); err != nil {
 		return 0, err

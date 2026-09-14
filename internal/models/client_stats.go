@@ -2,8 +2,6 @@ package models
 
 import "time"
 
-// ClientStats — карточка клиента глазами администратора: сколько раз был,
-// сколько раз не пришёл, сколько потратил и когда придёт снова.
 type ClientStats struct {
 	ClientID        int        `json:"client_id"`
 	Appointments    int        `json:"appointments"`

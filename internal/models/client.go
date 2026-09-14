@@ -1,7 +1,5 @@
 package models
 
-// Client — клиент конкретной компании. Телефон опознаёт человека: по нему
-// салон находит карточку, поэтому он уникален в пределах компании.
 type Client struct {
 	ID        int    `json:"id"`
 	CompanyID int    `json:"company_id"`

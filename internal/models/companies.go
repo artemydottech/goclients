@@ -14,8 +14,6 @@ type Company struct {
 	Timezone    string  `json:"timezone"`
 }
 
-// Location — пояс, в котором написан график: «10:00» у салона в Екатеринбурге
-// и в Калининграде — разные моменты времени.
 func (c Company) Location() (*time.Location, error) {
 	if c.Timezone == "" {
 		return time.UTC, nil

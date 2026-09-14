@@ -48,8 +48,6 @@ func (s *ScheduleService) GetEmployeeSchedule(employeeID int) ([]models.WorkingD
 	return s.repo.GetEmployeeSchedule(employeeID)
 }
 
-// WorkingDay возвращает рабочий день мастера; выходной — это отсутствие строки,
-// а не ошибка, поэтому вызывающий получает ok=false.
 func (s *ScheduleService) WorkingDay(employeeID, weekday int) (models.WorkingDay, bool, error) {
 	day, err := s.repo.GetWorkingDay(employeeID, weekday)
 	if errors.Is(err, sql.ErrNoRows) {

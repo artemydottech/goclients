@@ -7,8 +7,6 @@ import (
 	"github.com/artemydottech/goclients/internal/models"
 )
 
-// timeLayout — записи хранятся текстом в UTC: SQLite не различает зоны, а
-// сравнение строк в этом формате совпадает со сравнением моментов времени.
 const timeLayout = time.RFC3339
 
 type AppointmentRepository struct {
@@ -19,9 +17,6 @@ func NewAppointmentRepository(db *sql.DB) *AppointmentRepository {
 	return &AppointmentRepository{db: db}
 }
 
-// CreateIfFree проверяет пересечение и вставляет запись в одной транзакции.
-// Раздельные HasOverlap и Create пропускали два параллельных запроса на один
-// слот: оба видели свободное время и оба вставляли.
 func (r *AppointmentRepository) CreateIfFree(a models.Appointment) (int64, bool, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -146,15 +141,10 @@ func (r *AppointmentRepository) GetAppointmentById(id int) (models.Appointment, 
 	return scanAppointment(row)
 }
 
-// HasOverlap ищет чужую запись, накрывающую интервал того же мастера.
-// Границы касаются, а не пересекаются: запись 10:00–11:00 не мешает 11:00–12:00.
 func (r *AppointmentRepository) HasOverlap(employeeID int, from, to time.Time) (bool, error) {
 	return hasOverlap(r.db, employeeID, from, to, 0)
 }
 
-// MoveIfFree переносит запись, если новое время свободно. Сама переносимая
-// запись в проверку не попадает — сдвиг на полчаса внутри своего же интервала
-// не конфликт.
 func (r *AppointmentRepository) MoveIfFree(id int, a models.Appointment) (bool, error) {
 	tx, err := r.db.Begin()
 	if err != nil {

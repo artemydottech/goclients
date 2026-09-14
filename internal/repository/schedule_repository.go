@@ -14,8 +14,6 @@ func NewScheduleRepository(db *sql.DB) *ScheduleRepository {
 	return &ScheduleRepository{db: db}
 }
 
-// SetEmployeeSchedule заменяет недельный график целиком — половина расписания
-// значила бы, что мастер внезапно не работает во вторник.
 func (r *ScheduleRepository) SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error {
 	tx, err := r.db.Begin()
 	if err != nil {

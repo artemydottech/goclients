@@ -32,8 +32,6 @@ func NewClientService(repo ClientRepo) *ClientService {
 	return &ClientService{repo: repo}
 }
 
-// NormalizePhone оставляет от номера только цифры: «+7 (999) 123-45-67» и
-// «79991234567» — один и тот же человек, а уникальность считает база.
 func NormalizePhone(phone string) string {
 	var digits strings.Builder
 

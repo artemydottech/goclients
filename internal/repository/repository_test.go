@@ -358,8 +358,6 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 	}
 }
 
-// bookingFixture заводит компанию, мастера, услугу и клиента — минимум, без
-// которого запись не создать.
 func bookingFixture(t *testing.T, db *sql.DB) (companyID, employeeID, serviceID, clientID int) {
 	t.Helper()
 

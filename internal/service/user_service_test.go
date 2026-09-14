@@ -47,8 +47,6 @@ func TestRegisterUserRejectsNameOver100Runes(t *testing.T) {
 	}
 }
 
-// Лимит считается в рунах, а не в байтах: 100 кириллических символов — это
-// 200 байт, и они должны проходить.
 func TestRegisterUserCountsRunesNotBytes(t *testing.T) {
 	name := strings.Repeat("я", 100)
 	repo := &stubUserRepo{}

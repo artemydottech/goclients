@@ -65,8 +65,6 @@ func NewAppointmentService(
 	}
 }
 
-// Book заводит запись. Конец интервала считается здесь: если бы его присылал
-// клиент, он мог бы занять мастера на пять минут вместо часа.
 func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 	prepared, err := s.prepare(a)
 	if err != nil {
@@ -84,9 +82,6 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 	return id, nil
 }
 
-// Reschedule переносит запись на другое время и, если указан, к другому мастеру.
-// Перенос проходит те же проверки, что и новая запись: иначе через него можно
-// было бы обойти график или посадить клиента к мастеру без нужной услуги.
 func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
 	existing, err := s.repo.GetAppointmentById(id)
 	if err != nil {
