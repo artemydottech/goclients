@@ -9,6 +9,7 @@ const (
 	AppointmentConfirmed AppointmentStatus = "confirmed"
 	AppointmentCancelled AppointmentStatus = "cancelled"
 	AppointmentCompleted AppointmentStatus = "completed"
+	AppointmentNoShow    AppointmentStatus = "no_show"
 )
 
 // Appointment — запись клиента к мастеру на услугу. EndsAt не приходит
@@ -31,7 +32,7 @@ type Appointment struct {
 
 func (s AppointmentStatus) Valid() bool {
 	switch s {
-	case AppointmentPending, AppointmentConfirmed, AppointmentCancelled, AppointmentCompleted:
+	case AppointmentPending, AppointmentConfirmed, AppointmentCancelled, AppointmentCompleted, AppointmentNoShow:
 		return true
 	default:
 		return false
@@ -42,8 +43,8 @@ func (s AppointmentStatus) Valid() bool {
 // конечные: возврат отменённой в работу занял бы слот, который к этому времени
 // мог уйти другому клиенту, в обход проверки пересечений.
 var statusTransitions = map[AppointmentStatus][]AppointmentStatus{
-	AppointmentPending:   {AppointmentConfirmed, AppointmentCancelled, AppointmentCompleted},
-	AppointmentConfirmed: {AppointmentCancelled, AppointmentCompleted},
+	AppointmentPending:   {AppointmentConfirmed, AppointmentCancelled, AppointmentCompleted, AppointmentNoShow},
+	AppointmentConfirmed: {AppointmentCancelled, AppointmentCompleted, AppointmentNoShow},
 }
 
 func (s AppointmentStatus) CanBecome(next AppointmentStatus) bool {
@@ -64,4 +65,15 @@ func (s AppointmentStatus) CanBecome(next AppointmentStatus) bool {
 // иначе освободившийся слот никто не смог бы забрать.
 func (s AppointmentStatus) Blocks() bool {
 	return s != AppointmentCancelled
+}
+
+// Active — запись ещё впереди и с ней можно работать: переносить, отменять.
+// Завершённая и неявка уже случились, отменённая — не случится.
+func (s AppointmentStatus) Active() bool {
+	return s == AppointmentPending || s == AppointmentConfirmed
+}
+
+// Happened — статус, который ставится только после начала визита.
+func (s AppointmentStatus) Happened() bool {
+	return s == AppointmentCompleted || s == AppointmentNoShow
 }

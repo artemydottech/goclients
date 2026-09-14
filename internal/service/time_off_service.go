@@ -55,7 +55,7 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 
 	active := 0
 	for _, appointment := range booked {
-		if appointment.Status.Blocks() && appointment.Status != models.AppointmentCompleted {
+		if appointment.Status.Active() {
 			active++
 		}
 	}

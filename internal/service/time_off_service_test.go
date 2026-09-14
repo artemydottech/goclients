@@ -124,3 +124,16 @@ func TestCreateTimeOffReportsMissingEmployee(t *testing.T) {
 		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
 	}
 }
+
+func TestCreateTimeOffIgnoresNoShows(t *testing.T) {
+	repo := &stubTimeOffRepo{}
+	booked := []models.Appointment{{
+		StartsAt: slotsDate.Add(12 * time.Hour),
+		EndsAt:   slotsDate.Add(13 * time.Hour),
+		Status:   models.AppointmentNoShow,
+	}}
+
+	if _, err := newTimeOffService(repo, booked).CreateTimeOff(2, vacation()); err != nil {
+		t.Fatalf("неявка не мешает отпуску, получено %v", err)
+	}
+}

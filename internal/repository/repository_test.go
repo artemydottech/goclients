@@ -813,3 +813,62 @@ func TestMigrateAddsPriceToOldAppointments(t *testing.T) {
 		t.Errorf("старой записи досталась цена %v, ожидался 0", got.Price)
 	}
 }
+
+func TestClientStatsAggregatesTheHistory(t *testing.T) {
+	db := newTestDB(t)
+	companyID, employeeID, serviceID, clientID := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+
+	now := time.Date(2026, 10, 15, 12, 0, 0, 0, time.UTC)
+	add := func(daysFromNow int, status models.AppointmentStatus, price float64) {
+		t.Helper()
+		startsAt := now.AddDate(0, 0, daysFromNow)
+		if _, err := repo.Create(models.Appointment{
+			CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
+			StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: status, Price: price,
+		}); err != nil {
+			t.Fatalf("create: %v", err)
+		}
+	}
+
+	add(-30, models.AppointmentCompleted, 1500)
+	add(-10, models.AppointmentCompleted, 2000)
+	add(-5, models.AppointmentNoShow, 1800)
+	add(-3, models.AppointmentCancelled, 1800)
+	add(2, models.AppointmentConfirmed, 2200)
+	add(9, models.AppointmentPending, 2200)
+	add(4, models.AppointmentCancelled, 2200)
+
+	stats, err := repo.GetClientStats(clientID, now)
+	if err != nil {
+		t.Fatalf("stats: %v", err)
+	}
+
+	if stats.Appointments != 7 || stats.CompletedVisits != 2 || stats.NoShows != 1 ||
+		stats.Cancelled != 2 || stats.Upcoming != 2 {
+		t.Errorf("счётчики: %+v", stats)
+	}
+	if stats.TotalSpent != 3500 {
+		t.Errorf("потрачено %v, ожидалось 3500 — неявки и отмены не оплачены", stats.TotalSpent)
+	}
+	if stats.LastVisitAt == nil || !stats.LastVisitAt.Equal(now.AddDate(0, 0, -10)) {
+		t.Errorf("последний визит %v, ожидалось %v", stats.LastVisitAt, now.AddDate(0, 0, -10))
+	}
+	if stats.NextVisitAt == nil || !stats.NextVisitAt.Equal(now.AddDate(0, 0, 2)) {
+		t.Errorf("следующий визит %v, ожидалось %v", stats.NextVisitAt, now.AddDate(0, 0, 2))
+	}
+}
+
+func TestClientStatsForANewClient(t *testing.T) {
+	db := newTestDB(t)
+	_, _, _, clientID := bookingFixture(t, db)
+
+	stats, err := NewAppointmentRepository(db).GetClientStats(clientID, time.Now())
+	if err != nil {
+		t.Fatalf("stats: %v", err)
+	}
+
+	if stats.Appointments != 0 || stats.TotalSpent != 0 || stats.LastVisitAt != nil || stats.NextVisitAt != nil {
+		t.Errorf("у клиента без записей получено %+v", stats)
+	}
+}

@@ -18,6 +18,7 @@ type AppointmentRepo interface {
 	CreateIfFree(a models.Appointment) (int64, bool, error)
 	MoveIfFree(id int, a models.Appointment) (bool, error)
 	UpdateStatus(id int, status models.AppointmentStatus) error
+	GetClientStats(clientID int, now time.Time) (models.ClientStats, error)
 	DeleteAppointmentById(id int) error
 }
 
@@ -92,7 +93,7 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 		return models.Appointment{}, err
 	}
 
-	if !existing.Status.Blocks() || existing.Status == models.AppointmentCompleted {
+	if !existing.Status.Active() {
 		return models.Appointment{}, models.Invalid("Перенести можно только активную запись!")
 	}
 
@@ -264,11 +265,19 @@ func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) 
 		return models.Invalid("Нельзя сменить статус %s на %s!", existing.Status, status)
 	}
 
-	if status == models.AppointmentCompleted && s.now().Before(existing.StartsAt) {
-		return models.Invalid("Завершить можно только начавшуюся запись!")
+	if status.Happened() && s.now().Before(existing.StartsAt) {
+		return models.Invalid("Статус %s можно поставить только после начала записи!", status)
 	}
 
 	return s.repo.UpdateStatus(id, status)
+}
+
+func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, error) {
+	if _, err := s.clients.GetClientById(clientID); err != nil {
+		return models.ClientStats{}, err
+	}
+
+	return s.repo.GetClientStats(clientID, s.now())
 }
 
 func (s *AppointmentService) DeleteAppointmentById(id int) error {

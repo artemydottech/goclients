@@ -20,6 +20,7 @@ type AppointmentServ interface {
 	GetAppointmentById(id int) (models.Appointment, error)
 	SetStatus(id int, status models.AppointmentStatus) error
 	Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error)
+	GetClientStats(clientID int) (models.ClientStats, error)
 	DeleteAppointmentById(id int) error
 }
 
@@ -260,4 +261,25 @@ func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, appointment)
+}
+
+func (h *AppointmentHandler) GetClientStats(w http.ResponseWriter, r *http.Request) {
+	clientID, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		return
+	}
+
+	stats, err := h.service.GetClientStats(clientID)
+	if errors.Is(err, sql.ErrNoRows) {
+		http.Error(w, "Клиент не найден", http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		log.Printf("GetClientStats: %v", err)
+		http.Error(w, "Ошибка расчёта статистики", http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, stats)
 }

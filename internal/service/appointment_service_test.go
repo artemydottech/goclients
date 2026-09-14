@@ -69,6 +69,10 @@ func (r *stubAppointmentRepo) UpdateStatus(_ int, status models.AppointmentStatu
 
 func (r *stubAppointmentRepo) DeleteAppointmentById(int) error { return nil }
 
+func (r *stubAppointmentRepo) GetClientStats(clientID int, _ time.Time) (models.ClientStats, error) {
+	return models.ClientStats{ClientID: clientID, Appointments: 3}, nil
+}
+
 type stubClientLookup struct {
 	client models.Client
 	err    error
@@ -679,5 +683,62 @@ func TestRescheduleKeepsTheAgreedPrice(t *testing.T) {
 
 	if moved.Price != 900 {
 		t.Errorf("после переноса цена %v, ожидалась прежняя 900", moved.Price)
+	}
+}
+
+func TestNoShowFollowsTheSameRulesAsCompletion(t *testing.T) {
+	started := func(s *AppointmentService) {
+		s.now = func() time.Time { return slotsDate.Add(13 * time.Hour) }
+	}
+
+	t.Run("после начала", func(t *testing.T) {
+		repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
+		if err := newAppointmentService(repo, started).SetStatus(5, models.AppointmentNoShow); err != nil {
+			t.Fatalf("неявку после начала отметить можно, получено %v", err)
+		}
+	})
+
+	t.Run("до начала", func(t *testing.T) {
+		repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
+		err := newAppointmentService(repo).SetStatus(5, models.AppointmentNoShow)
+
+		var validationErr models.ValidationError
+		if !errors.As(err, &validationErr) {
+			t.Fatalf("неявку до начала отмечать нельзя, получено %v", err)
+		}
+	})
+
+	t.Run("из неявки обратно", func(t *testing.T) {
+		repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentNoShow)}
+		err := newAppointmentService(repo, started).SetStatus(5, models.AppointmentCompleted)
+
+		var validationErr models.ValidationError
+		if !errors.As(err, &validationErr) {
+			t.Fatalf("неявка — конечный статус, получено %v", err)
+		}
+	})
+}
+
+func TestRescheduleRejectsNoShow(t *testing.T) {
+	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentNoShow)}
+
+	_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("неявку переносить нельзя, получено %v", err)
+	}
+	if repo.moves != 0 {
+		t.Error("неявка не должна переноситься")
+	}
+}
+
+func TestGetClientStatsReportsMissingClient(t *testing.T) {
+	svc := newAppointmentService(&stubAppointmentRepo{}, func(s *AppointmentService) {
+		s.clients = stubClientLookup{err: sql.ErrNoRows}
+	})
+
+	if _, err := svc.GetClientStats(404); !errors.Is(err, sql.ErrNoRows) {
+		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
 	}
 }

@@ -249,3 +249,62 @@ func (r *AppointmentRepository) DeleteAppointmentById(id int) error {
 
 	return nil
 }
+
+func (r *AppointmentRepository) GetClientStats(clientID int, now time.Time) (models.ClientStats, error) {
+	stats := models.ClientStats{ClientID: clientID}
+
+	var (
+		lastVisit sql.NullString
+		nextVisit sql.NullString
+		nowText   = now.UTC().Format(timeLayout)
+	)
+
+	err := r.db.QueryRow(`
+        SELECT
+            COUNT(*),
+            COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN status IN (?, ?) AND starts_at > ? THEN 1 ELSE 0 END), 0),
+            COALESCE(SUM(CASE WHEN status = ? THEN price ELSE 0 END), 0),
+            MAX(CASE WHEN status = ? THEN starts_at END),
+            MIN(CASE WHEN status IN (?, ?) AND starts_at > ? THEN starts_at END)
+        FROM appointments WHERE client_id = ?`,
+		string(models.AppointmentCompleted),
+		string(models.AppointmentNoShow),
+		string(models.AppointmentCancelled),
+		string(models.AppointmentPending), string(models.AppointmentConfirmed), nowText,
+		string(models.AppointmentCompleted),
+		string(models.AppointmentCompleted),
+		string(models.AppointmentPending), string(models.AppointmentConfirmed), nowText,
+		clientID,
+	).Scan(
+		&stats.Appointments, &stats.CompletedVisits, &stats.NoShows, &stats.Cancelled,
+		&stats.Upcoming, &stats.TotalSpent, &lastVisit, &nextVisit,
+	)
+	if err != nil {
+		return models.ClientStats{}, err
+	}
+
+	if stats.LastVisitAt, err = parseOptionalTime(lastVisit); err != nil {
+		return models.ClientStats{}, err
+	}
+	if stats.NextVisitAt, err = parseOptionalTime(nextVisit); err != nil {
+		return models.ClientStats{}, err
+	}
+
+	return stats, nil
+}
+
+func parseOptionalTime(value sql.NullString) (*time.Time, error) {
+	if !value.Valid {
+		return nil, nil
+	}
+
+	parsed, err := time.Parse(timeLayout, value.String)
+	if err != nil {
+		return nil, err
+	}
+
+	return &parsed, nil
+}
