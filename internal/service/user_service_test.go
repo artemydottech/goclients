@@ -82,7 +82,7 @@ func TestRegisterUserKeepsTheOptionalFields(t *testing.T) {
 }
 
 func TestRegisterUserRejectsLongUsername(t *testing.T) {
-	user := models.User{Name: "Даниил", Username: strings.Repeat("a", 51)}
+	user := models.User{Name: "Daniil", Username: strings.Repeat("a", 51)}
 
 	_, err := NewUserService(&stubUserRepo{}).RegisterUser(context.Background(), user)
 
