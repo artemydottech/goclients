@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -12,10 +13,10 @@ import (
 )
 
 type UserServ interface {
-	RegisterUser(u models.User) (int64, error)
-	GetAllUsers() ([]models.User, error)
-	GetUserById(id int) (models.User, error)
-	DeleteUserById(id int) error
+	RegisterUser(ctx context.Context, u models.User) (int64, error)
+	GetAllUsers(ctx context.Context) ([]models.User, error)
+	GetUserById(ctx context.Context, id int) (models.User, error)
+	DeleteUserById(ctx context.Context, id int) error
 }
 
 type UserHandler struct {
@@ -28,13 +29,14 @@ func NewUserHandler(s UserServ) *UserHandler {
 
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var input models.User
+	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	id, err := h.service.RegisterUser(input)
+	id, err := h.service.RegisterUser(ctx, input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		http.Error(w, validationErr.Error(), http.StatusBadRequest)
@@ -51,7 +53,9 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.service.GetAllUsers()
+	ctx := r.Context()
+
+	users, err := h.service.GetAllUsers(ctx)
 	if err != nil {
 		log.Printf("GetAllUsers: %v", err)
 		http.Error(w, "failed to load users", http.StatusInternalServerError)
@@ -64,14 +68,15 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	ctx := r.Context()
 
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
-	user, err := h.service.GetUserById(id)
+	user, err := h.service.GetUserById(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
@@ -87,13 +92,15 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.DeleteUserById(id)
+	err = h.service.DeleteUserById(ctx, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return

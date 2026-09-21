@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,8 +15,8 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) Create(u models.User) (int64, error) {
-	res, err := r.db.Exec(
+func (r *UserRepository) Create(ctx context.Context, u models.User) (int64, error) {
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO users (name, surname, username, avatar) VALUES (?, ?, ?, ?)",
 		u.Name, u.Surname, u.Username, u.Avatar,
 	)
@@ -26,8 +27,8 @@ func (r *UserRepository) Create(u models.User) (int64, error) {
 	return res.LastInsertId()
 }
 
-func (r *UserRepository) GetAllUsers() ([]models.User, error) {
-	rows, err := r.db.Query("SELECT id, name, surname, username, avatar FROM users")
+func (r *UserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
+	rows, err := r.db.QueryContext(ctx, "SELECT id, name, surname, username, avatar FROM users")
 
 	if err != nil {
 		return nil, err
@@ -55,10 +56,10 @@ func (r *UserRepository) GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func (r *UserRepository) GetUserById(id int) (models.User, error) {
+func (r *UserRepository) GetUserById(ctx context.Context, id int) (models.User, error) {
 	var user models.User
 
-	err := r.db.QueryRow("SELECT id, name, surname, username, avatar FROM users WHERE id = ?", id).
+	err := r.db.QueryRowContext(ctx, "SELECT id, name, surname, username, avatar FROM users WHERE id = ?", id).
 		Scan(&user.ID, &user.Name, &user.Surname, &user.Username, &user.Avatar)
 	if err != nil {
 		return models.User{}, err
@@ -67,8 +68,8 @@ func (r *UserRepository) GetUserById(id int) (models.User, error) {
 	return user, nil
 }
 
-func (r *UserRepository) DeleteUserById(id int) error {
-	res, err := r.db.Exec("DELETE FROM users WHERE id = ?", id)
+func (r *UserRepository) DeleteUserById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM users WHERE id = ?", id)
 	if err != nil {
 		return err
 	}

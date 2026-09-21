@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"path/filepath"
@@ -33,12 +34,12 @@ func TestUserRepositoryRoundTrip(t *testing.T) {
 
 	want := models.User{Name: "Артемий", Surname: "Зверев", Username: "artemy", Avatar: "a.png"}
 
-	id, err := repo.Create(want)
+	id, err := repo.Create(context.Background(), want)
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
 
-	user, err := repo.GetUserById(int(id))
+	user, err := repo.GetUserById(context.Background(), int(id))
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -48,7 +49,7 @@ func TestUserRepositoryRoundTrip(t *testing.T) {
 		t.Errorf("got %+v, want %+v", user, want)
 	}
 
-	all, err := repo.GetAllUsers()
+	all, err := repo.GetAllUsers(context.Background())
 	if err != nil {
 		t.Fatalf("get all: %v", err)
 	}
@@ -56,10 +57,10 @@ func TestUserRepositoryRoundTrip(t *testing.T) {
 		t.Fatalf("got %d users, want 1", len(all))
 	}
 
-	if err := repo.DeleteUserById(int(id)); err != nil {
+	if err := repo.DeleteUserById(context.Background(), int(id)); err != nil {
 		t.Fatalf("delete: %v", err)
 	}
-	if err := repo.DeleteUserById(int(id)); !errors.Is(err, sql.ErrNoRows) {
+	if err := repo.DeleteUserById(context.Background(), int(id)); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("second delete: got %v, want sql.ErrNoRows", err)
 	}
 }
@@ -67,7 +68,7 @@ func TestUserRepositoryRoundTrip(t *testing.T) {
 func TestUserRepositoryMissingUser(t *testing.T) {
 	repo := NewUserRepository(newTestDB(t))
 
-	if _, err := repo.GetUserById(404); !errors.Is(err, sql.ErrNoRows) {
+	if _, err := repo.GetUserById(context.Background(), 404); !errors.Is(err, sql.ErrNoRows) {
 		t.Errorf("got %v, want sql.ErrNoRows", err)
 	}
 }
@@ -152,7 +153,7 @@ func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	users, err := NewUserRepository(db).GetAllUsers()
+	users, err := NewUserRepository(db).GetAllUsers(context.Background())
 	if err != nil {
 		t.Fatalf("read after migrate: %v", err)
 	}

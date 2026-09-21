@@ -1,16 +1,17 @@
 package service
 
 import (
+	"context"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
 
 type UserRepo interface {
-	Create(u models.User) (int64, error)
-	GetAllUsers() ([]models.User, error)
-	GetUserById(id int) (models.User, error)
-	DeleteUserById(id int) error
+	Create(ctx context.Context, u models.User) (int64, error)
+	GetAllUsers(ctx context.Context) ([]models.User, error)
+	GetUserById(ctx context.Context, id int) (models.User, error)
+	DeleteUserById(ctx context.Context, id int) error
 }
 
 type UserService struct {
@@ -21,7 +22,7 @@ func NewUserService(repo UserRepo) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) RegisterUser(u models.User) (int64, error) {
+func (s *UserService) RegisterUser(ctx context.Context, u models.User) (int64, error) {
 	if u.Name == "" {
 		return 0, models.Invalid("name cannot be empty")
 	}
@@ -38,7 +39,7 @@ func (s *UserService) RegisterUser(u models.User) (int64, error) {
 		return 0, models.Invalid("username is too long, keep it under 50 characters")
 	}
 
-	id, err := s.repo.Create(u)
+	id, err := s.repo.Create(ctx, u)
 	if err != nil {
 		return 0, err
 	}
@@ -46,14 +47,14 @@ func (s *UserService) RegisterUser(u models.User) (int64, error) {
 	return id, nil
 }
 
-func (s *UserService) GetAllUsers() ([]models.User, error) {
-	return s.repo.GetAllUsers()
+func (s *UserService) GetAllUsers(ctx context.Context) ([]models.User, error) {
+	return s.repo.GetAllUsers(ctx)
 }
 
-func (s *UserService) GetUserById(id int) (models.User, error) {
-	return s.repo.GetUserById(id)
+func (s *UserService) GetUserById(ctx context.Context, id int) (models.User, error) {
+	return s.repo.GetUserById(ctx, id)
 }
 
-func (s *UserService) DeleteUserById(id int) error {
-	return s.repo.DeleteUserById(id)
+func (s *UserService) DeleteUserById(ctx context.Context, id int) error {
+	return s.repo.DeleteUserById(ctx, id)
 }
