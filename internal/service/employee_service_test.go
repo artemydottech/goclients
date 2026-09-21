@@ -27,15 +27,15 @@ func (r *stubEmployeeRepo) DeleteEmployeeById(int) error { return nil }
 
 func TestCreateEmployeeValidation(t *testing.T) {
 	cases := map[string]models.Employee{
-		"пустое имя":          {Name: "", Surname: "Зверев"},
-		"пустая фамилия":      {Name: "Артемий", Surname: ""},
-		"имя длиннее 200":     {Name: strings.Repeat("a", 201), Surname: "Зверев"},
-		"фамилия длиннее 200": {Name: "Артемий", Surname: strings.Repeat("a", 201)},
+		"пустое имя":          {Name: "", Surname: "Дубов"},
+		"пустая фамилия":      {Name: "Даниил", Surname: ""},
+		"имя длиннее 200":     {Name: strings.Repeat("a", 201), Surname: "Дубов"},
+		"фамилия длиннее 200": {Name: "Даниил", Surname: strings.Repeat("a", 201)},
 		"должность длиннее 500": {
-			Name: "Артемий", Surname: "Зверев", Position: strings.Repeat("a", 501),
+			Name: "Даниил", Surname: "Дубов", Position: strings.Repeat("a", 501),
 		},
 		"аватар длиннее 500": {
-			Name: "Артемий", Surname: "Зверев", Avatar: strings.Repeat("a", 501),
+			Name: "Даниил", Surname: "Дубов", Avatar: strings.Repeat("a", 501),
 		},
 	}
 
@@ -59,8 +59,8 @@ func TestCreateEmployeeValidation(t *testing.T) {
 
 func TestCreateEmployeeCountsRunesInPosition(t *testing.T) {
 	employee := models.Employee{
-		Name:     "Артемий",
-		Surname:  "Зверев",
+		Name:     "Даниил",
+		Surname:  "Дубов",
 		Position: strings.Repeat("я", 500),
 	}
 
@@ -72,8 +72,8 @@ func TestCreateEmployeeCountsRunesInPosition(t *testing.T) {
 func TestCreateEmployeeAcceptsValidInput(t *testing.T) {
 	employee := models.Employee{
 		CompanyID: 1,
-		Name:      "Артемий",
-		Surname:   "Зверев",
+		Name:      "Даниил",
+		Surname:   "Дубов",
 		Position:  "Разработчик",
 	}
 

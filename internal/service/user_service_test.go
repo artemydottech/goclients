@@ -70,7 +70,7 @@ func TestRegisterUserCountsRunesNotBytes(t *testing.T) {
 
 func TestRegisterUserKeepsTheOptionalFields(t *testing.T) {
 	repo := &stubUserRepo{}
-	user := models.User{Name: "Артемий", Surname: "Зверев", Username: "artemy", Avatar: "a.png"}
+	user := models.User{Name: "Daniil", Surname: "Dubov", Username: "daniil", Avatar: "a.png"}
 
 	if _, err := NewUserService(repo).RegisterUser(context.Background(), user); err != nil {
 		t.Fatalf("ожидался успех, получена ошибка %v", err)
@@ -82,7 +82,7 @@ func TestRegisterUserKeepsTheOptionalFields(t *testing.T) {
 }
 
 func TestRegisterUserRejectsLongUsername(t *testing.T) {
-	user := models.User{Name: "Артемий", Username: strings.Repeat("a", 51)}
+	user := models.User{Name: "Даниил", Username: strings.Repeat("a", 51)}
 
 	_, err := NewUserService(&stubUserRepo{}).RegisterUser(context.Background(), user)
 

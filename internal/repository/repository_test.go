@@ -32,7 +32,7 @@ func newTestDB(t *testing.T) *sql.DB {
 func TestUserRepositoryRoundTrip(t *testing.T) {
 	repo := NewUserRepository(newTestDB(t))
 
-	want := models.User{Name: "Артемий", Surname: "Зверев", Username: "artemy", Avatar: "a.png"}
+	want := models.User{Name: "Daniil", Surname: "Dubov", Username: "daniil", Avatar: "a.png"}
 
 	id, err := repo.Create(context.Background(), want)
 	if err != nil {
@@ -114,8 +114,8 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 
 	if _, err := employees.Create(models.Employee{
 		CompanyID: int(companyID),
-		Name:      "Артемий",
-		Surname:   "Зверев",
+		Name:      "Даниил",
+		Surname:   "Дубов",
 	}); err != nil {
 		t.Fatalf("create employee: %v", err)
 	}
@@ -145,7 +145,7 @@ func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 	if _, err := db.Exec(`CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)`); err != nil {
 		t.Fatalf("old schema: %v", err)
 	}
-	if _, err := db.Exec(`INSERT INTO users (name) VALUES ('Артемий')`); err != nil {
+	if _, err := db.Exec(`INSERT INTO users (name) VALUES ('Даниил')`); err != nil {
 		t.Fatalf("seed: %v", err)
 	}
 
@@ -157,7 +157,7 @@ func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read after migrate: %v", err)
 	}
-	if len(users) != 1 || users[0].Name != "Артемий" || users[0].Surname != "" {
+	if len(users) != 1 || users[0].Name != "Даниил" || users[0].Surname != "" {
 		t.Errorf("got %+v", users)
 	}
 
