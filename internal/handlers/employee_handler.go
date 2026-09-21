@@ -41,7 +41,7 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка сохранения сотрудника", http.StatusInternalServerError)
+		http.Error(w, "failed to save employee", http.StatusInternalServerError)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request
 	employees, err := h.service.GetAllEmployees()
 	if err != nil {
 		log.Printf("GetAllEmployees: %v", err)
-		http.Error(w, "Ошибка запроса сотрудников", http.StatusInternalServerError)
+		http.Error(w, "failed to load employees", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,17 +67,17 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	employee, err := h.service.GetEmployeeById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Сотрудник не найден", http.StatusNotFound)
+		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
+		http.Error(w, "request failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -89,17 +89,17 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 func (h *EmployeeHandler) DeleteEmployee(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteEmployeeById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Сотрудник не найден", http.StatusNotFound)
+		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Error(w, "failed to delete", http.StatusInternalServerError)
 		return
 	}
 

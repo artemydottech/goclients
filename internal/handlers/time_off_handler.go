@@ -28,7 +28,7 @@ func NewTimeOffHandler(s TimeOffServ) *TimeOffHandler {
 func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
@@ -45,12 +45,12 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Сотрудник не найден", http.StatusNotFound)
+		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("CreateTimeOff: %v", err)
-		http.Error(w, "Ошибка сохранения периода", http.StatusInternalServerError)
+		http.Error(w, "failed to save time off", http.StatusInternalServerError)
 		return
 	}
 
@@ -62,14 +62,14 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	periods, err := h.service.GetTimeOffByEmployee(employeeID)
 	if err != nil {
 		log.Printf("GetTimeOff: %v", err)
-		http.Error(w, "Ошибка запроса отпусков", http.StatusInternalServerError)
+		http.Error(w, "failed to load time off", http.StatusInternalServerError)
 		return
 	}
 
@@ -79,18 +79,18 @@ func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 func (h *TimeOffHandler) DeleteTimeOff(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteTimeOffById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Период не найден", http.StatusNotFound)
+		http.Error(w, "time off not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("DeleteTimeOff: %v", err)
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Error(w, "failed to delete", http.StatusInternalServerError)
 		return
 	}
 

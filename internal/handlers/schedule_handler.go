@@ -37,7 +37,7 @@ type scheduleInput struct {
 func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
@@ -54,12 +54,12 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Сотрудник не найден", http.StatusNotFound)
+		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("SetEmployeeSchedule: %v", err)
-		http.Error(w, "Ошибка сохранения графика", http.StatusInternalServerError)
+		http.Error(w, "failed to save schedule", http.StatusInternalServerError)
 		return
 	}
 
@@ -69,14 +69,14 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 func (h *ScheduleHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	days, err := h.schedule.GetEmployeeSchedule(employeeID)
 	if err != nil {
 		log.Printf("GetEmployeeSchedule: %v", err)
-		http.Error(w, "Ошибка запроса графика", http.StatusInternalServerError)
+		http.Error(w, "failed to load schedule", http.StatusInternalServerError)
 		return
 	}
 
@@ -88,19 +88,19 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 
 	employeeID, err := strconv.Atoi(query.Get("employee_id"))
 	if err != nil {
-		http.Error(w, "Нужен employee_id", http.StatusBadRequest)
+		http.Error(w, "employee_id is required", http.StatusBadRequest)
 		return
 	}
 
 	serviceID, err := strconv.Atoi(query.Get("service_id"))
 	if err != nil {
-		http.Error(w, "Нужен service_id", http.StatusBadRequest)
+		http.Error(w, "service_id is required", http.StatusBadRequest)
 		return
 	}
 
 	date, err := time.Parse("2006-01-02", query.Get("date"))
 	if err != nil {
-		http.Error(w, "Нужна дата в формате ГГГГ-ММ-ДД", http.StatusBadRequest)
+		http.Error(w, "date is required in YYYY-MM-DD format", http.StatusBadRequest)
 		return
 	}
 
@@ -108,7 +108,7 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 	if raw := query.Get("step"); raw != "" {
 		step, err = strconv.Atoi(raw)
 		if err != nil || step <= 0 {
-			http.Error(w, "Шаг сетки должен быть положительным числом минут", http.StatusBadRequest)
+			http.Error(w, "step must be a positive number of minutes", http.StatusBadRequest)
 			return
 		}
 	}
@@ -121,7 +121,7 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		log.Printf("GetFreeSlots: %v", err)
-		http.Error(w, "Ошибка расчёта слотов", http.StatusInternalServerError)
+		http.Error(w, "failed to compute slots", http.StatusInternalServerError)
 		return
 	}
 

@@ -41,7 +41,7 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка сохранения компании", http.StatusInternalServerError)
+		http.Error(w, "failed to save company", http.StatusInternalServerError)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request)
 	companies, err := h.service.GetAllCompanies()
 	if err != nil {
 		log.Printf("GetAllCompanies: %v", err)
-		http.Error(w, "Ошибка запроса компаний", http.StatusInternalServerError)
+		http.Error(w, "failed to load companies", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,17 +67,17 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	company, err := h.service.GetCompanyById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Компания не найдена", http.StatusNotFound)
+		http.Error(w, "company not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
+		http.Error(w, "request failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -89,17 +89,17 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteCompanyById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Компания не найдена", http.StatusNotFound)
+		http.Error(w, "company not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Error(w, "failed to delete", http.StatusInternalServerError)
 		return
 	}
 

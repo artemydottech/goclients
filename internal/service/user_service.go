@@ -23,19 +23,19 @@ func NewUserService(repo UserRepo) *UserService {
 
 func (s *UserService) RegisterUser(u models.User) (int64, error) {
 	if u.Name == "" {
-		return 0, models.Invalid("Имя не может быть пустым!")
+		return 0, models.Invalid("name cannot be empty")
 	}
 
 	if utf8.RuneCountInString(u.Name) > 100 {
-		return 0, models.Invalid("Имя слишком длинное! Не превышайте 100 символов")
+		return 0, models.Invalid("name is too long, keep it under 100 characters")
 	}
 
 	if utf8.RuneCountInString(u.Surname) > 100 {
-		return 0, models.Invalid("Фамилия слишком длинная! Не превышайте 100 символов")
+		return 0, models.Invalid("surname is too long, keep it under 100 characters")
 	}
 
 	if utf8.RuneCountInString(u.Username) > 50 {
-		return 0, models.Invalid("Логин слишком длинный! Не превышайте 50 символов")
+		return 0, models.Invalid("username is too long, keep it under 50 characters")
 	}
 
 	id, err := s.repo.Create(u)

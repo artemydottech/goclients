@@ -46,28 +46,28 @@ func NormalizePhone(phone string) string {
 
 func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 	if c.CompanyID <= 0 {
-		return 0, models.Invalid("Клиент должен принадлежать компании!")
+		return 0, models.Invalid("client must belong to a company")
 	}
 
 	if c.Name == "" {
-		return 0, models.Invalid("Имя клиента не может быть пустым!")
+		return 0, models.Invalid("client name cannot be empty")
 	}
 
 	if utf8.RuneCountInString(c.Name) > 200 {
-		return 0, models.Invalid("Имя слишком длинное! Не превышайте 200 символов")
+		return 0, models.Invalid("name is too long, keep it under 200 characters")
 	}
 
 	c.Phone = NormalizePhone(c.Phone)
 	if len(c.Phone) < minPhoneDigits || len(c.Phone) > maxPhoneDigits {
-		return 0, models.Invalid("Телефон должен содержать от %d до %d цифр!", minPhoneDigits, maxPhoneDigits)
+		return 0, models.Invalid("phone must contain from %d to %d digits", minPhoneDigits, maxPhoneDigits)
 	}
 
 	if c.Email != "" && !strings.Contains(c.Email, "@") {
-		return 0, models.Invalid("Почта указана некорректно!")
+		return 0, models.Invalid("email is invalid")
 	}
 
 	if utf8.RuneCountInString(c.Comment) > 1000 {
-		return 0, models.Invalid("Комментарий слишком длинный! Не превышайте 1000 символов")
+		return 0, models.Invalid("comment is too long, keep it under 1000 characters")
 	}
 
 	existing, err := s.repo.GetClientByPhone(c.CompanyID, c.Phone)
@@ -75,7 +75,7 @@ func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 		return 0, err
 	}
 	if err == nil {
-		return 0, models.Invalid("Клиент с телефоном %s уже есть в базе (id %d)!", c.Phone, existing.ID)
+		return 0, models.Invalid("client with phone %s already exists (id %d)", c.Phone, existing.ID)
 	}
 
 	return s.repo.Create(c)

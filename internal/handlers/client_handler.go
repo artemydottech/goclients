@@ -43,7 +43,7 @@ func (h *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		log.Printf("CreateClient: %v", err)
-		http.Error(w, "Ошибка сохранения клиента", http.StatusInternalServerError)
+		http.Error(w, "failed to save client", http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 	if raw := r.URL.Query().Get("company_id"); raw != "" {
 		companyID, convErr := strconv.Atoi(raw)
 		if convErr != nil {
-			http.Error(w, "Неправильный company_id", http.StatusBadRequest)
+			http.Error(w, "invalid company_id", http.StatusBadRequest)
 			return
 		}
 		clients, err = h.service.GetClientsByCompany(companyID)
@@ -71,7 +71,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GetAllClients: %v", err)
-		http.Error(w, "Ошибка запроса клиентов", http.StatusInternalServerError)
+		http.Error(w, "failed to load clients", http.StatusInternalServerError)
 		return
 	}
 
@@ -83,18 +83,18 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	client, err := h.service.GetClientById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Клиент не найден", http.StatusNotFound)
+		http.Error(w, "client not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("GetClientById: %v", err)
-		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
+		http.Error(w, "request failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -106,18 +106,18 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteClientById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Клиент не найден", http.StatusNotFound)
+		http.Error(w, "client not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("DeleteClient: %v", err)
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Error(w, "failed to delete", http.StatusInternalServerError)
 		return
 	}
 

@@ -43,7 +43,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		log.Printf("CreateService: %v", err)
-		http.Error(w, "Ошибка сохранения услуги", http.StatusInternalServerError)
+		http.Error(w, "failed to save service", http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 	if raw := r.URL.Query().Get("company_id"); raw != "" {
 		companyID, convErr := strconv.Atoi(raw)
 		if convErr != nil {
-			http.Error(w, "Неправильный company_id", http.StatusBadRequest)
+			http.Error(w, "invalid company_id", http.StatusBadRequest)
 			return
 		}
 		services, err = h.service.GetServicesByCompany(companyID)
@@ -71,7 +71,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		log.Printf("GetAllServices: %v", err)
-		http.Error(w, "Ошибка запроса услуг", http.StatusInternalServerError)
+		http.Error(w, "failed to load services", http.StatusInternalServerError)
 		return
 	}
 
@@ -83,18 +83,18 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	item, err := h.service.GetServiceById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Услуга не найдена", http.StatusNotFound)
+		http.Error(w, "service not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("GetServiceById: %v", err)
-		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
+		http.Error(w, "request failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -106,18 +106,18 @@ func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) 
 func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteServiceById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Услуга не найдена", http.StatusNotFound)
+		http.Error(w, "service not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("DeleteService: %v", err)
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Error(w, "failed to delete", http.StatusInternalServerError)
 		return
 	}
 

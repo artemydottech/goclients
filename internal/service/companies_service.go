@@ -23,23 +23,23 @@ func NewCompanyService(repo CompanyRepo) *CompanyService {
 
 func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 	if c.Name == "" {
-		return 0, models.Invalid("Название компании не может быть пустым!")
+		return 0, models.Invalid("company name cannot be empty")
 	}
 
 	if utf8.RuneCountInString(c.Name) > 200 {
-		return 0, models.Invalid("Название компании слишком длинное! Не превышайте 200 символов")
+		return 0, models.Invalid("company name is too long, keep it under 200 characters")
 	}
 
 	if c.Address != "" && utf8.RuneCountInString(c.Address) > 500 {
-		return 0, models.Invalid("Адрес слишком длинный! Не превышайте 500 символов")
+		return 0, models.Invalid("address is too long, keep it under 500 characters")
 	}
 
 	if c.Site != "" && utf8.RuneCountInString(c.Site) > 500 {
-		return 0, models.Invalid("Сайт слишком длинный! Не превышайте 500 символов")
+		return 0, models.Invalid("website is too long, keep it under 500 characters")
 	}
 
 	if c.Logo != "" && utf8.RuneCountInString(c.Logo) > 500 {
-		return 0, models.Invalid("Ссылка на логотип слишком длинная! Не превышайте 500 символов")
+		return 0, models.Invalid("logo URL is too long, keep it under 500 characters")
 	}
 
 	if err := c.Socials.Validate(); err != nil {
@@ -50,7 +50,7 @@ func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 		c.Timezone = "UTC"
 	}
 	if _, err := c.Location(); err != nil {
-		return 0, models.Invalid("Неизвестный часовой пояс %s! Нужно имя из базы IANA, например Asia/Yekaterinburg", c.Timezone)
+		return 0, models.Invalid("unknown timezone %s, use an IANA name such as Asia/Yekaterinburg", c.Timezone)
 	}
 
 	id, err := s.repo.Create(c)

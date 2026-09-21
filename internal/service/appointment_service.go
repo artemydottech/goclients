@@ -76,7 +76,7 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 		return 0, err
 	}
 	if busy {
-		return 0, models.Invalid("Это время у сотрудника уже занято!")
+		return 0, models.Invalid("this time is already taken for the employee")
 	}
 
 	return id, nil
@@ -89,7 +89,7 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 	}
 
 	if !existing.Status.Active() {
-		return models.Appointment{}, models.Invalid("Перенести можно только активную запись!")
+		return models.Appointment{}, models.Invalid("only an active appointment can be rescheduled")
 	}
 
 	candidate := existing
@@ -110,7 +110,7 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 		return models.Appointment{}, err
 	}
 	if busy {
-		return models.Appointment{}, models.Invalid("Это время у сотрудника уже занято!")
+		return models.Appointment{}, models.Invalid("this time is already taken for the employee")
 	}
 
 	return prepared, nil
@@ -118,20 +118,20 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 
 func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, error) {
 	if a.StartsAt.IsZero() {
-		return a, models.Invalid("Не указано время записи!")
+		return a, models.Invalid("appointment time is not set")
 	}
 
 	if !a.StartsAt.After(s.now()) {
-		return a, models.Invalid("Записаться можно только на будущее время!")
+		return a, models.Invalid("appointments can only be booked in the future")
 	}
 
 	if utf8.RuneCountInString(a.Comment) > 1000 {
-		return a, models.Invalid("Комментарий слишком длинный! Не превышайте 1000 символов")
+		return a, models.Invalid("comment is too long, keep it under 1000 characters")
 	}
 
 	client, err := s.clients.GetClientById(a.ClientID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return a, models.Invalid("Клиент %d не найден!", a.ClientID)
+		return a, models.Invalid("client %d not found", a.ClientID)
 	}
 	if err != nil {
 		return a, err
@@ -139,7 +139,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 
 	employee, err := s.employees.GetEmployeeById(a.EmployeeID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return a, models.Invalid("Сотрудник %d не найден!", a.EmployeeID)
+		return a, models.Invalid("employee %d not found", a.EmployeeID)
 	}
 	if err != nil {
 		return a, err
@@ -147,14 +147,14 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 
 	item, err := s.services.GetServiceById(a.ServiceID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return a, models.Invalid("Услуга %d не найдена!", a.ServiceID)
+		return a, models.Invalid("service %d not found", a.ServiceID)
 	}
 	if err != nil {
 		return a, err
 	}
 
 	if client.CompanyID != employee.CompanyID || item.CompanyID != employee.CompanyID {
-		return a, models.Invalid("Клиент, сотрудник и услуга должны быть из одной компании!")
+		return a, models.Invalid("client, employee and service must belong to the same company")
 	}
 
 	performs, err := s.assignments.EmployeePerformsService(a.EmployeeID, a.ServiceID)
@@ -162,7 +162,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 	if !performs {
-		return a, models.Invalid("Сотрудник %d не оказывает услугу %d!", a.EmployeeID, a.ServiceID)
+		return a, models.Invalid("employee %d does not provide service %d", a.EmployeeID, a.ServiceID)
 	}
 
 	a.CompanyID = employee.CompanyID
@@ -174,10 +174,10 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		a.Status = models.AppointmentPending
 	}
 	if !a.Status.Valid() {
-		return a, models.Invalid("Неизвестный статус записи %s!", a.Status)
+		return a, models.Invalid("unknown appointment status %s", a.Status)
 	}
 	if a.Status != models.AppointmentPending && a.Status != models.AppointmentConfirmed {
-		return a, models.Invalid("Новая запись может быть только pending или confirmed!")
+		return a, models.Invalid("a new appointment can only be pending or confirmed")
 	}
 
 	loc, err := companyLocation(s.companies, employee.CompanyID)
@@ -193,18 +193,18 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 	if !isWorkingDay {
-		return a, models.Invalid("У сотрудника в этот день выходной!")
+		return a, models.Invalid("the employee has a day off")
 	}
 	if a.StartsAt.Before(opens) || a.EndsAt.After(closes) {
 		return a, models.Invalid(
-			"Запись выходит за рабочее время сотрудника (%s–%s)!",
+			"appointment is outside the employee working hours (%s-%s)",
 			opens.Format("15:04"), closes.Format("15:04"),
 		)
 	}
 
 	if overlapsTimeOff(a.StartsAt, a.EndsAt, breaks) {
 		return a, models.Invalid(
-			"Запись попадает на перерыв сотрудника (%s–%s)!",
+			"appointment falls on the employee break (%s-%s)",
 			breaks[0].StartsAt.Format("15:04"), breaks[0].EndsAt.Format("15:04"),
 		)
 	}
@@ -214,7 +214,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 	if len(absences) > 0 {
-		return a, models.Invalid("Сотрудник в это время не принимает (%s)!", absenceReason(absences[0]))
+		return a, models.Invalid("the employee is unavailable at this time (%s)", absenceReason(absences[0]))
 	}
 
 	return a, nil
@@ -222,7 +222,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 
 func absenceReason(t models.TimeOff) string {
 	if t.Reason == "" {
-		return "нерабочий период"
+		return "time off"
 	}
 	return t.Reason
 }
@@ -245,7 +245,7 @@ func (s *AppointmentService) GetAppointmentById(id int) (models.Appointment, err
 
 func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) error {
 	if !status.Valid() {
-		return models.Invalid("Неизвестный статус записи %s!", status)
+		return models.Invalid("unknown appointment status %s", status)
 	}
 
 	existing, err := s.repo.GetAppointmentById(id)
@@ -255,13 +255,13 @@ func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) 
 
 	if !existing.Status.CanBecome(status) {
 		if existing.Status == models.AppointmentCancelled {
-			return models.Invalid("Отменённую запись нельзя вернуть — создайте новую!")
+			return models.Invalid("a cancelled appointment cannot be restored, create a new one")
 		}
-		return models.Invalid("Нельзя сменить статус %s на %s!", existing.Status, status)
+		return models.Invalid("cannot change status from %s to %s", existing.Status, status)
 	}
 
 	if status.Happened() && s.now().Before(existing.StartsAt) {
-		return models.Invalid("Статус %s можно поставить только после начала записи!", status)
+		return models.Invalid("status %s can only be set after the appointment has started", status)
 	}
 
 	return s.repo.UpdateStatus(id, status)

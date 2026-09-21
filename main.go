@@ -17,7 +17,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println("Конфиг .env не найден")
+		log.Println(".env config not found")
 	}
 
 	dbPath := os.Getenv("DB_PATH")
@@ -27,7 +27,7 @@ func main() {
 
 	db, err := repository.Open(dbPath)
 	if err != nil {
-		log.Fatal("Ошибка подключения к БД: ", err)
+		log.Fatal("db connection failed: ", err)
 	}
 	defer db.Close()
 
@@ -138,7 +138,7 @@ func main() {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	log.Printf("Сервер запущен на :%s", port)
+	log.Printf("server listening on :%s", port)
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}

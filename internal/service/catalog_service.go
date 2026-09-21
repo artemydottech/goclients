@@ -26,31 +26,31 @@ func NewCatalogService(repo ServiceRepo) *CatalogService {
 
 func (s *CatalogService) CreateService(item models.Service) (int64, error) {
 	if item.CompanyID <= 0 {
-		return 0, models.Invalid("Услуга должна принадлежать компании!")
+		return 0, models.Invalid("service must belong to a company")
 	}
 
 	if item.Name == "" {
-		return 0, models.Invalid("Название услуги не может быть пустым!")
+		return 0, models.Invalid("service name cannot be empty")
 	}
 
 	if utf8.RuneCountInString(item.Name) > 200 {
-		return 0, models.Invalid("Название слишком длинное! Не превышайте 200 символов")
+		return 0, models.Invalid("service name is too long, keep it under 200 characters")
 	}
 
 	if utf8.RuneCountInString(item.Description) > 500 {
-		return 0, models.Invalid("Описание слишком длинное! Не превышайте 500 символов")
+		return 0, models.Invalid("description is too long, keep it under 500 characters")
 	}
 
 	if item.Duration <= 0 {
-		return 0, models.Invalid("Длительность услуги должна быть больше нуля!")
+		return 0, models.Invalid("service duration must be greater than zero")
 	}
 
 	if item.Duration > maxServiceDuration {
-		return 0, models.Invalid("Длительность не может превышать 24 часа!")
+		return 0, models.Invalid("duration cannot exceed 24 hours")
 	}
 
 	if item.Price < 0 {
-		return 0, models.Invalid("Цена не может быть отрицательной!")
+		return 0, models.Invalid("price cannot be negative")
 	}
 
 	return s.repo.Create(item)

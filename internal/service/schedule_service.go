@@ -36,7 +36,7 @@ func (s *ScheduleService) SetEmployeeSchedule(employeeID int, days []models.Work
 		}
 
 		if _, duplicate := seen[days[i].Weekday]; duplicate {
-			return models.Invalid("День недели %d указан дважды!", days[i].Weekday)
+			return models.Invalid("weekday %d is listed twice", days[i].Weekday)
 		}
 		seen[days[i].Weekday] = struct{}{}
 	}

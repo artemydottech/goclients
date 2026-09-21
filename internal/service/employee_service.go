@@ -23,27 +23,27 @@ func NewEmployeeService(repo EmployeeRepo) *EmployeeService {
 
 func (s *EmployeeService) CreateEmployee(e models.Employee) (int64, error) {
 	if e.Name == "" {
-		return 0, models.Invalid("Имя сотрудника не может быть пустым!")
+		return 0, models.Invalid("employee name cannot be empty")
 	}
 
 	if e.Surname == "" {
-		return 0, models.Invalid("Фамилия сотрудника не может быть пустой!")
+		return 0, models.Invalid("employee surname cannot be empty")
 	}
 
 	if utf8.RuneCountInString(e.Name) > 200 {
-		return 0, models.Invalid("Имя слишком длинное! Не превышайте 200 символов")
+		return 0, models.Invalid("name is too long, keep it under 200 characters")
 	}
 
 	if utf8.RuneCountInString(e.Surname) > 200 {
-		return 0, models.Invalid("Фамилия слишком длинная! Не превышайте 200 символов")
+		return 0, models.Invalid("surname is too long, keep it under 200 characters")
 	}
 
 	if e.Position != "" && utf8.RuneCountInString(e.Position) > 500 {
-		return 0, models.Invalid("Должность слишком длинная! Не превышайте 500 символов")
+		return 0, models.Invalid("position is too long, keep it under 500 characters")
 	}
 
 	if e.Avatar != "" && utf8.RuneCountInString(e.Avatar) > 500 {
-		return 0, models.Invalid("Ссылка на аватар слишком длинная! Не превышайте 500 символов")
+		return 0, models.Invalid("avatar URL is too long, keep it under 500 characters")
 	}
 
 	id, err := s.repo.Create(e)

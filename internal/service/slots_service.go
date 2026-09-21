@@ -8,7 +8,7 @@ import (
 	"github.com/artemydottech/goclients/internal/models"
 )
 
-const defaultSlotStep = 15
+const defaultSlotStep int = 15
 
 type Schedule interface {
 	WorkingDay(employeeID, weekday int) (models.WorkingDay, bool, error)
@@ -61,7 +61,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 
 	employee, err := s.employees.GetEmployeeById(employeeID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, models.Invalid("Сотрудник %d не найден!", employeeID)
+		return nil, models.Invalid("employee %d not found", employeeID)
 	}
 	if err != nil {
 		return nil, err
@@ -69,7 +69,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 
 	item, err := s.services.GetServiceById(serviceID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, models.Invalid("Услуга %d не найдена!", serviceID)
+		return nil, models.Invalid("service %d not found", serviceID)
 	}
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, err
 	}
 	if !performs {
-		return nil, models.Invalid("Сотрудник %d не оказывает услугу %d!", employeeID, serviceID)
+		return nil, models.Invalid("employee %d does not provide service %d", employeeID, serviceID)
 	}
 
 	loc, err := companyLocation(s.companies, employee.CompanyID)
@@ -181,7 +181,7 @@ func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time,
 		return time.Time{}, time.Time{}, nil, false, err
 	}
 
-	breaks := []models.TimeOff{{EmployeeID: employeeID, StartsAt: breakStarts, EndsAt: breakEnds, Reason: "перерыв"}}
+	breaks := []models.TimeOff{{EmployeeID: employeeID, StartsAt: breakStarts, EndsAt: breakEnds, Reason: "break"}}
 
 	return opens, closes, breaks, true, nil
 }

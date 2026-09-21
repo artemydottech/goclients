@@ -52,14 +52,14 @@ func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int
 
 		item, err := s.services.GetServiceById(serviceID)
 		if errors.Is(err, sql.ErrNoRows) {
-			return models.Invalid("Услуга %d не найдена!", serviceID)
+			return models.Invalid("service %d not found", serviceID)
 		}
 		if err != nil {
 			return err
 		}
 
 		if item.CompanyID != employee.CompanyID {
-			return models.Invalid("Услуга %d принадлежит другой компании!", serviceID)
+			return models.Invalid("service %d belongs to another company", serviceID)
 		}
 
 		unique = append(unique, serviceID)

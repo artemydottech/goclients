@@ -32,7 +32,7 @@ type employeeServicesInput struct {
 func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
@@ -49,12 +49,12 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 		return
 	}
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Сотрудник не найден", http.StatusNotFound)
+		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
 		log.Printf("SetEmployeeServices: %v", err)
-		http.Error(w, "Ошибка сохранения услуг сотрудника", http.StatusInternalServerError)
+		http.Error(w, "failed to save employee services", http.StatusInternalServerError)
 		return
 	}
 
@@ -64,14 +64,14 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	services, err := h.service.GetServicesByEmployee(employeeID)
 	if err != nil {
 		log.Printf("GetEmployeeServices: %v", err)
-		http.Error(w, "Ошибка запроса услуг сотрудника", http.StatusInternalServerError)
+		http.Error(w, "failed to load employee services", http.StatusInternalServerError)
 		return
 	}
 
@@ -83,14 +83,14 @@ func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.R
 func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.Request) {
 	serviceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	employees, err := h.service.GetEmployeesByService(serviceID)
 	if err != nil {
 		log.Printf("GetServiceEmployees: %v", err)
-		http.Error(w, "Ошибка запроса мастеров услуги", http.StatusInternalServerError)
+		http.Error(w, "failed to load service employees", http.StatusInternalServerError)
 		return
 	}
 

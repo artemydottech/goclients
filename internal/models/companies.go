@@ -27,7 +27,7 @@ func (s Socials) Validate() error {
 		switch network {
 		case SocialVK, SocialTelegram, SocialWhatsApp, SocialViber:
 		default:
-			return Invalid("Неподдерживаемая соц. сеть %s", network)
+			return Invalid("unsupported social network %s", network)
 		}
 	}
 	return nil

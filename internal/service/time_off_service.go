@@ -34,15 +34,15 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 	}
 
 	if t.StartsAt.IsZero() || t.EndsAt.IsZero() {
-		return 0, models.Invalid("Нужно указать начало и конец периода!")
+		return 0, models.Invalid("period start and end are required")
 	}
 
 	if !t.EndsAt.After(t.StartsAt) {
-		return 0, models.Invalid("Конец периода должен быть позже начала!")
+		return 0, models.Invalid("period end must be after start")
 	}
 
 	if utf8.RuneCountInString(t.Reason) > 200 {
-		return 0, models.Invalid("Причина слишком длинная! Не превышайте 200 символов")
+		return 0, models.Invalid("reason is too long, keep it under 200 characters")
 	}
 
 	booked, err := s.calendar.GetAppointmentsByEmployee(employeeID, t.StartsAt, t.EndsAt)
@@ -57,7 +57,7 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 		}
 	}
 	if active > 0 {
-		return 0, models.Invalid("На это время у сотрудника %d активных записей — сначала перенесите или отмените их!", active)
+		return 0, models.Invalid("the employee has %d active appointments in this period, reschedule or cancel them first", active)
 	}
 
 	t.EmployeeID = employeeID

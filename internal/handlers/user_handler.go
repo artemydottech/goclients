@@ -41,7 +41,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка сохранения пользователя", http.StatusInternalServerError)
+		http.Error(w, "failed to save user", http.StatusInternalServerError)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.service.GetAllUsers()
 	if err != nil {
 		log.Printf("GetAllUsers: %v", err)
-		http.Error(w, "Ошибка запроса пользователей", http.StatusInternalServerError)
+		http.Error(w, "failed to load users", http.StatusInternalServerError)
 		return
 	}
 
@@ -67,17 +67,17 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.service.GetUserById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка запроса", http.StatusInternalServerError)
+		http.Error(w, "request failed", http.StatusInternalServerError)
 		return
 	}
 
@@ -89,17 +89,17 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "Неправильный ID", http.StatusBadRequest)
+		http.Error(w, "invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = h.service.DeleteUserById(id)
 	if errors.Is(err, sql.ErrNoRows) {
-		http.Error(w, "Пользователь не найден", http.StatusNotFound)
+		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
 	if err != nil {
-		http.Error(w, "Ошибка удаления", http.StatusInternalServerError)
+		http.Error(w, "failed to delete", http.StatusInternalServerError)
 		return
 	}
 
