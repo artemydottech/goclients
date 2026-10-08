@@ -119,7 +119,7 @@ func scanAppointment(row rowScanner) (models.Appointment, error) {
 	err := row.Scan(&a.ID, &a.CompanyID, &a.ClientID, &a.EmployeeID, &a.ServiceID,
 		&startsAt, &endsAt, &status, &a.Comment, &a.Price)
 	if err != nil {
-		return models.Appointment{}, err
+		return models.Appointment{}, mapNoRows(err)
 	}
 
 	if a.StartsAt, err = time.Parse(timeLayout, startsAt); err != nil {
@@ -173,7 +173,7 @@ func (r *AppointmentRepository) MoveIfFree(id int, a models.Appointment) (bool, 
 		return false, err
 	}
 	if rows == 0 {
-		return false, sql.ErrNoRows
+		return false, errNoRows
 	}
 
 	return false, tx.Commit()
@@ -216,7 +216,7 @@ func (r *AppointmentRepository) UpdateStatus(id int, status models.AppointmentSt
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
@@ -234,7 +234,7 @@ func (r *AppointmentRepository) DeleteAppointmentById(id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
