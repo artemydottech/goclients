@@ -60,7 +60,7 @@ func (r *EmployeeRepository) GetEmployeeById(id int) (models.Employee, error) {
         FROM employees WHERE id = ?`, id).
 		Scan(&e.ID, &e.CompanyID, &e.Name, &e.Surname, &e.Position, &e.Avatar)
 	if err != nil {
-		return models.Employee{}, err
+		return models.Employee{}, mapNoRows(err)
 	}
 
 	return e, nil
@@ -78,7 +78,7 @@ func (r *EmployeeRepository) DeleteEmployeeById(id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
