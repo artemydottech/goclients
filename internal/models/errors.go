@@ -1,6 +1,11 @@
 package models
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var ErrNotFound = errors.New("not found")
 
 type ValidationError struct {
 	Message string
