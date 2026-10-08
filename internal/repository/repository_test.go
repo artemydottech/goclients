@@ -60,16 +60,16 @@ func TestUserRepositoryRoundTrip(t *testing.T) {
 	if err := repo.DeleteUserById(context.Background(), int(id)); err != nil {
 		t.Fatalf("delete: %v", err)
 	}
-	if err := repo.DeleteUserById(context.Background(), int(id)); !errors.Is(err, sql.ErrNoRows) {
-		t.Errorf("second delete: got %v, want sql.ErrNoRows", err)
+	if err := repo.DeleteUserById(context.Background(), int(id)); !errors.Is(err, models.ErrNotFound) {
+		t.Errorf("second delete: got %v, want models.ErrNotFound", err)
 	}
 }
 
 func TestUserRepositoryMissingUser(t *testing.T) {
 	repo := NewUserRepository(newTestDB(t))
 
-	if _, err := repo.GetUserById(context.Background(), 404); !errors.Is(err, sql.ErrNoRows) {
-		t.Errorf("got %v, want sql.ErrNoRows", err)
+	if _, err := repo.GetUserById(context.Background(), 404); !errors.Is(err, models.ErrNotFound) {
+		t.Errorf("got %v, want models.ErrNotFound", err)
 	}
 }
 
@@ -237,7 +237,7 @@ func TestServicesGoAwayWithTheirCompany(t *testing.T) {
 		t.Fatalf("delete company: %v", err)
 	}
 
-	if _, err := services.GetServiceById(int(serviceID)); !errors.Is(err, sql.ErrNoRows) {
+	if _, err := services.GetServiceById(int(serviceID)); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("услуга пережила удаление компании: %v", err)
 	}
 }
@@ -517,7 +517,7 @@ func TestAppointmentsGoAwayWithTheClient(t *testing.T) {
 		t.Fatalf("delete client: %v", err)
 	}
 
-	if _, err := repo.GetAppointmentById(int(id)); !errors.Is(err, sql.ErrNoRows) {
+	if _, err := repo.GetAppointmentById(int(id)); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("запись пережила удаление клиента: %v", err)
 	}
 }
@@ -678,7 +678,7 @@ func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
 
 	free := own
 	free.StartsAt, free.EndsAt = startsAt.Add(5*time.Hour), startsAt.Add(6*time.Hour)
-	if _, err := repo.MoveIfFree(9999, free); !errors.Is(err, sql.ErrNoRows) {
+	if _, err := repo.MoveIfFree(9999, free); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("перенос несуществующей записи: %v", err)
 	}
 }
@@ -726,7 +726,7 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 	if err := repo.DeleteTimeOffById(int(id)); err != nil {
 		t.Fatalf("delete: %v", err)
 	}
-	if err := repo.DeleteTimeOffById(int(id)); !errors.Is(err, sql.ErrNoRows) {
+	if err := repo.DeleteTimeOffById(int(id)); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("повторное удаление: %v", err)
 	}
 }
