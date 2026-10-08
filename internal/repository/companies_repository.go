@@ -76,7 +76,7 @@ func (r *CompanyRepository) GetCompanyById(id int) (models.Company, error) {
 		Scan(&c.ID, &c.Name, &c.Address, &c.Geolocation,
 			&c.Schedule, &c.Site, &socialJSON, &c.Logo, &c.Timezone)
 	if err != nil {
-		return models.Company{}, err
+		return models.Company{}, mapNoRows(err)
 	}
 
 	if socialJSON.Valid {
@@ -98,7 +98,7 @@ func (r *CompanyRepository) DeleteCompanyById(id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
