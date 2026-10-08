@@ -86,7 +86,7 @@ func (r *ServiceRepository) GetServiceById(id int) (models.Service, error) {
         FROM services WHERE id = ?`, id).
 		Scan(&s.ID, &s.CompanyID, &s.Name, &s.Description, &s.Duration, &s.Price)
 	if err != nil {
-		return models.Service{}, err
+		return models.Service{}, mapNoRows(err)
 	}
 
 	return s, nil
@@ -104,7 +104,7 @@ func (r *ServiceRepository) DeleteServiceById(id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
