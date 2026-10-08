@@ -62,7 +62,7 @@ func (r *UserRepository) GetUserById(ctx context.Context, id int) (models.User, 
 	err := r.db.QueryRowContext(ctx, "SELECT id, name, surname, username, avatar FROM users WHERE id = ?", id).
 		Scan(&user.ID, &user.Name, &user.Surname, &user.Username, &user.Avatar)
 	if err != nil {
-		return models.User{}, err
+		return models.User{}, mapNoRows(err)
 	}
 
 	return user, nil
@@ -80,7 +80,7 @@ func (r *UserRepository) DeleteUserById(ctx context.Context, id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
