@@ -85,7 +85,7 @@ func (r *TimeOffRepository) DeleteTimeOffById(id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
