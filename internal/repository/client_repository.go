@@ -66,7 +66,7 @@ func (r *ClientRepository) GetClientById(id int) (models.Client, error) {
         FROM clients WHERE id = ?`, id).
 		Scan(&c.ID, &c.CompanyID, &c.Name, &c.Phone, &c.Email, &c.Comment)
 	if err != nil {
-		return models.Client{}, err
+		return models.Client{}, mapNoRows(err)
 	}
 
 	return c, nil
@@ -80,7 +80,7 @@ func (r *ClientRepository) GetClientByPhone(companyID int, phone string) (models
         FROM clients WHERE company_id = ? AND phone = ?`, companyID, phone).
 		Scan(&c.ID, &c.CompanyID, &c.Name, &c.Phone, &c.Email, &c.Comment)
 	if err != nil {
-		return models.Client{}, err
+		return models.Client{}, mapNoRows(err)
 	}
 
 	return c, nil
@@ -98,7 +98,7 @@ func (r *ClientRepository) DeleteClientById(id int) error {
 	}
 
 	if rows == 0 {
-		return sql.ErrNoRows
+		return errNoRows
 	}
 
 	return nil
