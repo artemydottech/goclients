@@ -76,7 +76,7 @@ func (r *ScheduleRepository) GetWorkingDay(employeeID, weekday int) (models.Work
         FROM employee_schedules WHERE employee_id = ? AND weekday = ?`, employeeID, weekday).
 		Scan(&day.EmployeeID, &day.Weekday, &day.StartsAt, &day.EndsAt, &day.BreakStartsAt, &day.BreakEndsAt)
 	if err != nil {
-		return models.WorkingDay{}, err
+		return models.WorkingDay{}, mapNoRows(err)
 	}
 
 	return day, nil
