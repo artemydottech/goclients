@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -77,7 +76,7 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := h.service.GetUserById(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
@@ -101,7 +100,7 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.service.DeleteUserById(ctx, id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
