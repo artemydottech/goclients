@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"time"
 	"unicode/utf8"
@@ -130,7 +129,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	}
 
 	client, err := s.clients.GetClientById(a.ClientID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("client %d not found", a.ClientID)
 	}
 	if err != nil {
@@ -138,7 +137,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	}
 
 	employee, err := s.employees.GetEmployeeById(a.EmployeeID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("employee %d not found", a.EmployeeID)
 	}
 	if err != nil {
@@ -146,7 +145,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	}
 
 	item, err := s.services.GetServiceById(a.ServiceID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("service %d not found", a.ServiceID)
 	}
 	if err != nil {

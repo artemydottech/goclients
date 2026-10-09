@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"testing"
 	"time"
@@ -40,7 +39,7 @@ func (r *stubAppointmentRepo) GetAppointmentsByClient(int) ([]models.Appointment
 
 func (r *stubAppointmentRepo) GetAppointmentById(int) (models.Appointment, error) {
 	if r.existing == nil {
-		return models.Appointment{}, sql.ErrNoRows
+		return models.Appointment{}, models.ErrNotFound
 	}
 	return *r.existing, nil
 }
@@ -260,7 +259,7 @@ func TestBookReportsMissingClient(t *testing.T) {
 
 	svc := NewAppointmentService(
 		repo,
-		stubClientLookup{err: sql.ErrNoRows},
+		stubClientLookup{err: models.ErrNotFound},
 		stubEmployeeLookup{employee: models.Employee{ID: 2, CompanyID: 10}},
 		stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 90}}},
 		stubAssignments{performs: true},
@@ -487,8 +486,8 @@ func TestRescheduleCanChangeTheMaster(t *testing.T) {
 
 func TestRescheduleReportsMissingAppointment(t *testing.T) {
 	_, err := newAppointmentService(&stubAppointmentRepo{}).Reschedule(404, slotsDate.Add(15*time.Hour), 0)
-	if !errors.Is(err, sql.ErrNoRows) {
-		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }
 
@@ -608,8 +607,8 @@ func TestSetStatusCompletesAStartedAppointment(t *testing.T) {
 
 func TestSetStatusReportsMissingAppointment(t *testing.T) {
 	err := newAppointmentService(&stubAppointmentRepo{}).SetStatus(404, models.AppointmentConfirmed)
-	if !errors.Is(err, sql.ErrNoRows) {
-		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }
 
@@ -735,10 +734,10 @@ func TestRescheduleRejectsNoShow(t *testing.T) {
 
 func TestGetClientStatsReportsMissingClient(t *testing.T) {
 	svc := newAppointmentService(&stubAppointmentRepo{}, func(s *AppointmentService) {
-		s.clients = stubClientLookup{err: sql.ErrNoRows}
+		s.clients = stubClientLookup{err: models.ErrNotFound}
 	})
 
-	if _, err := svc.GetClientStats(404); !errors.Is(err, sql.ErrNoRows) {
-		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	if _, err := svc.GetClientStats(404); !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }
