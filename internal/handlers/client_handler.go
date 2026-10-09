@@ -30,19 +30,19 @@ func (h *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
 	var input models.Client
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	id, err := h.service.CreateClient(input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if err != nil {
 		log.Printf("CreateClient: %v", err)
-		http.Error(w, "failed to save client", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save client")
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 	if raw := r.URL.Query().Get("company_id"); raw != "" {
 		companyID, convErr := strconv.Atoi(raw)
 		if convErr != nil {
-			http.Error(w, "invalid company_id", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "invalid company_id")
 			return
 		}
 		clients, err = h.service.GetClientsByCompany(companyID)
@@ -70,7 +70,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("GetAllClients: %v", err)
-		http.Error(w, "failed to load clients", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load clients")
 		return
 	}
 
@@ -82,18 +82,18 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	client, err := h.service.GetClientById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "client not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "client not found")
 		return
 	}
 	if err != nil {
 		log.Printf("GetClientById: %v", err)
-		http.Error(w, "request failed", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
 
@@ -105,18 +105,18 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	err = h.service.DeleteClientById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "client not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "client not found")
 		return
 	}
 	if err != nil {
 		log.Printf("DeleteClient: %v", err)
-		http.Error(w, "failed to delete", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
 
