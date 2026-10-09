@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -44,7 +43,7 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, validationErr.Error(), http.StatusBadRequest)
 		return
 	}
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
@@ -84,7 +83,7 @@ func (h *TimeOffHandler) DeleteTimeOff(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.service.DeleteTimeOffById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "time off not found", http.StatusNotFound)
 		return
 	}
