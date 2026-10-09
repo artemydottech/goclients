@@ -31,18 +31,18 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	id, err := h.service.RegisterUser(ctx, input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if err != nil {
-		http.Error(w, "failed to save user", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save user")
 		return
 	}
 
@@ -57,7 +57,7 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := h.service.GetAllUsers(ctx)
 	if err != nil {
 		log.Printf("GetAllUsers: %v", err)
-		http.Error(w, "failed to load users", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load users")
 		return
 	}
 
@@ -71,17 +71,17 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	user, err := h.service.GetUserById(ctx, id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "user not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "user not found")
 		return
 	}
 	if err != nil {
-		http.Error(w, "request failed", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
 
@@ -95,17 +95,17 @@ func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	err = h.service.DeleteUserById(ctx, id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "user not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "user not found")
 		return
 	}
 	if err != nil {
-		http.Error(w, "failed to delete", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
 
