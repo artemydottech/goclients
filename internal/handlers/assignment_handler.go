@@ -31,29 +31,29 @@ type employeeServicesInput struct {
 func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	var input employeeServicesInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	err = h.service.SetEmployeeServices(employeeID, input.ServiceIDs)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "employee not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "employee not found")
 		return
 	}
 	if err != nil {
 		log.Printf("SetEmployeeServices: %v", err)
-		http.Error(w, "failed to save employee services", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save employee services")
 		return
 	}
 
@@ -63,14 +63,14 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	services, err := h.service.GetServicesByEmployee(employeeID)
 	if err != nil {
 		log.Printf("GetEmployeeServices: %v", err)
-		http.Error(w, "failed to load employee services", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load employee services")
 		return
 	}
 
@@ -82,14 +82,14 @@ func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.R
 func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.Request) {
 	serviceID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	employees, err := h.service.GetEmployeesByService(serviceID)
 	if err != nil {
 		log.Printf("GetServiceEmployees: %v", err)
-		http.Error(w, "failed to load service employees", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load service employees")
 		return
 	}
 
