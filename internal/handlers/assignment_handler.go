@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -48,7 +47,7 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 		http.Error(w, validationErr.Error(), http.StatusBadRequest)
 		return
 	}
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "employee not found", http.StatusNotFound)
 		return
 	}
