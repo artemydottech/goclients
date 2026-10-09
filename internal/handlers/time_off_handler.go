@@ -27,29 +27,29 @@ func NewTimeOffHandler(s TimeOffServ) *TimeOffHandler {
 func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	var input models.TimeOff
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	id, err := h.service.CreateTimeOff(employeeID, input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "employee not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "employee not found")
 		return
 	}
 	if err != nil {
 		log.Printf("CreateTimeOff: %v", err)
-		http.Error(w, "failed to save time off", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save time off")
 		return
 	}
 
@@ -61,14 +61,14 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	periods, err := h.service.GetTimeOffByEmployee(employeeID)
 	if err != nil {
 		log.Printf("GetTimeOff: %v", err)
-		http.Error(w, "failed to load time off", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load time off")
 		return
 	}
 
@@ -78,18 +78,18 @@ func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 func (h *TimeOffHandler) DeleteTimeOff(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	err = h.service.DeleteTimeOffById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "time off not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "time off not found")
 		return
 	}
 	if err != nil {
 		log.Printf("DeleteTimeOff: %v", err)
-		http.Error(w, "failed to delete", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
 
