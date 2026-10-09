@@ -30,19 +30,19 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 	var input models.Service
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	id, err := h.service.CreateService(input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if err != nil {
 		log.Printf("CreateService: %v", err)
-		http.Error(w, "failed to save service", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save service")
 		return
 	}
 
@@ -60,7 +60,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 	if raw := r.URL.Query().Get("company_id"); raw != "" {
 		companyID, convErr := strconv.Atoi(raw)
 		if convErr != nil {
-			http.Error(w, "invalid company_id", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "invalid company_id")
 			return
 		}
 		services, err = h.service.GetServicesByCompany(companyID)
@@ -70,7 +70,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		log.Printf("GetAllServices: %v", err)
-		http.Error(w, "failed to load services", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load services")
 		return
 	}
 
@@ -82,18 +82,18 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	item, err := h.service.GetServiceById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "service not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "service not found")
 		return
 	}
 	if err != nil {
 		log.Printf("GetServiceById: %v", err)
-		http.Error(w, "request failed", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
 
@@ -105,18 +105,18 @@ func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) 
 func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	err = h.service.DeleteServiceById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "service not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "service not found")
 		return
 	}
 	if err != nil {
 		log.Printf("DeleteService: %v", err)
-		http.Error(w, "failed to delete", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
 
