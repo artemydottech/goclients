@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"testing"
 
@@ -45,7 +44,7 @@ type stubServiceLookup struct {
 func (l stubServiceLookup) GetServiceById(id int) (models.Service, error) {
 	item, ok := l.byID[id]
 	if !ok {
-		return models.Service{}, sql.ErrNoRows
+		return models.Service{}, models.ErrNotFound
 	}
 	return item, nil
 }
@@ -121,12 +120,12 @@ func TestSetEmployeeServicesReportsMissingEmployee(t *testing.T) {
 
 	svc := NewAssignmentService(
 		repo,
-		stubEmployeeLookup{err: sql.ErrNoRows},
+		stubEmployeeLookup{err: models.ErrNotFound},
 		stubServiceLookup{byID: map[int]models.Service{}},
 	)
 
-	if err := svc.SetEmployeeServices(1, []int{100}); !errors.Is(err, sql.ErrNoRows) {
-		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	if err := svc.SetEmployeeServices(1, []int{100}); !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 
 	if repo.calls != 0 {

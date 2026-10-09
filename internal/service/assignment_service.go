@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -34,7 +33,7 @@ func NewAssignmentService(repo AssignmentRepo, employees EmployeeLookup, service
 
 func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int) error {
 	employee, err := s.employees.GetEmployeeById(employeeID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return err
 	}
 	if err != nil {
@@ -51,7 +50,7 @@ func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int
 		seen[serviceID] = struct{}{}
 
 		item, err := s.services.GetServiceById(serviceID)
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, models.ErrNotFound) {
 			return models.Invalid("service %d not found", serviceID)
 		}
 		if err != nil {
