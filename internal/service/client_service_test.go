@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"strings"
 	"testing"
@@ -31,7 +30,7 @@ func (r *stubClientRepo) GetClientById(int) (models.Client, error) {
 
 func (r *stubClientRepo) GetClientByPhone(int, string) (models.Client, error) {
 	if r.existing == nil {
-		return models.Client{}, sql.ErrNoRows
+		return models.Client{}, models.ErrNotFound
 	}
 	return *r.existing, nil
 }
