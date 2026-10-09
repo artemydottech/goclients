@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -72,7 +71,7 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 	}
 
 	company, err := h.service.GetCompanyById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "company not found", http.StatusNotFound)
 		return
 	}
@@ -94,7 +93,7 @@ func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.service.DeleteCompanyById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "company not found", http.StatusNotFound)
 		return
 	}
