@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"strings"
 	"testing"
@@ -118,10 +117,10 @@ func TestCreateTimeOffIgnoresCancelledAndCompletedAppointments(t *testing.T) {
 
 func TestCreateTimeOffReportsMissingEmployee(t *testing.T) {
 	repo := &stubTimeOffRepo{}
-	svc := NewTimeOffService(repo, stubEmployeeLookup{err: sql.ErrNoRows}, stubCalendar{})
+	svc := NewTimeOffService(repo, stubEmployeeLookup{err: models.ErrNotFound}, stubCalendar{})
 
-	if _, err := svc.CreateTimeOff(2, vacation()); !errors.Is(err, sql.ErrNoRows) {
-		t.Fatalf("ожидалась sql.ErrNoRows, получено %v", err)
+	if _, err := svc.CreateTimeOff(2, vacation()); !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }
 
