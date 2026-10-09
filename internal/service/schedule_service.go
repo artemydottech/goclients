@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -50,7 +49,7 @@ func (s *ScheduleService) GetEmployeeSchedule(employeeID int) ([]models.WorkingD
 
 func (s *ScheduleService) WorkingDay(employeeID, weekday int) (models.WorkingDay, bool, error) {
 	day, err := s.repo.GetWorkingDay(employeeID, weekday)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return models.WorkingDay{}, false, nil
 	}
 	if err != nil {

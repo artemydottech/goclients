@@ -1,7 +1,6 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"time"
 
@@ -60,7 +59,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 	}
 
 	employee, err := s.employees.GetEmployeeById(employeeID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return nil, models.Invalid("employee %d not found", employeeID)
 	}
 	if err != nil {
@@ -68,7 +67,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 	}
 
 	item, err := s.services.GetServiceById(serviceID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		return nil, models.Invalid("service %d not found", serviceID)
 	}
 	if err != nil {
