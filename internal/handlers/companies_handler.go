@@ -29,18 +29,18 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 	var input models.Company
 
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	id, err := h.service.CreateCompany(input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if err != nil {
-		http.Error(w, "failed to save company", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save company")
 		return
 	}
 
@@ -53,7 +53,7 @@ func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request)
 	companies, err := h.service.GetAllCompanies()
 	if err != nil {
 		log.Printf("GetAllCompanies: %v", err)
-		http.Error(w, "failed to load companies", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load companies")
 		return
 	}
 
@@ -66,17 +66,17 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	company, err := h.service.GetCompanyById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "company not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "company not found")
 		return
 	}
 	if err != nil {
-		http.Error(w, "request failed", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
 
@@ -88,17 +88,17 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	err = h.service.DeleteCompanyById(id)
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "company not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "company not found")
 		return
 	}
 	if err != nil {
-		http.Error(w, "failed to delete", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
 
