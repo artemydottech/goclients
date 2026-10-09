@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -154,7 +153,7 @@ func (h *AppointmentHandler) GetAppointmentById(w http.ResponseWriter, r *http.R
 	}
 
 	appointment, err := h.service.GetAppointmentById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "appointment not found", http.StatusNotFound)
 		return
 	}
@@ -190,7 +189,7 @@ func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, validationErr.Error(), http.StatusBadRequest)
 		return
 	}
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "appointment not found", http.StatusNotFound)
 		return
 	}
@@ -211,7 +210,7 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 	}
 
 	err = h.service.DeleteAppointmentById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "appointment not found", http.StatusNotFound)
 		return
 	}
@@ -248,7 +247,7 @@ func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, validationErr.Error(), http.StatusBadRequest)
 		return
 	}
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "appointment not found", http.StatusNotFound)
 		return
 	}
@@ -269,7 +268,7 @@ func (h *AppointmentHandler) GetClientStats(w http.ResponseWriter, r *http.Reque
 	}
 
 	stats, err := h.service.GetClientStats(clientID)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "client not found", http.StatusNotFound)
 		return
 	}
