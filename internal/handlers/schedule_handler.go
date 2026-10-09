@@ -36,29 +36,29 @@ type scheduleInput struct {
 func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	var input scheduleInput
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
 	err = h.schedule.SetEmployeeSchedule(employeeID, input.Days)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if errors.Is(err, models.ErrNotFound) {
-		http.Error(w, "employee not found", http.StatusNotFound)
+		writeError(w, http.StatusNotFound, "employee not found")
 		return
 	}
 	if err != nil {
 		log.Printf("SetEmployeeSchedule: %v", err)
-		http.Error(w, "failed to save schedule", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to save schedule")
 		return
 	}
 
@@ -68,14 +68,14 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 func (h *ScheduleHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Request) {
 	employeeID, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		http.Error(w, "invalid ID", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "invalid ID")
 		return
 	}
 
 	days, err := h.schedule.GetEmployeeSchedule(employeeID)
 	if err != nil {
 		log.Printf("GetEmployeeSchedule: %v", err)
-		http.Error(w, "failed to load schedule", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to load schedule")
 		return
 	}
 
@@ -87,19 +87,19 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 
 	employeeID, err := strconv.Atoi(query.Get("employee_id"))
 	if err != nil {
-		http.Error(w, "employee_id is required", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "employee_id is required")
 		return
 	}
 
 	serviceID, err := strconv.Atoi(query.Get("service_id"))
 	if err != nil {
-		http.Error(w, "service_id is required", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "service_id is required")
 		return
 	}
 
 	date, err := time.Parse("2006-01-02", query.Get("date"))
 	if err != nil {
-		http.Error(w, "date is required in YYYY-MM-DD format", http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, "date is required in YYYY-MM-DD format")
 		return
 	}
 
@@ -107,7 +107,7 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 	if raw := query.Get("step"); raw != "" {
 		step, err = strconv.Atoi(raw)
 		if err != nil || step <= 0 {
-			http.Error(w, "step must be a positive number of minutes", http.StatusBadRequest)
+			writeError(w, http.StatusBadRequest, "step must be a positive number of minutes")
 			return
 		}
 	}
@@ -115,12 +115,12 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 	slots, err := h.slots.FreeSlots(employeeID, serviceID, date, step)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
-		http.Error(w, validationErr.Error(), http.StatusBadRequest)
+		writeError(w, http.StatusBadRequest, validationErr.Error())
 		return
 	}
 	if err != nil {
 		log.Printf("GetFreeSlots: %v", err)
-		http.Error(w, "failed to compute slots", http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError, "failed to compute slots")
 		return
 	}
 
