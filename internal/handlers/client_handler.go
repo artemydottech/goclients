@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"log"
@@ -88,7 +87,7 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client, err := h.service.GetClientById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "client not found", http.StatusNotFound)
 		return
 	}
@@ -111,7 +110,7 @@ func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.service.DeleteClientById(id)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, models.ErrNotFound) {
 		http.Error(w, "client not found", http.StatusNotFound)
 		return
 	}
