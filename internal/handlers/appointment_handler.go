@@ -139,12 +139,6 @@ func parseRange(rawFrom, rawTo string) (time.Time, time.Time, error) {
 	return from, to, nil
 }
 
-func writeJSON(w http.ResponseWriter, payload any) {
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(payload)
-}
-
 func (h *AppointmentHandler) GetAppointmentById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
