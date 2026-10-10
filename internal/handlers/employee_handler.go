@@ -28,8 +28,7 @@ func NewEmployeeHandler(s EmployeeServ) *EmployeeHandler {
 func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request) {
 	var input models.Employee
 
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid request body")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 
