@@ -34,8 +34,7 @@ func NewAppointmentHandler(s AppointmentServ) *AppointmentHandler {
 func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Request) {
 	var input models.Appointment
 
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid request body")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 
@@ -172,8 +171,7 @@ func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var input statusInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid request body")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 
@@ -230,8 +228,7 @@ func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) 
 	}
 
 	var input rescheduleInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid request body")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 
