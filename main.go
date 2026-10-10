@@ -11,6 +11,7 @@ import (
 	"time"
 	_ "time/tzdata"
 
+	"github.com/artemydottech/goclients/internal/config"
 	"github.com/artemydottech/goclients/internal/handlers"
 	"github.com/artemydottech/goclients/internal/repository"
 	"github.com/artemydottech/goclients/internal/service"
@@ -24,12 +25,12 @@ func main() {
 		log.Println(".env config not found")
 	}
 
-	dbPath := os.Getenv("DB_PATH")
-	if dbPath == "" {
-		dbPath = "./data.db"
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal("invalid config: ", err)
 	}
 
-	db, err := repository.Open(dbPath)
+	db, err := repository.Open(cfg.DBPath)
 	if err != nil {
 		log.Fatal("db connection failed: ", err)
 	}
@@ -128,13 +129,8 @@ func main() {
 	mux.HandleFunc("GET /employees/{id}/time-off", timeOffHandlers.GetTimeOff)
 	mux.HandleFunc("DELETE /time-off/{id}", timeOffHandlers.DeleteTimeOff)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
 	server := &http.Server{
-		Addr:              ":" + port,
+		Addr:              ":" + cfg.Port,
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
@@ -146,7 +142,7 @@ func main() {
 	defer stop()
 
 	go func() {
-		log.Printf("server listening on :%s", port)
+		log.Printf("server listening on :%s", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal(err)
 		}
