@@ -88,7 +88,12 @@ func main() {
 	timeOffServ := service.NewTimeOffService(timeOffRepo, employeesRepo, appointmentsRepo)
 	timeOffHandlers := handlers.NewTimeOffHandler(timeOffServ)
 
+	healthHandlers := handlers.NewHealthHandler(db)
+
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /healthz", healthHandlers.Live)
+	mux.HandleFunc("GET /readyz", healthHandlers.Ready)
 
 	mux.HandleFunc("POST /users", userHandlers.CreateUser)
 	mux.HandleFunc("GET /users", userHandlers.GetAllUsers)
