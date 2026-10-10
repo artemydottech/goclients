@@ -13,6 +13,7 @@ import (
 
 	"github.com/artemydottech/goclients/internal/config"
 	"github.com/artemydottech/goclients/internal/handlers"
+	"github.com/artemydottech/goclients/internal/middleware"
 	"github.com/artemydottech/goclients/internal/repository"
 	"github.com/artemydottech/goclients/internal/service"
 
@@ -135,8 +136,13 @@ func main() {
 	mux.HandleFunc("DELETE /time-off/{id}", timeOffHandlers.DeleteTimeOff)
 
 	server := &http.Server{
-		Addr:              ":" + cfg.Port,
-		Handler:           mux,
+		Addr: ":" + cfg.Port,
+		Handler: middleware.Chain(mux,
+			middleware.Recover,
+			middleware.RequestID,
+			middleware.AccessLog(slog.Default()),
+			middleware.BodyLimit(cfg.MaxBodyBytes),
+		),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       15 * time.Second,
 		WriteTimeout:      15 * time.Second,
