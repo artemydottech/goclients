@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,22 +22,27 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println(".env config not found")
+		slog.Info(".env config not found")
 	}
 
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal("invalid config: ", err)
+		slog.Error("invalid config", "err", err)
+		os.Exit(1)
 	}
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: cfg.LogLevel})))
 
 	db, err := repository.Open(cfg.DBPath)
 	if err != nil {
-		log.Fatal("db connection failed: ", err)
+		slog.Error("db connection failed", "err", err)
+		os.Exit(1)
 	}
 	defer db.Close()
 
 	if err := repository.Migrate(db); err != nil {
-		log.Fatal(err)
+		slog.Error("migrate failed", "err", err)
+		os.Exit(1)
 	}
 
 	userRepo := repository.NewUserRepository(db)
@@ -142,19 +147,20 @@ func main() {
 	defer stop()
 
 	go func() {
-		log.Printf("server listening on :%s", cfg.Port)
+		slog.Info("server listening", "port", cfg.Port)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			slog.Error("server failed", "err", err)
+			os.Exit(1)
 		}
 	}()
 	<-ctx.Done()
-	log.Println("shutdown signal received")
+	slog.Info("shutdown signal received")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Printf("shutdown: %v", err)
+		slog.Error("shutdown failed", "err", err)
 	}
-	log.Println("server stopped")
+	slog.Info("server stopped")
 }
