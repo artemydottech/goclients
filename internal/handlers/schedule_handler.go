@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -41,8 +40,7 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 	}
 
 	var input scheduleInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid request body")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 
