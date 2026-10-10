@@ -36,8 +36,7 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 	}
 
 	var input employeeServicesInput
-	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "Invalid request body")
+	if !decodeJSON(w, r, &input) {
 		return
 	}
 
