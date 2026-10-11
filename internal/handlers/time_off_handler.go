@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -52,9 +51,7 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int64{"id": id})
+	writeStatusJSON(w, http.StatusCreated, map[string]int64{"id": id})
 }
 
 func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
