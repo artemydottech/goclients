@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -50,9 +49,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int64{"id": id})
+	writeStatusJSON(w, http.StatusCreated, map[string]int64{"id": id})
 }
 
 func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.Request) {
