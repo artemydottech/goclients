@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -39,7 +39,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("CreateService: %v", err)
+		slog.ErrorContext(r.Context(), "CreateService failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to save service")
 		return
 	}
@@ -65,7 +65,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err != nil {
-		log.Printf("GetAllServices: %v", err)
+		slog.ErrorContext(r.Context(), "GetAllServices failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load services")
 		return
 	}
@@ -86,7 +86,7 @@ func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err != nil {
-		log.Printf("GetServiceById: %v", err)
+		slog.ErrorContext(r.Context(), "GetServiceById failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
@@ -107,7 +107,7 @@ func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("DeleteService: %v", err)
+		slog.ErrorContext(r.Context(), "DeleteService failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
