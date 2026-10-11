@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -39,7 +39,7 @@ func (h *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("CreateClient: %v", err)
+		slog.ErrorContext(r.Context(), "CreateClient failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to save client")
 		return
 	}
@@ -65,7 +65,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Printf("GetAllClients: %v", err)
+		slog.ErrorContext(r.Context(), "GetAllClients failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load clients")
 		return
 	}
@@ -86,7 +86,7 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("GetClientById: %v", err)
+		slog.ErrorContext(r.Context(), "GetClientById failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
@@ -107,7 +107,7 @@ func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("DeleteClient: %v", err)
+		slog.ErrorContext(r.Context(), "DeleteClient failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
