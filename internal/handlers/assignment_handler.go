@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -73,9 +72,7 @@ func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(services)
+	writeJSON(w, services)
 }
 
 func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +89,5 @@ func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(employees)
+	writeJSON(w, employees)
 }
