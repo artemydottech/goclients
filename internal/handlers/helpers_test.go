@@ -13,14 +13,7 @@ func serve(t *testing.T, pattern string, handler http.HandlerFunc, method, targe
 	mux := http.NewServeMux()
 	mux.HandleFunc(pattern, handler)
 
-	var reader *strings.Reader
-	if body != "" {
-		reader = strings.NewReader(body)
-	} else {
-		reader = strings.NewReader("")
-	}
-
-	req := httptest.NewRequest(method, target, reader)
+	req := httptest.NewRequest(method, target, strings.NewReader(body))
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
