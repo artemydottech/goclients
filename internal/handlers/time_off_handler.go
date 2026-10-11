@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -46,7 +46,7 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("CreateTimeOff: %v", err)
+		slog.ErrorContext(r.Context(), "CreateTimeOff failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to save time off")
 		return
 	}
@@ -63,7 +63,7 @@ func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 
 	periods, err := h.service.GetTimeOffByEmployee(employeeID)
 	if err != nil {
-		log.Printf("GetTimeOff: %v", err)
+		slog.ErrorContext(r.Context(), "GetTimeOff failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load time off")
 		return
 	}
@@ -84,7 +84,7 @@ func (h *TimeOffHandler) DeleteTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("DeleteTimeOff: %v", err)
+		slog.ErrorContext(r.Context(), "DeleteTimeOff failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
