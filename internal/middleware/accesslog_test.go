@@ -11,7 +11,7 @@ import (
 
 func TestAccessLogWritesRequestLine(t *testing.T) {
 	var buf bytes.Buffer
-	logger := slog.New(slog.NewTextHandler(&buf, nil))
+	logger := slog.New(NewContextHandler(slog.NewTextHandler(&buf, nil)))
 	h := RequestID(AccessLog(logger)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
 	})))

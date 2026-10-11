@@ -18,7 +18,7 @@ func Recover(next http.Handler) http.Handler {
 				panic(rec)
 			}
 
-			slog.Error("panic in handler",
+			slog.ErrorContext(r.Context(), "panic in handler",
 				"method", r.Method,
 				"path", r.URL.Path,
 				"panic", rec,

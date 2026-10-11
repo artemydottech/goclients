@@ -32,7 +32,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: cfg.LogLevel})))
+	slog.SetDefault(slog.New(middleware.NewContextHandler(
+		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: cfg.LogLevel}),
+	)))
 
 	db, err := repository.Open(cfg.DBPath)
 	if err != nil {

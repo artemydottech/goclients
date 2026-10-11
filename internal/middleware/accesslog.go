@@ -19,8 +19,7 @@ func AccessLog(logger *slog.Logger) func(http.Handler) http.Handler {
 				status = http.StatusOK
 			}
 
-			logger.Info("request",
-				"request_id", RequestIDFrom(r.Context()),
+			logger.InfoContext(r.Context(), "request",
 				"method", r.Method,
 				"path", r.URL.Path,
 				"status", status,
