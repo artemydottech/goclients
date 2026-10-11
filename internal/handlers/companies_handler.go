@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -43,9 +42,7 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]int64{"id": id})
+	writeStatusJSON(w, http.StatusCreated, map[string]int64{"id": id})
 }
 
 func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request) {
@@ -56,9 +53,7 @@ func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(companies)
+	writeJSON(w, companies)
 }
 
 func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) {
@@ -79,9 +74,7 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(company)
+	writeJSON(w, company)
 }
 
 func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
