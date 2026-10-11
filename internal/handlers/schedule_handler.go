@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -55,7 +55,7 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if err != nil {
-		log.Printf("SetEmployeeSchedule: %v", err)
+		slog.ErrorContext(r.Context(), "SetEmployeeSchedule failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to save schedule")
 		return
 	}
@@ -72,7 +72,7 @@ func (h *ScheduleHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 
 	days, err := h.schedule.GetEmployeeSchedule(employeeID)
 	if err != nil {
-		log.Printf("GetEmployeeSchedule: %v", err)
+		slog.ErrorContext(r.Context(), "GetEmployeeSchedule failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load schedule")
 		return
 	}
@@ -117,7 +117,7 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("GetFreeSlots: %v", err)
+		slog.ErrorContext(r.Context(), "GetFreeSlots failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to compute slots")
 		return
 	}
