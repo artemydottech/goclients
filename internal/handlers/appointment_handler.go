@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -44,7 +44,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 	if err != nil {
-		log.Printf("CreateAppointment: %v", err)
+		slog.ErrorContext(r.Context(), "CreateAppointment failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to save appointment")
 		return
 	}
@@ -64,7 +64,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 
 		appointments, err := h.service.GetAppointmentsByClient(clientID)
 		if err != nil {
-			log.Printf("GetAppointmentsByClient: %v", err)
+			slog.ErrorContext(r.Context(), "GetAppointmentsByClient failed", "err", err)
 			writeError(w, http.StatusInternalServerError, "failed to load appointments")
 			return
 		}
@@ -88,7 +88,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 
 		appointments, err := h.service.GetAppointmentsByEmployee(employeeID, from, to)
 		if err != nil {
-			log.Printf("GetAppointmentsByEmployee: %v", err)
+			slog.ErrorContext(r.Context(), "GetAppointmentsByEmployee failed", "err", err)
 			writeError(w, http.StatusInternalServerError, "failed to load appointments")
 			return
 		}
@@ -99,7 +99,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 
 	appointments, err := h.service.GetAllAppointments()
 	if err != nil {
-		log.Printf("GetAllAppointments: %v", err)
+		slog.ErrorContext(r.Context(), "GetAllAppointments failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load appointments")
 		return
 	}
@@ -148,7 +148,7 @@ func (h *AppointmentHandler) GetAppointmentById(w http.ResponseWriter, r *http.R
 		return
 	}
 	if err != nil {
-		log.Printf("GetAppointmentById: %v", err)
+		slog.ErrorContext(r.Context(), "GetAppointmentById failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "request failed")
 		return
 	}
@@ -183,7 +183,7 @@ func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		log.Printf("SetStatus: %v", err)
+		slog.ErrorContext(r.Context(), "SetStatus failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to change status")
 		return
 	}
@@ -204,7 +204,7 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 	if err != nil {
-		log.Printf("DeleteAppointment: %v", err)
+		slog.ErrorContext(r.Context(), "DeleteAppointment failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to delete")
 		return
 	}
@@ -240,7 +240,7 @@ func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	if err != nil {
-		log.Printf("Reschedule: %v", err)
+		slog.ErrorContext(r.Context(), "Reschedule failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to reschedule appointment")
 		return
 	}
@@ -261,7 +261,7 @@ func (h *AppointmentHandler) GetClientStats(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	if err != nil {
-		log.Printf("GetClientStats: %v", err)
+		slog.ErrorContext(r.Context(), "GetClientStats failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to compute stats")
 		return
 	}
