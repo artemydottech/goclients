@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -50,7 +50,7 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 		return
 	}
 	if err != nil {
-		log.Printf("SetEmployeeServices: %v", err)
+		slog.ErrorContext(r.Context(), "SetEmployeeServices failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to save employee services")
 		return
 	}
@@ -67,7 +67,7 @@ func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.R
 
 	services, err := h.service.GetServicesByEmployee(employeeID)
 	if err != nil {
-		log.Printf("GetEmployeeServices: %v", err)
+		slog.ErrorContext(r.Context(), "GetEmployeeServices failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load employee services")
 		return
 	}
@@ -84,7 +84,7 @@ func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.R
 
 	employees, err := h.service.GetEmployeesByService(serviceID)
 	if err != nil {
-		log.Printf("GetServiceEmployees: %v", err)
+		slog.ErrorContext(r.Context(), "GetServiceEmployees failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load service employees")
 		return
 	}
