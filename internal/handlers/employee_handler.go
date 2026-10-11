@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -48,7 +48,7 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
 	employees, err := h.service.GetAllEmployees()
 	if err != nil {
-		log.Printf("GetAllEmployees: %v", err)
+		slog.ErrorContext(r.Context(), "GetAllEmployees failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load employees")
 		return
 	}
