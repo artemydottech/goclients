@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ func writeStatusJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(v); err != nil {
-		log.Printf("write response: %v", err)
+		slog.Error("write response failed", "err", err)
 	}
 }
 
