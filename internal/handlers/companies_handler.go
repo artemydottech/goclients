@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -48,7 +48,7 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request) {
 	companies, err := h.service.GetAllCompanies()
 	if err != nil {
-		log.Printf("GetAllCompanies: %v", err)
+		slog.ErrorContext(r.Context(), "GetAllCompanies failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load companies")
 		return
 	}
