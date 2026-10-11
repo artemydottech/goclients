@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -52,7 +52,7 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := h.service.GetAllUsers(ctx)
 	if err != nil {
-		log.Printf("GetAllUsers: %v", err)
+		slog.ErrorContext(r.Context(), "GetAllUsers failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load users")
 		return
 	}
