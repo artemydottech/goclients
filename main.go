@@ -145,10 +145,10 @@ func main() {
 	server := &http.Server{
 		Addr: ":" + cfg.Port,
 		Handler: middleware.Chain(mux,
-			middleware.Recover,
 			middleware.RequestID,
-			middleware.SecureHeaders,
 			middleware.AccessLog(slog.Default()),
+			middleware.Recover,
+			middleware.SecureHeaders,
 			middleware.BodyLimit(cfg.MaxBodyBytes),
 		),
 		ReadHeaderTimeout: 5 * time.Second,
