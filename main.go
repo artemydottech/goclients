@@ -147,6 +147,7 @@ func main() {
 		Handler: middleware.Chain(mux,
 			middleware.Recover,
 			middleware.RequestID,
+			middleware.SecureHeaders,
 			middleware.AccessLog(slog.Default()),
 			middleware.BodyLimit(cfg.MaxBodyBytes),
 		),
