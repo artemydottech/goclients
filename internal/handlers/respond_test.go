@@ -86,3 +86,34 @@ func TestDecodeJSONReportsTooLargeBody(t *testing.T) {
 		t.Errorf("status = %d, want 413", rec.Code)
 	}
 }
+
+func TestPathID(t *testing.T) {
+	tests := []struct {
+		name   string
+		target string
+		wantID int
+		wantOK bool
+	}{
+		{"number", "/items/12", 12, true},
+		{"zero", "/items/0", 0, true},
+		{"letters", "/items/abc", 0, false},
+		{"float", "/items/1.5", 0, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var gotID int
+			var gotOK bool
+			rec := serve(t, "GET /items/{id}", func(w http.ResponseWriter, r *http.Request) {
+				gotID, gotOK = pathID(w, r)
+			}, http.MethodGet, tt.target, "")
+
+			if gotID != tt.wantID || gotOK != tt.wantOK {
+				t.Fatalf("pathID = (%d, %v), want (%d, %v)", gotID, gotOK, tt.wantID, tt.wantOK)
+			}
+			if !tt.wantOK && rec.Code != http.StatusBadRequest {
+				t.Errorf("status = %d, want 400", rec.Code)
+			}
+		})
+	}
+}

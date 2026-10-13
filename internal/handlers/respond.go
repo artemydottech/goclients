@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 )
 
 type errorResponse struct {
@@ -41,4 +42,14 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) bool {
 
 	writeError(w, http.StatusBadRequest, "Invalid request body")
 	return false
+}
+
+func pathID(w http.ResponseWriter, r *http.Request) (int, bool) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "invalid ID")
+		return 0, false
+	}
+
+	return id, true
 }
