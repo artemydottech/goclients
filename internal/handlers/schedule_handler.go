@@ -33,9 +33,8 @@ type scheduleInput struct {
 }
 
 func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Request) {
-	employeeID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	employeeID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -44,7 +43,7 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = h.schedule.SetEmployeeSchedule(employeeID, input.Days)
+	err := h.schedule.SetEmployeeSchedule(employeeID, input.Days)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
@@ -64,9 +63,8 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 }
 
 func (h *ScheduleHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Request) {
-	employeeID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	employeeID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
