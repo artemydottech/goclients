@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -24,9 +23,8 @@ func NewTimeOffHandler(s TimeOffServ) *TimeOffHandler {
 }
 
 func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
-	employeeID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	employeeID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -55,9 +53,8 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
-	employeeID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	employeeID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -72,13 +69,12 @@ func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *TimeOffHandler) DeleteTimeOff(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
-	err = h.service.DeleteTimeOffById(id)
+	err := h.service.DeleteTimeOffById(id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "time off not found")
 		return
