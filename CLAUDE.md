@@ -11,6 +11,7 @@ go run .
 gofmt -l .
 go vet ./...
 go test -race ./...
+make check
 ```
 
 Перед словом "готово" прогнать все четыре проверки из CI: gofmt, build, vet, test -race.
@@ -21,7 +22,9 @@ go test -race ./...
 - `internal/models`: сущности, `ValidationError`
 - `internal/repository`: SQL, схема и миграции в `db.go`
 - `internal/service`: бизнес-логика и валидация, тесты рядом
-- `internal/handlers`: HTTP, интерфейсы сервисов объявлены здесь
+- `internal/handlers`: HTTP, интерфейсы сервисов объявлены здесь, общие ответы и `decodeJSON` в `respond.go`
+- `internal/middleware`: Recover, RequestID, AccessLog, BodyLimit, SecureHeaders, Chain
+- `internal/config`: чтение и валидация env
 
 Зависимости направлены внутрь: handlers -> service -> repository. Интерфейсы на стороне потребителя.
 
