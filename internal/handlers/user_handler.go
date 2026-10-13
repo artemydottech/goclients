@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -63,9 +62,8 @@ func (h *UserHandler) GetAllUsers(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -85,13 +83,12 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 func (h *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
-	err = h.service.DeleteUserById(ctx, id)
+	err := h.service.DeleteUserById(ctx, id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "user not found")
 		return
