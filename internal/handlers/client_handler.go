@@ -74,9 +74,8 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -95,13 +94,12 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
-	err = h.service.DeleteClientById(id)
+	err := h.service.DeleteClientById(id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "client not found")
 		return
