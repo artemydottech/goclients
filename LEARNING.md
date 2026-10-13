@@ -50,3 +50,12 @@
 
 ## Сделано агентом, разобрать позже
 
+
+- 2026-10-08, этап 2. `models.ErrNotFound` вместо `sql.ErrNoRows`: repository превращает `sql.ErrNoRows` в доменную ошибку, service и handlers проверяют `errors.Is(err, models.ErrNotFound)`. `database/sql` остался только в repository. Разобрать: почему `errNoRows` склеен из двух ошибок через `%w: %w`.
+- 2026-10-09, этап 3. Единый JSON-формат ошибок: `writeError`, `writeStatusJSON`, `writeJSON` в `internal/handlers/respond.go`. Разобрать: чем `http.Error` отличается от своего хелпера и почему Content-Type надо ставить до `WriteHeader`.
+- 2026-10-10, этап 3 и 5. Пакет `internal/middleware` (Recover, RequestID, AccessLog на `log/slog`, BodyLimit, SecureHeaders, Chain), пакет `internal/config` с валидацией env, `/healthz` и `/readyz`, `decodeJSON` с ответом 413. Разобрать: порядок middleware в `Chain` и почему RequestID стоит перед Recover.
+- 2026-10-11, этап 4. Хендлеры покрыты `httptest` с фейковыми сервисами: users, companies, employees, services, clients. `slog` в хендлерах берет request id из контекста через `middleware.NewContextHandler`. Разобрать: как устроен `slog.Handler` и зачем `WithAttrs`/`WithGroup` в обертке.
+- 2026-10-12, этап 4. Тесты хендлеров assignments, schedule, slots, time-off, appointments и тесты `models`. Тест всей цепочки middleware нашел ошибку порядка: паника логировалась без request id. Разобрать: как это воспроизвести без теста.
+- 2026-10-13. `pathID` вместо повторяющегося разбора `{id}` в каждом хендлере.
+
+Не сделано из роадмапа: `context` вне users (этап 1), версионные миграции и копейки (6), Postgres (7), авторизация (8), пагинация (9), метрики и pprof (10), воркер напоминаний (11), Dockerfile и линтер (12).
