@@ -136,9 +136,8 @@ func parseRange(rawFrom, rawTo string) (time.Time, time.Time, error) {
 }
 
 func (h *AppointmentHandler) GetAppointmentById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -161,9 +160,8 @@ type statusInput struct {
 }
 
 func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -172,7 +170,7 @@ func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.service.SetStatus(id, input.Status)
+	err := h.service.SetStatus(id, input.Status)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
@@ -192,13 +190,12 @@ func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
-	err = h.service.DeleteAppointmentById(id)
+	err := h.service.DeleteAppointmentById(id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "appointment not found")
 		return
@@ -218,9 +215,8 @@ type rescheduleInput struct {
 }
 
 func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -249,9 +245,8 @@ func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *AppointmentHandler) GetClientStats(w http.ResponseWriter, r *http.Request) {
-	clientID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	clientID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
