@@ -74,9 +74,8 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -95,13 +94,12 @@ func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
-	err = h.service.DeleteServiceById(id)
+	err := h.service.DeleteServiceById(id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "service not found")
 		return
