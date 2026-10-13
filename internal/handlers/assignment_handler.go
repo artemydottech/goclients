@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -28,9 +27,8 @@ type employeeServicesInput struct {
 }
 
 func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.Request) {
-	employeeID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	employeeID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -39,7 +37,7 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = h.service.SetEmployeeServices(employeeID, input.ServiceIDs)
+	err := h.service.SetEmployeeServices(employeeID, input.ServiceIDs)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
@@ -59,9 +57,8 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 }
 
 func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.Request) {
-	employeeID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	employeeID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -76,9 +73,8 @@ func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.R
 }
 
 func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.Request) {
-	serviceID, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	serviceID, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
