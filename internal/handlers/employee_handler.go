@@ -4,7 +4,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -57,10 +56,8 @@ func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request
 }
 
 func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
@@ -78,13 +75,12 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 }
 
 func (h *EmployeeHandler) DeleteEmployee(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid ID")
+	id, ok := pathID(w, r)
+	if !ok {
 		return
 	}
 
-	err = h.service.DeleteEmployeeById(id)
+	err := h.service.DeleteEmployeeById(id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "employee not found")
 		return
