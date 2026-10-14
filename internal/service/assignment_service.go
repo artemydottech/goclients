@@ -19,7 +19,7 @@ type EmployeeLookup interface {
 }
 
 type ServiceLookup interface {
-	GetServiceById(id int) (models.Service, error)
+	GetServiceById(ctx context.Context, id int) (models.Service, error)
 }
 
 type AssignmentService struct {
@@ -50,7 +50,7 @@ func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int
 		}
 		seen[serviceID] = struct{}{}
 
-		item, err := s.services.GetServiceById(serviceID)
+		item, err := s.services.GetServiceById(context.TODO(), serviceID)
 		if errors.Is(err, models.ErrNotFound) {
 			return models.Invalid("service %d not found", serviceID)
 		}

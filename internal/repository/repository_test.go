@@ -189,7 +189,7 @@ func TestServiceRepositoryRoundTrip(t *testing.T) {
 		t.Fatalf("create service: %v", err)
 	}
 
-	got, err := services.GetServiceById(int(id))
+	got, err := services.GetServiceById(context.Background(), int(id))
 	if err != nil {
 		t.Fatalf("get service: %v", err)
 	}
@@ -237,7 +237,7 @@ func TestServicesGoAwayWithTheirCompany(t *testing.T) {
 		t.Fatalf("delete company: %v", err)
 	}
 
-	if _, err := services.GetServiceById(int(serviceID)); !errors.Is(err, models.ErrNotFound) {
+	if _, err := services.GetServiceById(context.Background(), int(serviceID)); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("услуга пережила удаление компании: %v", err)
 	}
 }

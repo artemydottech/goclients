@@ -13,7 +13,7 @@ type ServiceRepo interface {
 	Create(ctx context.Context, s models.Service) (int64, error)
 	GetAllServices(ctx context.Context) ([]models.Service, error)
 	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
-	GetServiceById(id int) (models.Service, error)
+	GetServiceById(ctx context.Context, id int) (models.Service, error)
 	DeleteServiceById(id int) error
 }
 
@@ -66,7 +66,7 @@ func (s *CatalogService) GetServicesByCompany(companyID int) ([]models.Service, 
 }
 
 func (s *CatalogService) GetServiceById(id int) (models.Service, error) {
-	return s.repo.GetServiceById(id)
+	return s.repo.GetServiceById(context.TODO(), id)
 }
 
 func (s *CatalogService) DeleteServiceById(id int) error {

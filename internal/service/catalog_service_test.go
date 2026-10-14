@@ -24,7 +24,7 @@ func (r *stubServiceRepo) GetServicesByCompany(context.Context, int) ([]models.S
 	return nil, nil
 }
 
-func (r *stubServiceRepo) GetServiceById(int) (models.Service, error) {
+func (r *stubServiceRepo) GetServiceById(context.Context, int) (models.Service, error) {
 	return models.Service{}, nil
 }
 

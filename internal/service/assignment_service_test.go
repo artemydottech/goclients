@@ -42,7 +42,7 @@ type stubServiceLookup struct {
 	byID map[int]models.Service
 }
 
-func (l stubServiceLookup) GetServiceById(id int) (models.Service, error) {
+func (l stubServiceLookup) GetServiceById(_ context.Context, id int) (models.Service, error) {
 	item, ok := l.byID[id]
 	if !ok {
 		return models.Service{}, models.ErrNotFound

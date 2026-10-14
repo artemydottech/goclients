@@ -79,10 +79,10 @@ func (r *ServiceRepository) GetServicesByCompany(ctx context.Context, companyID 
 	return services, nil
 }
 
-func (r *ServiceRepository) GetServiceById(id int) (models.Service, error) {
+func (r *ServiceRepository) GetServiceById(ctx context.Context, id int) (models.Service, error) {
 	var s models.Service
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT id, company_id, name, description, duration, price
         FROM services WHERE id = ?`, id).
 		Scan(&s.ID, &s.CompanyID, &s.Name, &s.Description, &s.Duration, &s.Price)

@@ -145,7 +145,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 
-	item, err := s.services.GetServiceById(a.ServiceID)
+	item, err := s.services.GetServiceById(context.TODO(), a.ServiceID)
 	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("service %d not found", a.ServiceID)
 	}
