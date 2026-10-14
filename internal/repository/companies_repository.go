@@ -67,11 +67,11 @@ func (r *CompanyRepository) GetAllCompanies(ctx context.Context) ([]models.Compa
 	return companies, nil
 }
 
-func (r *CompanyRepository) GetCompanyById(id int) (models.Company, error) {
+func (r *CompanyRepository) GetCompanyById(ctx context.Context, id int) (models.Company, error) {
 	var c models.Company
 	var socialJSON sql.NullString
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT id, name, address, geolocation, schedule, site, socials, logo, timezone
         FROM companies WHERE id = ?`, id).
 		Scan(&c.ID, &c.Name, &c.Address, &c.Geolocation,

@@ -85,7 +85,7 @@ func TestCompanyRepositoryKeepsSocials(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	company, err := repo.GetCompanyById(int(id))
+	company, err := repo.GetCompanyById(context.Background(), int(id))
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -582,7 +582,7 @@ func TestCompanyRepositoryKeepsTimezone(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	company, err := repo.GetCompanyById(int(id))
+	company, err := repo.GetCompanyById(context.Background(), int(id))
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -615,7 +615,7 @@ func TestMigrateAddsTimezoneToAnOldCompaniesTable(t *testing.T) {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	company, err := NewCompanyRepository(db).GetCompanyById(1)
+	company, err := NewCompanyRepository(db).GetCompanyById(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}

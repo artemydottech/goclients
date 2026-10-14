@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -29,7 +30,7 @@ type SlotsService struct {
 }
 
 type CompanyLookup interface {
-	GetCompanyById(id int) (models.Company, error)
+	GetCompanyById(ctx context.Context, id int) (models.Company, error)
 }
 
 func NewSlotsService(
@@ -186,7 +187,7 @@ func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time,
 }
 
 func companyLocation(companies CompanyLookup, companyID int) (*time.Location, error) {
-	company, err := companies.GetCompanyById(companyID)
+	company, err := companies.GetCompanyById(context.TODO(), companyID)
 	if err != nil {
 		return nil, err
 	}

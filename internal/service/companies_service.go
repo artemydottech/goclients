@@ -10,7 +10,7 @@ import (
 type CompanyRepo interface {
 	Create(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies(ctx context.Context) ([]models.Company, error)
-	GetCompanyById(id int) (models.Company, error)
+	GetCompanyById(ctx context.Context, id int) (models.Company, error)
 	DeleteCompanyById(id int) error
 }
 
@@ -67,7 +67,7 @@ func (s *CompanyService) GetAllCompanies() ([]models.Company, error) {
 }
 
 func (s *CompanyService) GetCompanyById(id int) (models.Company, error) {
-	return s.repo.GetCompanyById(id)
+	return s.repo.GetCompanyById(context.TODO(), id)
 }
 
 func (s *CompanyService) DeleteCompanyById(id int) error {

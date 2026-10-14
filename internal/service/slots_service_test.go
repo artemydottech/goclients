@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -21,7 +22,7 @@ type stubCompanyLookup struct {
 	company models.Company
 }
 
-func (l stubCompanyLookup) GetCompanyById(int) (models.Company, error) {
+func (l stubCompanyLookup) GetCompanyById(context.Context, int) (models.Company, error) {
 	return l.company, nil
 }
 
