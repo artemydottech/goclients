@@ -124,7 +124,7 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 		t.Fatalf("delete company: %v", err)
 	}
 
-	left, err := employees.GetAllEmployees()
+	left, err := employees.GetAllEmployees(context.Background())
 	if err != nil {
 		t.Fatalf("get employees: %v", err)
 	}

@@ -27,8 +27,8 @@ func (r *EmployeeRepository) Create(ctx context.Context, e models.Employee) (int
 	return res.LastInsertId()
 }
 
-func (r *EmployeeRepository) GetAllEmployees() ([]models.Employee, error) {
-	rows, err := r.db.Query(`
+func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]models.Employee, error) {
+	rows, err := r.db.QueryContext(ctx, `
         SELECT id, company_id, name, surname, position, avatar
         FROM employees`)
 	if err != nil {

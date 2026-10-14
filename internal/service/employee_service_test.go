@@ -18,7 +18,9 @@ func (r *stubEmployeeRepo) Create(context.Context, models.Employee) (int64, erro
 	return 5, nil
 }
 
-func (r *stubEmployeeRepo) GetAllEmployees() ([]models.Employee, error) { return nil, nil }
+func (r *stubEmployeeRepo) GetAllEmployees(context.Context) ([]models.Employee, error) {
+	return nil, nil
+}
 
 func (r *stubEmployeeRepo) GetEmployeeById(int) (models.Employee, error) {
 	return models.Employee{}, nil
