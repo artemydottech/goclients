@@ -14,7 +14,7 @@ type ServiceRepo interface {
 	GetAllServices(ctx context.Context) ([]models.Service, error)
 	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
 	GetServiceById(ctx context.Context, id int) (models.Service, error)
-	DeleteServiceById(id int) error
+	DeleteServiceById(ctx context.Context, id int) error
 }
 
 type CatalogService struct {
@@ -70,5 +70,5 @@ func (s *CatalogService) GetServiceById(id int) (models.Service, error) {
 }
 
 func (s *CatalogService) DeleteServiceById(id int) error {
-	return s.repo.DeleteServiceById(id)
+	return s.repo.DeleteServiceById(context.TODO(), id)
 }

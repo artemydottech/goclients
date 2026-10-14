@@ -28,7 +28,7 @@ func (r *stubServiceRepo) GetServiceById(context.Context, int) (models.Service, 
 	return models.Service{}, nil
 }
 
-func (r *stubServiceRepo) DeleteServiceById(int) error { return nil }
+func (r *stubServiceRepo) DeleteServiceById(context.Context, int) error { return nil }
 
 func validService() models.Service {
 	return models.Service{CompanyID: 1, Name: "Стрижка", Duration: 60, Price: 1500}

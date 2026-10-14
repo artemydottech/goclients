@@ -93,8 +93,8 @@ func (r *ServiceRepository) GetServiceById(ctx context.Context, id int) (models.
 	return s, nil
 }
 
-func (r *ServiceRepository) DeleteServiceById(id int) error {
-	res, err := r.db.Exec("DELETE FROM services WHERE id = ?", id)
+func (r *ServiceRepository) DeleteServiceById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM services WHERE id = ?", id)
 	if err != nil {
 		return err
 	}

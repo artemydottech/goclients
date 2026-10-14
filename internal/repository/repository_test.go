@@ -346,7 +346,7 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 		t.Fatalf("set services: %v", err)
 	}
 
-	if err := services.DeleteServiceById(int(serviceID)); err != nil {
+	if err := services.DeleteServiceById(context.Background(), int(serviceID)); err != nil {
 		t.Fatalf("delete service: %v", err)
 	}
 
