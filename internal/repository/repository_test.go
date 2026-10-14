@@ -93,7 +93,7 @@ func TestCompanyRepositoryKeepsSocials(t *testing.T) {
 		t.Errorf("telegram = %q", got)
 	}
 
-	all, err := repo.GetAllCompanies()
+	all, err := repo.GetAllCompanies(context.Background())
 	if err != nil {
 		t.Fatalf("get all: %v", err)
 	}

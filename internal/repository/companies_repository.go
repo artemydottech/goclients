@@ -33,8 +33,8 @@ func (r *CompanyRepository) Create(ctx context.Context, c models.Company) (int64
 	return res.LastInsertId()
 }
 
-func (r *CompanyRepository) GetAllCompanies() ([]models.Company, error) {
-	rows, err := r.db.Query(`
+func (r *CompanyRepository) GetAllCompanies(ctx context.Context) ([]models.Company, error) {
+	rows, err := r.db.QueryContext(ctx, `
         SELECT id, name, address, geolocation, schedule, site, socials, logo, timezone
         FROM companies`)
 	if err != nil {
