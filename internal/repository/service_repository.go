@@ -27,8 +27,8 @@ func (r *ServiceRepository) Create(ctx context.Context, s models.Service) (int64
 	return res.LastInsertId()
 }
 
-func (r *ServiceRepository) GetAllServices() ([]models.Service, error) {
-	rows, err := r.db.Query(`
+func (r *ServiceRepository) GetAllServices(ctx context.Context) ([]models.Service, error) {
+	rows, err := r.db.QueryContext(ctx, `
         SELECT id, company_id, name, description, duration, price
         FROM services`)
 	if err != nil {
