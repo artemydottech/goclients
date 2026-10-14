@@ -24,7 +24,7 @@ func (r *stubCompanyRepo) GetCompanyById(context.Context, int) (models.Company, 
 	return models.Company{}, nil
 }
 
-func (r *stubCompanyRepo) DeleteCompanyById(int) error { return nil }
+func (r *stubCompanyRepo) DeleteCompanyById(context.Context, int) error { return nil }
 
 func TestCreateCompanyValidation(t *testing.T) {
 	cases := map[string]models.Company{

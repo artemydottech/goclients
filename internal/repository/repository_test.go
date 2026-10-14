@@ -120,7 +120,7 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 		t.Fatalf("create employee: %v", err)
 	}
 
-	if err := companies.DeleteCompanyById(int(companyID)); err != nil {
+	if err := companies.DeleteCompanyById(context.Background(), int(companyID)); err != nil {
 		t.Fatalf("delete company: %v", err)
 	}
 
@@ -233,7 +233,7 @@ func TestServicesGoAwayWithTheirCompany(t *testing.T) {
 		t.Fatalf("create service: %v", err)
 	}
 
-	if err := companies.DeleteCompanyById(int(companyID)); err != nil {
+	if err := companies.DeleteCompanyById(context.Background(), int(companyID)); err != nil {
 		t.Fatalf("delete company: %v", err)
 	}
 

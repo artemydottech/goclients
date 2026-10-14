@@ -11,7 +11,7 @@ type CompanyRepo interface {
 	Create(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies(ctx context.Context) ([]models.Company, error)
 	GetCompanyById(ctx context.Context, id int) (models.Company, error)
-	DeleteCompanyById(id int) error
+	DeleteCompanyById(ctx context.Context, id int) error
 }
 
 type CompanyService struct {
@@ -71,5 +71,5 @@ func (s *CompanyService) GetCompanyById(id int) (models.Company, error) {
 }
 
 func (s *CompanyService) DeleteCompanyById(id int) error {
-	return s.repo.DeleteCompanyById(id)
+	return s.repo.DeleteCompanyById(context.TODO(), id)
 }

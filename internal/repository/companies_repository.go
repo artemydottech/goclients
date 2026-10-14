@@ -87,8 +87,8 @@ func (r *CompanyRepository) GetCompanyById(ctx context.Context, id int) (models.
 	return c, nil
 }
 
-func (r *CompanyRepository) DeleteCompanyById(id int) error {
-	res, err := r.db.Exec("DELETE FROM companies WHERE id = ?", id)
+func (r *CompanyRepository) DeleteCompanyById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM companies WHERE id = ?", id)
 	if err != nil {
 		return err
 	}
