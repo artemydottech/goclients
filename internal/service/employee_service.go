@@ -11,7 +11,7 @@ type EmployeeRepo interface {
 	Create(ctx context.Context, c models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
 	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
-	DeleteEmployeeById(id int) error
+	DeleteEmployeeById(ctx context.Context, id int) error
 }
 
 type EmployeeService struct {
@@ -64,5 +64,5 @@ func (s *EmployeeService) GetEmployeeById(id int) (models.Employee, error) {
 }
 
 func (s *EmployeeService) DeleteEmployeeById(id int) error {
-	return s.repo.DeleteEmployeeById(id)
+	return s.repo.DeleteEmployeeById(context.TODO(), id)
 }

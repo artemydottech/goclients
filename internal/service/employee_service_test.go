@@ -26,7 +26,7 @@ func (r *stubEmployeeRepo) GetEmployeeById(context.Context, int) (models.Employe
 	return models.Employee{}, nil
 }
 
-func (r *stubEmployeeRepo) DeleteEmployeeById(int) error { return nil }
+func (r *stubEmployeeRepo) DeleteEmployeeById(context.Context, int) error { return nil }
 
 func TestCreateEmployeeValidation(t *testing.T) {
 	cases := map[string]models.Employee{

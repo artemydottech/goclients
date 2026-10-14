@@ -67,8 +67,8 @@ func (r *EmployeeRepository) GetEmployeeById(ctx context.Context, id int) (model
 	return e, nil
 }
 
-func (r *EmployeeRepository) DeleteEmployeeById(id int) error {
-	res, err := r.db.Exec("DELETE FROM employees WHERE id = ?", id)
+func (r *EmployeeRepository) DeleteEmployeeById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM employees WHERE id = ?", id)
 	if err != nil {
 		return err
 	}
