@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 
@@ -15,13 +16,13 @@ func NewCompanyRepository(db *sql.DB) *CompanyRepository {
 	return &CompanyRepository{db: db}
 }
 
-func (r *CompanyRepository) Create(c models.Company) (int64, error) {
+func (r *CompanyRepository) Create(ctx context.Context, c models.Company) (int64, error) {
 	socialJSON, err := json.Marshal(c.Socials)
 	if err != nil {
 		return 0, err
 	}
 
-	res, err := r.db.Exec(
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO companies (name, address, geolocation, schedule, site, socials, logo, timezone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
 		c.Name, c.Address, c.Geolocation, c.Schedule, c.Site, string(socialJSON), c.Logo, c.Timezone,
 	)

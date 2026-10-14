@@ -1,13 +1,14 @@
 package service
 
 import (
+	"context"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
 
 type CompanyRepo interface {
-	Create(c models.Company) (int64, error)
+	Create(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies() ([]models.Company, error)
 	GetCompanyById(id int) (models.Company, error)
 	DeleteCompanyById(id int) error
@@ -53,7 +54,7 @@ func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 		return 0, models.Invalid("unknown timezone %s, use an IANA name such as Asia/Yekaterinburg", c.Timezone)
 	}
 
-	id, err := s.repo.Create(c)
+	id, err := s.repo.Create(context.TODO(), c)
 	if err != nil {
 		return 0, err
 	}

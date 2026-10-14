@@ -76,7 +76,7 @@ func TestUserRepositoryMissingUser(t *testing.T) {
 func TestCompanyRepositoryKeepsSocials(t *testing.T) {
 	repo := NewCompanyRepository(newTestDB(t))
 
-	id, err := repo.Create(models.Company{
+	id, err := repo.Create(context.Background(), models.Company{
 		Name:    "Rusholding",
 		Address: "Екатеринбург",
 		Socials: models.Socials{models.SocialTelegram: "@rusholding"},
@@ -107,7 +107,7 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 	companies := NewCompanyRepository(db)
 	employees := NewEmployeeRepository(db)
 
-	companyID, err := companies.Create(models.Company{Name: "Rusholding"})
+	companyID, err := companies.Create(context.Background(), models.Company{Name: "Rusholding"})
 	if err != nil {
 		t.Fatalf("create company: %v", err)
 	}
@@ -171,7 +171,7 @@ func TestServiceRepositoryRoundTrip(t *testing.T) {
 	companies := NewCompanyRepository(db)
 	services := NewServiceRepository(db)
 
-	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	companyID, err := companies.Create(context.Background(), models.Company{Name: "Ромашка"})
 	if err != nil {
 		t.Fatalf("create company: %v", err)
 	}
@@ -221,7 +221,7 @@ func TestServicesGoAwayWithTheirCompany(t *testing.T) {
 	companies := NewCompanyRepository(db)
 	services := NewServiceRepository(db)
 
-	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	companyID, err := companies.Create(context.Background(), models.Company{Name: "Ромашка"})
 	if err != nil {
 		t.Fatalf("create company: %v", err)
 	}
@@ -249,7 +249,7 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 	services := NewServiceRepository(db)
 	assignments := NewAssignmentRepository(db)
 
-	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	companyID, err := companies.Create(context.Background(), models.Company{Name: "Ромашка"})
 	if err != nil {
 		t.Fatalf("create company: %v", err)
 	}
@@ -323,7 +323,7 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 	services := NewServiceRepository(db)
 	assignments := NewAssignmentRepository(db)
 
-	companyID, err := companies.Create(models.Company{Name: "Ромашка"})
+	companyID, err := companies.Create(context.Background(), models.Company{Name: "Ромашка"})
 	if err != nil {
 		t.Fatalf("create company: %v", err)
 	}
@@ -362,7 +362,7 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 func bookingFixture(t *testing.T, db *sql.DB) (companyID, employeeID, serviceID, clientID int) {
 	t.Helper()
 
-	company, err := NewCompanyRepository(db).Create(models.Company{Name: "Ромашка"})
+	company, err := NewCompanyRepository(db).Create(context.Background(), models.Company{Name: "Ромашка"})
 	if err != nil {
 		t.Fatalf("create company: %v", err)
 	}
@@ -577,7 +577,7 @@ func TestCreateIfFreeLetsOnlyOneConcurrentBookingThrough(t *testing.T) {
 func TestCompanyRepositoryKeepsTimezone(t *testing.T) {
 	repo := NewCompanyRepository(newTestDB(t))
 
-	id, err := repo.Create(models.Company{Name: "Ромашка", Timezone: "Asia/Yekaterinburg"})
+	id, err := repo.Create(context.Background(), models.Company{Name: "Ромашка", Timezone: "Asia/Yekaterinburg"})
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
