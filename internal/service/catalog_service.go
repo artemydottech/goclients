@@ -12,7 +12,7 @@ const maxServiceDuration = 24 * 60
 type ServiceRepo interface {
 	Create(ctx context.Context, s models.Service) (int64, error)
 	GetAllServices(ctx context.Context) ([]models.Service, error)
-	GetServicesByCompany(companyID int) ([]models.Service, error)
+	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
 	GetServiceById(id int) (models.Service, error)
 	DeleteServiceById(id int) error
 }
@@ -62,7 +62,7 @@ func (s *CatalogService) GetAllServices() ([]models.Service, error) {
 }
 
 func (s *CatalogService) GetServicesByCompany(companyID int) ([]models.Service, error) {
-	return s.repo.GetServicesByCompany(companyID)
+	return s.repo.GetServicesByCompany(context.TODO(), companyID)
 }
 
 func (s *CatalogService) GetServiceById(id int) (models.Service, error) {

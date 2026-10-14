@@ -199,7 +199,7 @@ func TestServiceRepositoryRoundTrip(t *testing.T) {
 		t.Errorf("got %+v, want %+v", got, want)
 	}
 
-	byCompany, err := services.GetServicesByCompany(int(companyID))
+	byCompany, err := services.GetServicesByCompany(context.Background(), int(companyID))
 	if err != nil {
 		t.Fatalf("get by company: %v", err)
 	}
@@ -207,7 +207,7 @@ func TestServiceRepositoryRoundTrip(t *testing.T) {
 		t.Fatalf("услуг компании: %d, ожидалась 1", len(byCompany))
 	}
 
-	other, err := services.GetServicesByCompany(int(companyID) + 1000)
+	other, err := services.GetServicesByCompany(context.Background(), int(companyID)+1000)
 	if err != nil {
 		t.Fatalf("get by unknown company: %v", err)
 	}

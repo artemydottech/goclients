@@ -53,8 +53,8 @@ func (r *ServiceRepository) GetAllServices(ctx context.Context) ([]models.Servic
 	return services, nil
 }
 
-func (r *ServiceRepository) GetServicesByCompany(companyID int) ([]models.Service, error) {
-	rows, err := r.db.Query(`
+func (r *ServiceRepository) GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error) {
+	rows, err := r.db.QueryContext(ctx, `
         SELECT id, company_id, name, description, duration, price
         FROM services WHERE company_id = ?`, companyID)
 	if err != nil {

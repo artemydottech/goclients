@@ -20,7 +20,9 @@ func (r *stubServiceRepo) Create(context.Context, models.Service) (int64, error)
 
 func (r *stubServiceRepo) GetAllServices(context.Context) ([]models.Service, error) { return nil, nil }
 
-func (r *stubServiceRepo) GetServicesByCompany(int) ([]models.Service, error) { return nil, nil }
+func (r *stubServiceRepo) GetServicesByCompany(context.Context, int) ([]models.Service, error) {
+	return nil, nil
+}
 
 func (r *stubServiceRepo) GetServiceById(int) (models.Service, error) {
 	return models.Service{}, nil
