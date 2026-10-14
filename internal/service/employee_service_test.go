@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -12,7 +13,7 @@ type stubEmployeeRepo struct {
 	called bool
 }
 
-func (r *stubEmployeeRepo) Create(models.Employee) (int64, error) {
+func (r *stubEmployeeRepo) Create(context.Context, models.Employee) (int64, error) {
 	r.called = true
 	return 5, nil
 }

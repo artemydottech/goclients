@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,8 +15,8 @@ func NewEmployeeRepository(db *sql.DB) *EmployeeRepository {
 	return &EmployeeRepository{db: db}
 }
 
-func (r *EmployeeRepository) Create(e models.Employee) (int64, error) {
-	res, err := r.db.Exec(
+func (r *EmployeeRepository) Create(ctx context.Context, e models.Employee) (int64, error) {
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO employees (company_id, name, surname, position, avatar) VALUES (?, ?, ?, ?, ?)",
 		e.CompanyID, e.Name, e.Surname, e.Position, e.Avatar,
 	)

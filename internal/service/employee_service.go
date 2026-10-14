@@ -1,13 +1,14 @@
 package service
 
 import (
+	"context"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
 
 type EmployeeRepo interface {
-	Create(c models.Employee) (int64, error)
+	Create(ctx context.Context, c models.Employee) (int64, error)
 	GetAllEmployees() ([]models.Employee, error)
 	GetEmployeeById(id int) (models.Employee, error)
 	DeleteEmployeeById(id int) error
@@ -46,7 +47,7 @@ func (s *EmployeeService) CreateEmployee(e models.Employee) (int64, error) {
 		return 0, models.Invalid("avatar URL is too long, keep it under 500 characters")
 	}
 
-	id, err := s.repo.Create(e)
+	id, err := s.repo.Create(context.TODO(), e)
 	if err != nil {
 		return 0, err
 	}

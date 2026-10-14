@@ -112,7 +112,7 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 		t.Fatalf("create company: %v", err)
 	}
 
-	if _, err := employees.Create(models.Employee{
+	if _, err := employees.Create(context.Background(), models.Employee{
 		CompanyID: int(companyID),
 		Name:      "Daniil",
 		Surname:   "Dubov",
@@ -254,7 +254,7 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 		t.Fatalf("create company: %v", err)
 	}
 
-	employeeID, err := employees.Create(models.Employee{
+	employeeID, err := employees.Create(context.Background(), models.Employee{
 		CompanyID: int(companyID), Name: "Анна", Surname: "Иванова",
 	})
 	if err != nil {
@@ -328,7 +328,7 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 		t.Fatalf("create company: %v", err)
 	}
 
-	employeeID, err := employees.Create(models.Employee{
+	employeeID, err := employees.Create(context.Background(), models.Employee{
 		CompanyID: int(companyID), Name: "Анна", Surname: "Иванова",
 	})
 	if err != nil {
@@ -367,7 +367,7 @@ func bookingFixture(t *testing.T, db *sql.DB) (companyID, employeeID, serviceID,
 		t.Fatalf("create company: %v", err)
 	}
 
-	employee, err := NewEmployeeRepository(db).Create(models.Employee{
+	employee, err := NewEmployeeRepository(db).Create(context.Background(), models.Employee{
 		CompanyID: int(company), Name: "Анна", Surname: "Иванова",
 	})
 	if err != nil {
