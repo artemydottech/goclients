@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,8 +15,8 @@ func NewServiceRepository(db *sql.DB) *ServiceRepository {
 	return &ServiceRepository{db: db}
 }
 
-func (r *ServiceRepository) Create(s models.Service) (int64, error) {
-	res, err := r.db.Exec(
+func (r *ServiceRepository) Create(ctx context.Context, s models.Service) (int64, error) {
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO services (company_id, name, description, duration, price) VALUES (?, ?, ?, ?, ?)",
 		s.CompanyID, s.Name, s.Description, s.Duration, s.Price,
 	)

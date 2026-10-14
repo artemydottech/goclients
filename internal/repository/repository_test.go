@@ -184,7 +184,7 @@ func TestServiceRepositoryRoundTrip(t *testing.T) {
 		Price:       1500,
 	}
 
-	id, err := services.Create(want)
+	id, err := services.Create(context.Background(), want)
 	if err != nil {
 		t.Fatalf("create service: %v", err)
 	}
@@ -226,7 +226,7 @@ func TestServicesGoAwayWithTheirCompany(t *testing.T) {
 		t.Fatalf("create company: %v", err)
 	}
 
-	serviceID, err := services.Create(models.Service{
+	serviceID, err := services.Create(context.Background(), models.Service{
 		CompanyID: int(companyID), Name: "Стрижка", Duration: 45,
 	})
 	if err != nil {
@@ -261,14 +261,14 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 		t.Fatalf("create employee: %v", err)
 	}
 
-	first, err := services.Create(models.Service{
+	first, err := services.Create(context.Background(), models.Service{
 		CompanyID: int(companyID), Name: "Стрижка", Duration: 45,
 	})
 	if err != nil {
 		t.Fatalf("create service: %v", err)
 	}
 
-	second, err := services.Create(models.Service{
+	second, err := services.Create(context.Background(), models.Service{
 		CompanyID: int(companyID), Name: "Окрашивание", Duration: 120,
 	})
 	if err != nil {
@@ -335,7 +335,7 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 		t.Fatalf("create employee: %v", err)
 	}
 
-	serviceID, err := services.Create(models.Service{
+	serviceID, err := services.Create(context.Background(), models.Service{
 		CompanyID: int(companyID), Name: "Стрижка", Duration: 45,
 	})
 	if err != nil {
@@ -374,7 +374,7 @@ func bookingFixture(t *testing.T, db *sql.DB) (companyID, employeeID, serviceID,
 		t.Fatalf("create employee: %v", err)
 	}
 
-	service, err := NewServiceRepository(db).Create(models.Service{
+	service, err := NewServiceRepository(db).Create(context.Background(), models.Service{
 		CompanyID: int(company), Name: "Стрижка", Duration: 60,
 	})
 	if err != nil {

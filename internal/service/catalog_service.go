@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -9,7 +10,7 @@ import (
 const maxServiceDuration = 24 * 60
 
 type ServiceRepo interface {
-	Create(s models.Service) (int64, error)
+	Create(ctx context.Context, s models.Service) (int64, error)
 	GetAllServices() ([]models.Service, error)
 	GetServicesByCompany(companyID int) ([]models.Service, error)
 	GetServiceById(id int) (models.Service, error)
@@ -53,7 +54,7 @@ func (s *CatalogService) CreateService(item models.Service) (int64, error) {
 		return 0, models.Invalid("price cannot be negative")
 	}
 
-	return s.repo.Create(item)
+	return s.repo.Create(context.TODO(), item)
 }
 
 func (s *CatalogService) GetAllServices() ([]models.Service, error) {
