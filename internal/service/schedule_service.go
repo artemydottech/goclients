@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -22,7 +23,7 @@ func NewScheduleService(repo ScheduleRepo, employees EmployeeLookup) *ScheduleSe
 }
 
 func (s *ScheduleService) SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error {
-	if _, err := s.employees.GetEmployeeById(employeeID); err != nil {
+	if _, err := s.employees.GetEmployeeById(context.TODO(), employeeID); err != nil {
 		return err
 	}
 

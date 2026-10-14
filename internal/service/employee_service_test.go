@@ -22,7 +22,7 @@ func (r *stubEmployeeRepo) GetAllEmployees(context.Context) ([]models.Employee, 
 	return nil, nil
 }
 
-func (r *stubEmployeeRepo) GetEmployeeById(int) (models.Employee, error) {
+func (r *stubEmployeeRepo) GetEmployeeById(context.Context, int) (models.Employee, error) {
 	return models.Employee{}, nil
 }
 

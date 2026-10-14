@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"time"
 	"unicode/utf8"
 
@@ -29,7 +30,7 @@ func NewTimeOffService(repo TimeOffRepo, employees EmployeeLookup, calendar Cale
 }
 
 func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64, error) {
-	if _, err := s.employees.GetEmployeeById(employeeID); err != nil {
+	if _, err := s.employees.GetEmployeeById(context.TODO(), employeeID); err != nil {
 		return 0, err
 	}
 

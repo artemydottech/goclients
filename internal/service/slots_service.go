@@ -59,7 +59,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		step = defaultSlotStep
 	}
 
-	employee, err := s.employees.GetEmployeeById(employeeID)
+	employee, err := s.employees.GetEmployeeById(context.TODO(), employeeID)
 	if errors.Is(err, models.ErrNotFound) {
 		return nil, models.Invalid("employee %d not found", employeeID)
 	}

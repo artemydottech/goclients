@@ -10,7 +10,7 @@ import (
 type EmployeeRepo interface {
 	Create(ctx context.Context, c models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
-	GetEmployeeById(id int) (models.Employee, error)
+	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
 	DeleteEmployeeById(id int) error
 }
 
@@ -60,7 +60,7 @@ func (s *EmployeeService) GetAllEmployees() ([]models.Employee, error) {
 }
 
 func (s *EmployeeService) GetEmployeeById(id int) (models.Employee, error) {
-	return s.repo.GetEmployeeById(id)
+	return s.repo.GetEmployeeById(context.TODO(), id)
 }
 
 func (s *EmployeeService) DeleteEmployeeById(id int) error {

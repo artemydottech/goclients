@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,7 +15,7 @@ type AssignmentRepo interface {
 }
 
 type EmployeeLookup interface {
-	GetEmployeeById(id int) (models.Employee, error)
+	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
 }
 
 type ServiceLookup interface {
@@ -32,7 +33,7 @@ func NewAssignmentService(repo AssignmentRepo, employees EmployeeLookup, service
 }
 
 func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int) error {
-	employee, err := s.employees.GetEmployeeById(employeeID)
+	employee, err := s.employees.GetEmployeeById(context.TODO(), employeeID)
 	if errors.Is(err, models.ErrNotFound) {
 		return err
 	}

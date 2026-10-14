@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"time"
 	"unicode/utf8"
@@ -136,7 +137,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 
-	employee, err := s.employees.GetEmployeeById(a.EmployeeID)
+	employee, err := s.employees.GetEmployeeById(context.TODO(), a.EmployeeID)
 	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("employee %d not found", a.EmployeeID)
 	}

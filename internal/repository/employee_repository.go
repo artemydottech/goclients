@@ -53,10 +53,10 @@ func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]models.Empl
 	return employees, nil
 }
 
-func (r *EmployeeRepository) GetEmployeeById(id int) (models.Employee, error) {
+func (r *EmployeeRepository) GetEmployeeById(ctx context.Context, id int) (models.Employee, error) {
 	var e models.Employee
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT id, company_id, name, surname, position, avatar
         FROM employees WHERE id = ?`, id).
 		Scan(&e.ID, &e.CompanyID, &e.Name, &e.Surname, &e.Position, &e.Avatar)
