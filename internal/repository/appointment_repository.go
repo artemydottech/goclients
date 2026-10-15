@@ -205,8 +205,8 @@ func hasOverlap(ctx context.Context, q querier, employeeID int, from, to time.Ti
 	return true, nil
 }
 
-func (r *AppointmentRepository) UpdateStatus(id int, status models.AppointmentStatus) error {
-	res, err := r.db.Exec("UPDATE appointments SET status = ? WHERE id = ?", string(status), id)
+func (r *AppointmentRepository) UpdateStatus(ctx context.Context, id int, status models.AppointmentStatus) error {
+	res, err := r.db.ExecContext(ctx, "UPDATE appointments SET status = ? WHERE id = ?", string(status), id)
 	if err != nil {
 		return err
 	}

@@ -486,7 +486,7 @@ func TestCancelledAppointmentFreesTheSlot(t *testing.T) {
 		t.Fatal("подтверждённая запись должна занимать слот")
 	}
 
-	if err := repo.UpdateStatus(int(id), models.AppointmentCancelled); err != nil {
+	if err := repo.UpdateStatus(context.Background(), int(id), models.AppointmentCancelled); err != nil {
 		t.Fatalf("update status: %v", err)
 	}
 

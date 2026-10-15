@@ -62,7 +62,7 @@ func (r *stubAppointmentRepo) CreateIfFree(ctx context.Context, a models.Appoint
 	return id, false, err
 }
 
-func (r *stubAppointmentRepo) UpdateStatus(_ int, status models.AppointmentStatus) error {
+func (r *stubAppointmentRepo) UpdateStatus(_ context.Context, _ int, status models.AppointmentStatus) error {
 	r.statusUpdates = append(r.statusUpdates, status)
 	return nil
 }

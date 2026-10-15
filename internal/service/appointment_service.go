@@ -17,7 +17,7 @@ type AppointmentRepo interface {
 	GetAppointmentById(ctx context.Context, id int) (models.Appointment, error)
 	CreateIfFree(ctx context.Context, a models.Appointment) (int64, bool, error)
 	MoveIfFree(ctx context.Context, id int, a models.Appointment) (bool, error)
-	UpdateStatus(id int, status models.AppointmentStatus) error
+	UpdateStatus(ctx context.Context, id int, status models.AppointmentStatus) error
 	GetClientStats(clientID int, now time.Time) (models.ClientStats, error)
 	DeleteAppointmentById(id int) error
 }
@@ -264,7 +264,7 @@ func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) 
 		return models.Invalid("status %s can only be set after the appointment has started", status)
 	}
 
-	return s.repo.UpdateStatus(id, status)
+	return s.repo.UpdateStatus(context.TODO(), id, status)
 }
 
 func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, error) {
