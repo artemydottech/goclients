@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ type stubTimeOffRepo struct {
 	calls int
 }
 
-func (r *stubTimeOffRepo) Create(t models.TimeOff) (int64, error) {
+func (r *stubTimeOffRepo) Create(_ context.Context, t models.TimeOff) (int64, error) {
 	r.calls++
 	r.saved = t
 	return 4, nil

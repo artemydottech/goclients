@@ -689,7 +689,7 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 	repo := NewTimeOffRepository(db)
 
 	startsAt := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC)
-	id, err := repo.Create(models.TimeOff{
+	id, err := repo.Create(context.Background(), models.TimeOff{
 		EmployeeID: employeeID,
 		StartsAt:   startsAt,
 		EndsAt:     startsAt.AddDate(0, 0, 7),

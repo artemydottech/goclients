@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -15,8 +16,8 @@ func NewTimeOffRepository(db *sql.DB) *TimeOffRepository {
 	return &TimeOffRepository{db: db}
 }
 
-func (r *TimeOffRepository) Create(t models.TimeOff) (int64, error) {
-	res, err := r.db.Exec(
+func (r *TimeOffRepository) Create(ctx context.Context, t models.TimeOff) (int64, error) {
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO employee_time_off (employee_id, starts_at, ends_at, reason) VALUES (?, ?, ?, ?)",
 		t.EmployeeID, t.StartsAt.UTC().Format(timeLayout), t.EndsAt.UTC().Format(timeLayout), t.Reason,
 	)
