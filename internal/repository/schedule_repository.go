@@ -46,8 +46,8 @@ func (r *ScheduleRepository) SetEmployeeSchedule(ctx context.Context, employeeID
 	return tx.Commit()
 }
 
-func (r *ScheduleRepository) GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error) {
-	rows, err := r.db.Query(`
+func (r *ScheduleRepository) GetEmployeeSchedule(ctx context.Context, employeeID int) ([]models.WorkingDay, error) {
+	rows, err := r.db.QueryContext(ctx, `
         SELECT employee_id, weekday, starts_at, ends_at, break_starts_at, break_ends_at
         FROM employee_schedules WHERE employee_id = ? ORDER BY weekday`, employeeID)
 	if err != nil {

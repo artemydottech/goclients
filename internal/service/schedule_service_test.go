@@ -19,7 +19,7 @@ func (r *stubScheduleRepo) SetEmployeeSchedule(_ context.Context, _ int, days []
 	return nil
 }
 
-func (r *stubScheduleRepo) GetEmployeeSchedule(int) ([]models.WorkingDay, error) {
+func (r *stubScheduleRepo) GetEmployeeSchedule(context.Context, int) ([]models.WorkingDay, error) {
 	return nil, nil
 }
 
