@@ -29,7 +29,7 @@ func (r *stubTimeOffRepo) GetTimeOffInRange(context.Context, int, time.Time, tim
 	return nil, nil
 }
 
-func (r *stubTimeOffRepo) DeleteTimeOffById(int) error { return nil }
+func (r *stubTimeOffRepo) DeleteTimeOffById(context.Context, int) error { return nil }
 
 func vacation() models.TimeOff {
 	return models.TimeOff{

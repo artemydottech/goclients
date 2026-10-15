@@ -74,8 +74,8 @@ func (r *TimeOffRepository) query(ctx context.Context, query string, args ...any
 	return periods, rows.Err()
 }
 
-func (r *TimeOffRepository) DeleteTimeOffById(id int) error {
-	res, err := r.db.Exec("DELETE FROM employee_time_off WHERE id = ?", id)
+func (r *TimeOffRepository) DeleteTimeOffById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM employee_time_off WHERE id = ?", id)
 	if err != nil {
 		return err
 	}

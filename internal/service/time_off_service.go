@@ -12,7 +12,7 @@ type TimeOffRepo interface {
 	Create(ctx context.Context, t models.TimeOff) (int64, error)
 	GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error)
 	GetTimeOffInRange(ctx context.Context, employeeID int, from, to time.Time) ([]models.TimeOff, error)
-	DeleteTimeOffById(id int) error
+	DeleteTimeOffById(ctx context.Context, id int) error
 }
 
 type TimeOffCalendar interface {
@@ -73,7 +73,7 @@ func (s *TimeOffService) GetTimeOffByEmployee(employeeID int) ([]models.TimeOff,
 }
 
 func (s *TimeOffService) DeleteTimeOffById(id int) error {
-	return s.repo.DeleteTimeOffById(id)
+	return s.repo.DeleteTimeOffById(context.TODO(), id)
 }
 
 func overlapsTimeOff(from, to time.Time, periods []models.TimeOff) bool {

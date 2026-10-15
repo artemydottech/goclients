@@ -723,10 +723,10 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 		t.Errorf("день сразу после отпуска попал в период: %+v", after)
 	}
 
-	if err := repo.DeleteTimeOffById(int(id)); err != nil {
+	if err := repo.DeleteTimeOffById(context.Background(), int(id)); err != nil {
 		t.Fatalf("delete: %v", err)
 	}
-	if err := repo.DeleteTimeOffById(int(id)); !errors.Is(err, models.ErrNotFound) {
+	if err := repo.DeleteTimeOffById(context.Background(), int(id)); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("повторное удаление: %v", err)
 	}
 }
