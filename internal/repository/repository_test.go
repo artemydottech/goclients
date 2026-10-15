@@ -838,7 +838,7 @@ func TestClientStatsAggregatesTheHistory(t *testing.T) {
 	add(9, models.AppointmentPending, 2200)
 	add(4, models.AppointmentCancelled, 2200)
 
-	stats, err := repo.GetClientStats(clientID, now)
+	stats, err := repo.GetClientStats(context.Background(), clientID, now)
 	if err != nil {
 		t.Fatalf("stats: %v", err)
 	}
@@ -862,7 +862,7 @@ func TestClientStatsForANewClient(t *testing.T) {
 	db := newTestDB(t)
 	_, _, _, clientID := bookingFixture(t, db)
 
-	stats, err := NewAppointmentRepository(db).GetClientStats(clientID, time.Now())
+	stats, err := NewAppointmentRepository(db).GetClientStats(context.Background(), clientID, time.Now())
 	if err != nil {
 		t.Fatalf("stats: %v", err)
 	}

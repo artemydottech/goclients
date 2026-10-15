@@ -241,7 +241,7 @@ func (r *AppointmentRepository) DeleteAppointmentById(ctx context.Context, id in
 	return nil
 }
 
-func (r *AppointmentRepository) GetClientStats(clientID int, now time.Time) (models.ClientStats, error) {
+func (r *AppointmentRepository) GetClientStats(ctx context.Context, clientID int, now time.Time) (models.ClientStats, error) {
 	stats := models.ClientStats{ClientID: clientID}
 
 	var (
@@ -250,7 +250,7 @@ func (r *AppointmentRepository) GetClientStats(clientID int, now time.Time) (mod
 		nowText   = now.UTC().Format(timeLayout)
 	)
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT
             COUNT(*),
             COALESCE(SUM(CASE WHEN status = ? THEN 1 ELSE 0 END), 0),
