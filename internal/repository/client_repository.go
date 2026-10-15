@@ -27,20 +27,20 @@ func (r *ClientRepository) Create(ctx context.Context, c models.Client) (int64, 
 	return res.LastInsertId()
 }
 
-func (r *ClientRepository) GetAllClients() ([]models.Client, error) {
-	return r.queryClients(`
+func (r *ClientRepository) GetAllClients(ctx context.Context) ([]models.Client, error) {
+	return r.queryClients(ctx, `
         SELECT id, company_id, name, phone, email, comment
         FROM clients ORDER BY id`)
 }
 
-func (r *ClientRepository) GetClientsByCompany(companyID int) ([]models.Client, error) {
-	return r.queryClients(`
+func (r *ClientRepository) GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error) {
+	return r.queryClients(ctx, `
         SELECT id, company_id, name, phone, email, comment
         FROM clients WHERE company_id = ? ORDER BY id`, companyID)
 }
 
-func (r *ClientRepository) queryClients(query string, args ...any) ([]models.Client, error) {
-	rows, err := r.db.Query(query, args...)
+func (r *ClientRepository) queryClients(ctx context.Context, query string, args ...any) ([]models.Client, error) {
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

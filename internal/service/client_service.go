@@ -17,8 +17,8 @@ const (
 
 type ClientRepo interface {
 	Create(ctx context.Context, c models.Client) (int64, error)
-	GetAllClients() ([]models.Client, error)
-	GetClientsByCompany(companyID int) ([]models.Client, error)
+	GetAllClients(ctx context.Context) ([]models.Client, error)
+	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(id int) (models.Client, error)
 	GetClientByPhone(companyID int, phone string) (models.Client, error)
 	DeleteClientById(id int) error
@@ -82,11 +82,11 @@ func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 }
 
 func (s *ClientService) GetAllClients() ([]models.Client, error) {
-	return s.repo.GetAllClients()
+	return s.repo.GetAllClients(context.TODO())
 }
 
 func (s *ClientService) GetClientsByCompany(companyID int) ([]models.Client, error) {
-	return s.repo.GetClientsByCompany(companyID)
+	return s.repo.GetClientsByCompany(context.TODO(), companyID)
 }
 
 func (s *ClientService) GetClientById(id int) (models.Client, error) {

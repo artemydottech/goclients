@@ -21,9 +21,11 @@ func (r *stubClientRepo) Create(_ context.Context, c models.Client) (int64, erro
 	return 3, nil
 }
 
-func (r *stubClientRepo) GetAllClients() ([]models.Client, error) { return nil, nil }
+func (r *stubClientRepo) GetAllClients(context.Context) ([]models.Client, error) { return nil, nil }
 
-func (r *stubClientRepo) GetClientsByCompany(int) ([]models.Client, error) { return nil, nil }
+func (r *stubClientRepo) GetClientsByCompany(context.Context, int) ([]models.Client, error) {
+	return nil, nil
+}
 
 func (r *stubClientRepo) GetClientById(int) (models.Client, error) {
 	return models.Client{}, nil
