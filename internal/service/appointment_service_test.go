@@ -67,7 +67,7 @@ func (r *stubAppointmentRepo) UpdateStatus(_ context.Context, _ int, status mode
 	return nil
 }
 
-func (r *stubAppointmentRepo) DeleteAppointmentById(int) error { return nil }
+func (r *stubAppointmentRepo) DeleteAppointmentById(context.Context, int) error { return nil }
 
 func (r *stubAppointmentRepo) GetClientStats(clientID int, _ time.Time) (models.ClientStats, error) {
 	return models.ClientStats{ClientID: clientID, Appointments: 3}, nil

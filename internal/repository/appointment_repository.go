@@ -223,8 +223,8 @@ func (r *AppointmentRepository) UpdateStatus(ctx context.Context, id int, status
 	return nil
 }
 
-func (r *AppointmentRepository) DeleteAppointmentById(id int) error {
-	res, err := r.db.Exec("DELETE FROM appointments WHERE id = ?", id)
+func (r *AppointmentRepository) DeleteAppointmentById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM appointments WHERE id = ?", id)
 	if err != nil {
 		return err
 	}

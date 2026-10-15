@@ -19,7 +19,7 @@ type AppointmentRepo interface {
 	MoveIfFree(ctx context.Context, id int, a models.Appointment) (bool, error)
 	UpdateStatus(ctx context.Context, id int, status models.AppointmentStatus) error
 	GetClientStats(clientID int, now time.Time) (models.ClientStats, error)
-	DeleteAppointmentById(id int) error
+	DeleteAppointmentById(ctx context.Context, id int) error
 }
 
 type ClientLookup interface {
@@ -276,5 +276,5 @@ func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, e
 }
 
 func (s *AppointmentService) DeleteAppointmentById(id int) error {
-	return s.repo.DeleteAppointmentById(id)
+	return s.repo.DeleteAppointmentById(context.TODO(), id)
 }
