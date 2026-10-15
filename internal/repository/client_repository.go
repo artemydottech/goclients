@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,8 +15,8 @@ func NewClientRepository(db *sql.DB) *ClientRepository {
 	return &ClientRepository{db: db}
 }
 
-func (r *ClientRepository) Create(c models.Client) (int64, error) {
-	res, err := r.db.Exec(
+func (r *ClientRepository) Create(ctx context.Context, c models.Client) (int64, error) {
+	res, err := r.db.ExecContext(ctx,
 		"INSERT INTO clients (company_id, name, phone, email, comment) VALUES (?, ?, ?, ?, ?)",
 		c.CompanyID, c.Name, c.Phone, c.Email, c.Comment,
 	)

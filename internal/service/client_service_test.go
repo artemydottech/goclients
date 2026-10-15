@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -14,7 +15,7 @@ type stubClientRepo struct {
 	saved    models.Client
 }
 
-func (r *stubClientRepo) Create(c models.Client) (int64, error) {
+func (r *stubClientRepo) Create(_ context.Context, c models.Client) (int64, error) {
 	r.called = true
 	r.saved = c
 	return 3, nil

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"unicode"
@@ -15,7 +16,7 @@ const (
 )
 
 type ClientRepo interface {
-	Create(c models.Client) (int64, error)
+	Create(ctx context.Context, c models.Client) (int64, error)
 	GetAllClients() ([]models.Client, error)
 	GetClientsByCompany(companyID int) ([]models.Client, error)
 	GetClientById(id int) (models.Client, error)
@@ -77,7 +78,7 @@ func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 		return 0, models.Invalid("client with phone %s already exists (id %d)", c.Phone, existing.ID)
 	}
 
-	return s.repo.Create(c)
+	return s.repo.Create(context.TODO(), c)
 }
 
 func (s *ClientService) GetAllClients() ([]models.Client, error) {

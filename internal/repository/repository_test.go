@@ -381,7 +381,7 @@ func bookingFixture(t *testing.T, db *sql.DB) (companyID, employeeID, serviceID,
 		t.Fatalf("create service: %v", err)
 	}
 
-	client, err := NewClientRepository(db).Create(models.Client{
+	client, err := NewClientRepository(db).Create(context.Background(), models.Client{
 		CompanyID: int(company), Name: "Пётр", Phone: "79991234567",
 	})
 	if err != nil {
