@@ -21,9 +21,11 @@ func (r *stubTimeOffRepo) Create(_ context.Context, t models.TimeOff) (int64, er
 	return 4, nil
 }
 
-func (r *stubTimeOffRepo) GetTimeOffByEmployee(int) ([]models.TimeOff, error) { return nil, nil }
+func (r *stubTimeOffRepo) GetTimeOffByEmployee(context.Context, int) ([]models.TimeOff, error) {
+	return nil, nil
+}
 
-func (r *stubTimeOffRepo) GetTimeOffInRange(int, time.Time, time.Time) ([]models.TimeOff, error) {
+func (r *stubTimeOffRepo) GetTimeOffInRange(context.Context, int, time.Time, time.Time) ([]models.TimeOff, error) {
 	return nil, nil
 }
 

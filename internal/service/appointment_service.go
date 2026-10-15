@@ -209,7 +209,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		)
 	}
 
-	absences, err := s.timeOff.GetTimeOffInRange(a.EmployeeID, a.StartsAt, a.EndsAt)
+	absences, err := s.timeOff.GetTimeOffInRange(context.TODO(), a.EmployeeID, a.StartsAt, a.EndsAt)
 	if err != nil {
 		return a, err
 	}

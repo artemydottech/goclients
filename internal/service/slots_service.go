@@ -103,7 +103,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, err
 	}
 
-	absences, err := s.timeOff.GetTimeOffInRange(employeeID, day, day.AddDate(0, 0, 1))
+	absences, err := s.timeOff.GetTimeOffInRange(context.TODO(), employeeID, day, day.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, err
 	}

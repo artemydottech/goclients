@@ -32,7 +32,7 @@ type stubTimeOff struct {
 	periods []models.TimeOff
 }
 
-func (s stubTimeOff) GetTimeOffInRange(_ int, from, to time.Time) ([]models.TimeOff, error) {
+func (s stubTimeOff) GetTimeOffInRange(_ context.Context, _ int, from, to time.Time) ([]models.TimeOff, error) {
 	matching := []models.TimeOff{}
 	for _, period := range s.periods {
 		if from.Before(period.EndsAt) && to.After(period.StartsAt) {

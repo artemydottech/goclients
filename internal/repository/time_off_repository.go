@@ -28,14 +28,14 @@ func (r *TimeOffRepository) Create(ctx context.Context, t models.TimeOff) (int64
 	return res.LastInsertId()
 }
 
-func (r *TimeOffRepository) GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error) {
-	return r.query(`
+func (r *TimeOffRepository) GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error) {
+	return r.query(ctx, `
         SELECT id, employee_id, starts_at, ends_at, reason
         FROM employee_time_off WHERE employee_id = ? ORDER BY starts_at`, employeeID)
 }
 
-func (r *TimeOffRepository) GetTimeOffInRange(employeeID int, from, to time.Time) ([]models.TimeOff, error) {
-	return r.query(`
+func (r *TimeOffRepository) GetTimeOffInRange(ctx context.Context, employeeID int, from, to time.Time) ([]models.TimeOff, error) {
+	return r.query(ctx, `
         SELECT id, employee_id, starts_at, ends_at, reason
         FROM employee_time_off
         WHERE employee_id = ? AND starts_at < ? AND ends_at > ?
@@ -43,8 +43,8 @@ func (r *TimeOffRepository) GetTimeOffInRange(employeeID int, from, to time.Time
 		employeeID, to.UTC().Format(timeLayout), from.UTC().Format(timeLayout))
 }
 
-func (r *TimeOffRepository) query(query string, args ...any) ([]models.TimeOff, error) {
-	rows, err := r.db.Query(query, args...)
+func (r *TimeOffRepository) query(ctx context.Context, query string, args ...any) ([]models.TimeOff, error) {
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

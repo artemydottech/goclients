@@ -699,7 +699,7 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	all, err := repo.GetTimeOffByEmployee(employeeID)
+	all, err := repo.GetTimeOffByEmployee(context.Background(), employeeID)
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -707,7 +707,7 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 		t.Fatalf("получено %+v", all)
 	}
 
-	inside, err := repo.GetTimeOffInRange(employeeID, startsAt.AddDate(0, 0, 3), startsAt.AddDate(0, 0, 4))
+	inside, err := repo.GetTimeOffInRange(context.Background(), employeeID, startsAt.AddDate(0, 0, 3), startsAt.AddDate(0, 0, 4))
 	if err != nil {
 		t.Fatalf("range: %v", err)
 	}
@@ -715,7 +715,7 @@ func TestTimeOffRepositoryRangeLookup(t *testing.T) {
 		t.Errorf("день внутри отпуска не нашёл период: %+v", inside)
 	}
 
-	after, err := repo.GetTimeOffInRange(employeeID, startsAt.AddDate(0, 0, 7), startsAt.AddDate(0, 0, 8))
+	after, err := repo.GetTimeOffInRange(context.Background(), employeeID, startsAt.AddDate(0, 0, 7), startsAt.AddDate(0, 0, 8))
 	if err != nil {
 		t.Fatalf("range: %v", err)
 	}

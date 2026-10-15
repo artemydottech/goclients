@@ -10,13 +10,13 @@ import (
 
 type TimeOffRepo interface {
 	Create(ctx context.Context, t models.TimeOff) (int64, error)
-	GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error)
-	GetTimeOffInRange(employeeID int, from, to time.Time) ([]models.TimeOff, error)
+	GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error)
+	GetTimeOffInRange(ctx context.Context, employeeID int, from, to time.Time) ([]models.TimeOff, error)
 	DeleteTimeOffById(id int) error
 }
 
 type TimeOffCalendar interface {
-	GetTimeOffInRange(employeeID int, from, to time.Time) ([]models.TimeOff, error)
+	GetTimeOffInRange(ctx context.Context, employeeID int, from, to time.Time) ([]models.TimeOff, error)
 }
 
 type TimeOffService struct {
@@ -69,7 +69,7 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 }
 
 func (s *TimeOffService) GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error) {
-	return s.repo.GetTimeOffByEmployee(employeeID)
+	return s.repo.GetTimeOffByEmployee(context.TODO(), employeeID)
 }
 
 func (s *TimeOffService) DeleteTimeOffById(id int) error {
