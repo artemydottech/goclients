@@ -87,8 +87,8 @@ func (r *ClientRepository) GetClientByPhone(ctx context.Context, companyID int, 
 	return c, nil
 }
 
-func (r *ClientRepository) DeleteClientById(id int) error {
-	res, err := r.db.Exec("DELETE FROM clients WHERE id = ?", id)
+func (r *ClientRepository) DeleteClientById(ctx context.Context, id int) error {
+	res, err := r.db.ExecContext(ctx, "DELETE FROM clients WHERE id = ?", id)
 	if err != nil {
 		return err
 	}

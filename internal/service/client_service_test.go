@@ -38,7 +38,7 @@ func (r *stubClientRepo) GetClientByPhone(context.Context, int, string) (models.
 	return *r.existing, nil
 }
 
-func (r *stubClientRepo) DeleteClientById(int) error { return nil }
+func (r *stubClientRepo) DeleteClientById(context.Context, int) error { return nil }
 
 func validClient() models.Client {
 	return models.Client{CompanyID: 1, Name: "Анна", Phone: "+7 (999) 123-45-67"}

@@ -513,7 +513,7 @@ func TestAppointmentsGoAwayWithTheClient(t *testing.T) {
 		t.Fatalf("create appointment: %v", err)
 	}
 
-	if err := NewClientRepository(db).DeleteClientById(clientID); err != nil {
+	if err := NewClientRepository(db).DeleteClientById(context.Background(), clientID); err != nil {
 		t.Fatalf("delete client: %v", err)
 	}
 

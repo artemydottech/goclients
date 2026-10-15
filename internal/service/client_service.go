@@ -21,7 +21,7 @@ type ClientRepo interface {
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
 	GetClientByPhone(ctx context.Context, companyID int, phone string) (models.Client, error)
-	DeleteClientById(id int) error
+	DeleteClientById(ctx context.Context, id int) error
 }
 
 type ClientService struct {
@@ -94,5 +94,5 @@ func (s *ClientService) GetClientById(id int) (models.Client, error) {
 }
 
 func (s *ClientService) DeleteClientById(id int) error {
-	return s.repo.DeleteClientById(id)
+	return s.repo.DeleteClientById(context.TODO(), id)
 }
