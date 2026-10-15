@@ -91,10 +91,10 @@ func (r *AssignmentRepository) GetEmployeesByService(ctx context.Context, servic
 	return employees, rows.Err()
 }
 
-func (r *AssignmentRepository) EmployeePerformsService(employeeID, serviceID int) (bool, error) {
+func (r *AssignmentRepository) EmployeePerformsService(ctx context.Context, employeeID, serviceID int) (bool, error) {
 	var exists int
 
-	err := r.db.QueryRow(
+	err := r.db.QueryRowContext(ctx,
 		"SELECT 1 FROM employee_services WHERE employee_id = ? AND service_id = ?",
 		employeeID, serviceID,
 	).Scan(&exists)

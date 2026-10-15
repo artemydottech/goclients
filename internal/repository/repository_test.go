@@ -307,7 +307,7 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 		t.Fatalf("мастера услуги: %+v", masters)
 	}
 
-	performs, err := assignments.EmployeePerformsService(int(employeeID), int(first))
+	performs, err := assignments.EmployeePerformsService(context.Background(), int(employeeID), int(first))
 	if err != nil {
 		t.Fatalf("performs: %v", err)
 	}

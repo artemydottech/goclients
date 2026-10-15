@@ -75,7 +75,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, err
 	}
 
-	performs, err := s.assignments.EmployeePerformsService(employeeID, serviceID)
+	performs, err := s.assignments.EmployeePerformsService(context.TODO(), employeeID, serviceID)
 	if err != nil {
 		return nil, err
 	}

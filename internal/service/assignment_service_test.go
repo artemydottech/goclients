@@ -27,7 +27,9 @@ func (r *stubAssignmentRepo) GetEmployeesByService(context.Context, int) ([]mode
 	return nil, nil
 }
 
-func (r *stubAssignmentRepo) EmployeePerformsService(int, int) (bool, error) { return false, nil }
+func (r *stubAssignmentRepo) EmployeePerformsService(context.Context, int, int) (bool, error) {
+	return false, nil
+}
 
 type stubEmployeeLookup struct {
 	employee models.Employee

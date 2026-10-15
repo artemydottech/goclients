@@ -86,7 +86,7 @@ type stubAssignments struct {
 	performs bool
 }
 
-func (a stubAssignments) EmployeePerformsService(int, int) (bool, error) {
+func (a stubAssignments) EmployeePerformsService(context.Context, int, int) (bool, error) {
 	return a.performs, nil
 }
 

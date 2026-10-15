@@ -11,7 +11,7 @@ type AssignmentRepo interface {
 	SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error
 	GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error)
 	GetEmployeesByService(ctx context.Context, serviceID int) ([]models.Employee, error)
-	EmployeePerformsService(employeeID, serviceID int) (bool, error)
+	EmployeePerformsService(ctx context.Context, employeeID, serviceID int) (bool, error)
 }
 
 type EmployeeLookup interface {
@@ -77,5 +77,5 @@ func (s *AssignmentService) GetEmployeesByService(serviceID int) ([]models.Emplo
 }
 
 func (s *AssignmentService) EmployeePerformsService(employeeID, serviceID int) (bool, error) {
-	return s.repo.EmployeePerformsService(employeeID, serviceID)
+	return s.repo.EmployeePerformsService(context.TODO(), employeeID, serviceID)
 }

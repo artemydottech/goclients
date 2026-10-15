@@ -27,7 +27,7 @@ type ClientLookup interface {
 }
 
 type Assignments interface {
-	EmployeePerformsService(employeeID, serviceID int) (bool, error)
+	EmployeePerformsService(ctx context.Context, employeeID, serviceID int) (bool, error)
 }
 
 type AppointmentService struct {
@@ -157,7 +157,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid("client, employee and service must belong to the same company")
 	}
 
-	performs, err := s.assignments.EmployeePerformsService(a.EmployeeID, a.ServiceID)
+	performs, err := s.assignments.EmployeePerformsService(context.TODO(), a.EmployeeID, a.ServiceID)
 	if err != nil {
 		return a, err
 	}
