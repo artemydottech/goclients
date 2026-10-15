@@ -73,10 +73,10 @@ func (r *ClientRepository) GetClientById(ctx context.Context, id int) (models.Cl
 	return c, nil
 }
 
-func (r *ClientRepository) GetClientByPhone(companyID int, phone string) (models.Client, error) {
+func (r *ClientRepository) GetClientByPhone(ctx context.Context, companyID int, phone string) (models.Client, error) {
 	var c models.Client
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT id, company_id, name, phone, email, comment
         FROM clients WHERE company_id = ? AND phone = ?`, companyID, phone).
 		Scan(&c.ID, &c.CompanyID, &c.Name, &c.Phone, &c.Email, &c.Comment)

@@ -31,7 +31,7 @@ func (r *stubClientRepo) GetClientById(context.Context, int) (models.Client, err
 	return models.Client{}, nil
 }
 
-func (r *stubClientRepo) GetClientByPhone(int, string) (models.Client, error) {
+func (r *stubClientRepo) GetClientByPhone(context.Context, int, string) (models.Client, error) {
 	if r.existing == nil {
 		return models.Client{}, models.ErrNotFound
 	}

@@ -20,7 +20,7 @@ type ClientRepo interface {
 	GetAllClients(ctx context.Context) ([]models.Client, error)
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
-	GetClientByPhone(companyID int, phone string) (models.Client, error)
+	GetClientByPhone(ctx context.Context, companyID int, phone string) (models.Client, error)
 	DeleteClientById(id int) error
 }
 
@@ -70,7 +70,7 @@ func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 		return 0, models.Invalid("comment is too long, keep it under 1000 characters")
 	}
 
-	existing, err := s.repo.GetClientByPhone(c.CompanyID, c.Phone)
+	existing, err := s.repo.GetClientByPhone(context.TODO(), c.CompanyID, c.Phone)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		return 0, err
 	}
