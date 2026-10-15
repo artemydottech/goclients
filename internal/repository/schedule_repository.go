@@ -69,10 +69,10 @@ func (r *ScheduleRepository) GetEmployeeSchedule(ctx context.Context, employeeID
 	return days, rows.Err()
 }
 
-func (r *ScheduleRepository) GetWorkingDay(employeeID, weekday int) (models.WorkingDay, error) {
+func (r *ScheduleRepository) GetWorkingDay(ctx context.Context, employeeID, weekday int) (models.WorkingDay, error) {
 	var day models.WorkingDay
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT employee_id, weekday, starts_at, ends_at, break_starts_at, break_ends_at
         FROM employee_schedules WHERE employee_id = ? AND weekday = ?`, employeeID, weekday).
 		Scan(&day.EmployeeID, &day.Weekday, &day.StartsAt, &day.EndsAt, &day.BreakStartsAt, &day.BreakEndsAt)

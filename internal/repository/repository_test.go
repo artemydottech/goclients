@@ -745,7 +745,7 @@ func TestScheduleRepositoryKeepsTheBreak(t *testing.T) {
 		t.Fatalf("set: %v", err)
 	}
 
-	got, err := repo.GetWorkingDay(employeeID, 2)
+	got, err := repo.GetWorkingDay(context.Background(), employeeID, 2)
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
