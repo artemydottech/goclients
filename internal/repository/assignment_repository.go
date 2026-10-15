@@ -41,8 +41,8 @@ func (r *AssignmentRepository) SetEmployeeServices(ctx context.Context, employee
 	return tx.Commit()
 }
 
-func (r *AssignmentRepository) GetServicesByEmployee(employeeID int) ([]models.Service, error) {
-	rows, err := r.db.Query(`
+func (r *AssignmentRepository) GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error) {
+	rows, err := r.db.QueryContext(ctx, `
         SELECT s.id, s.company_id, s.name, s.description, s.duration, s.price
         FROM services s
         JOIN employee_services es ON es.service_id = s.id
