@@ -10,13 +10,13 @@ import (
 )
 
 type AppointmentRepo interface {
-	Create(a models.Appointment) (int64, error)
+	Create(ctx context.Context, a models.Appointment) (int64, error)
 	GetAllAppointments() ([]models.Appointment, error)
 	GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
-	CreateIfFree(a models.Appointment) (int64, bool, error)
-	MoveIfFree(id int, a models.Appointment) (bool, error)
+	CreateIfFree(ctx context.Context, a models.Appointment) (int64, bool, error)
+	MoveIfFree(ctx context.Context, id int, a models.Appointment) (bool, error)
 	UpdateStatus(id int, status models.AppointmentStatus) error
 	GetClientStats(clientID int, now time.Time) (models.ClientStats, error)
 	DeleteAppointmentById(id int) error
@@ -71,7 +71,7 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 		return 0, err
 	}
 
-	id, busy, err := s.repo.CreateIfFree(prepared)
+	id, busy, err := s.repo.CreateIfFree(context.TODO(), prepared)
 	if err != nil {
 		return 0, err
 	}
@@ -105,7 +105,7 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 
 	prepared.Price = existing.Price
 
-	busy, err := s.repo.MoveIfFree(id, prepared)
+	busy, err := s.repo.MoveIfFree(context.TODO(), id, prepared)
 	if err != nil {
 		return models.Appointment{}, err
 	}

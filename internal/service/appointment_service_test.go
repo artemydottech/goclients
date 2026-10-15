@@ -20,7 +20,7 @@ type stubAppointmentRepo struct {
 	statusUpdates []models.AppointmentStatus
 }
 
-func (r *stubAppointmentRepo) Create(a models.Appointment) (int64, error) {
+func (r *stubAppointmentRepo) Create(_ context.Context, a models.Appointment) (int64, error) {
 	r.calls++
 	r.created = a
 	return 11, nil
@@ -45,7 +45,7 @@ func (r *stubAppointmentRepo) GetAppointmentById(int) (models.Appointment, error
 	return *r.existing, nil
 }
 
-func (r *stubAppointmentRepo) MoveIfFree(_ int, a models.Appointment) (bool, error) {
+func (r *stubAppointmentRepo) MoveIfFree(_ context.Context, _ int, a models.Appointment) (bool, error) {
 	if r.overlap {
 		return true, nil
 	}
@@ -54,11 +54,11 @@ func (r *stubAppointmentRepo) MoveIfFree(_ int, a models.Appointment) (bool, err
 	return false, nil
 }
 
-func (r *stubAppointmentRepo) CreateIfFree(a models.Appointment) (int64, bool, error) {
+func (r *stubAppointmentRepo) CreateIfFree(ctx context.Context, a models.Appointment) (int64, bool, error) {
 	if r.overlap {
 		return 0, true, nil
 	}
-	id, err := r.Create(a)
+	id, err := r.Create(ctx, a)
 	return id, false, err
 }
 

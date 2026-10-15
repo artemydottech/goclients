@@ -408,7 +408,7 @@ func TestAppointmentRepositoryRoundTrip(t *testing.T) {
 		Comment:    "первый визит",
 	}
 
-	id, err := repo.Create(want)
+	id, err := repo.Create(context.Background(), want)
 	if err != nil {
 		t.Fatalf("create appointment: %v", err)
 	}
@@ -433,7 +433,7 @@ func TestHasOverlapTreatsTouchingIntervalsAsFree(t *testing.T) {
 	repo := NewAppointmentRepository(db)
 
 	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
-	if _, err := repo.Create(models.Appointment{
+	if _, err := repo.Create(context.Background(), models.Appointment{
 		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
 		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentConfirmed,
 	}); err != nil {
@@ -453,7 +453,7 @@ func TestHasOverlapTreatsTouchingIntervalsAsFree(t *testing.T) {
 
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
-			busy, err := repo.HasOverlap(employeeID, tc.from, tc.to)
+			busy, err := repo.HasOverlap(context.Background(), employeeID, tc.from, tc.to)
 			if err != nil {
 				t.Fatalf("overlap: %v", err)
 			}
@@ -470,7 +470,7 @@ func TestCancelledAppointmentFreesTheSlot(t *testing.T) {
 	repo := NewAppointmentRepository(db)
 
 	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
-	id, err := repo.Create(models.Appointment{
+	id, err := repo.Create(context.Background(), models.Appointment{
 		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
 		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentConfirmed,
 	})
@@ -478,7 +478,7 @@ func TestCancelledAppointmentFreesTheSlot(t *testing.T) {
 		t.Fatalf("create appointment: %v", err)
 	}
 
-	busy, err := repo.HasOverlap(employeeID, startsAt, startsAt.Add(time.Hour))
+	busy, err := repo.HasOverlap(context.Background(), employeeID, startsAt, startsAt.Add(time.Hour))
 	if err != nil {
 		t.Fatalf("overlap: %v", err)
 	}
@@ -490,7 +490,7 @@ func TestCancelledAppointmentFreesTheSlot(t *testing.T) {
 		t.Fatalf("update status: %v", err)
 	}
 
-	busy, err = repo.HasOverlap(employeeID, startsAt, startsAt.Add(time.Hour))
+	busy, err = repo.HasOverlap(context.Background(), employeeID, startsAt, startsAt.Add(time.Hour))
 	if err != nil {
 		t.Fatalf("overlap: %v", err)
 	}
@@ -505,7 +505,7 @@ func TestAppointmentsGoAwayWithTheClient(t *testing.T) {
 	repo := NewAppointmentRepository(db)
 
 	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
-	id, err := repo.Create(models.Appointment{
+	id, err := repo.Create(context.Background(), models.Appointment{
 		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
 		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentPending,
 	})
@@ -546,7 +546,7 @@ func TestCreateIfFreeLetsOnlyOneConcurrentBookingThrough(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			_, busy, err := repo.CreateIfFree(booking)
+			_, busy, err := repo.CreateIfFree(context.Background(), booking)
 			if err != nil {
 				t.Errorf("create if free: %v", err)
 				return
@@ -637,20 +637,20 @@ func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
 
 	own := base
 	own.StartsAt, own.EndsAt = startsAt, startsAt.Add(time.Hour)
-	ownID, err := repo.Create(own)
+	ownID, err := repo.Create(context.Background(), own)
 	if err != nil {
 		t.Fatalf("create: %v", err)
 	}
 
 	other := base
 	other.StartsAt, other.EndsAt = startsAt.Add(2*time.Hour), startsAt.Add(3*time.Hour)
-	if _, err := repo.Create(other); err != nil {
+	if _, err := repo.Create(context.Background(), other); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 
 	shifted := own
 	shifted.StartsAt, shifted.EndsAt = startsAt.Add(30*time.Minute), startsAt.Add(90*time.Minute)
-	busy, err := repo.MoveIfFree(int(ownID), shifted)
+	busy, err := repo.MoveIfFree(context.Background(), int(ownID), shifted)
 	if err != nil {
 		t.Fatalf("move: %v", err)
 	}
@@ -668,7 +668,7 @@ func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
 
 	clash := own
 	clash.StartsAt, clash.EndsAt = startsAt.Add(150*time.Minute), startsAt.Add(210*time.Minute)
-	busy, err = repo.MoveIfFree(int(ownID), clash)
+	busy, err = repo.MoveIfFree(context.Background(), int(ownID), clash)
 	if err != nil {
 		t.Fatalf("move: %v", err)
 	}
@@ -678,7 +678,7 @@ func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
 
 	free := own
 	free.StartsAt, free.EndsAt = startsAt.Add(5*time.Hour), startsAt.Add(6*time.Hour)
-	if _, err := repo.MoveIfFree(9999, free); !errors.Is(err, models.ErrNotFound) {
+	if _, err := repo.MoveIfFree(context.Background(), 9999, free); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("перенос несуществующей записи: %v", err)
 	}
 }
@@ -760,7 +760,7 @@ func TestAppointmentRepositoryKeepsThePrice(t *testing.T) {
 	repo := NewAppointmentRepository(db)
 
 	startsAt := time.Date(2026, 10, 1, 10, 0, 0, 0, time.UTC)
-	id, err := repo.Create(models.Appointment{
+	id, err := repo.Create(context.Background(), models.Appointment{
 		CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
 		StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: models.AppointmentPending,
 		Price: 1750.5,
@@ -822,7 +822,7 @@ func TestClientStatsAggregatesTheHistory(t *testing.T) {
 	add := func(daysFromNow int, status models.AppointmentStatus, price float64) {
 		t.Helper()
 		startsAt := now.AddDate(0, 0, daysFromNow)
-		if _, err := repo.Create(models.Appointment{
+		if _, err := repo.Create(context.Background(), models.Appointment{
 			CompanyID: companyID, ClientID: clientID, EmployeeID: employeeID, ServiceID: serviceID,
 			StartsAt: startsAt, EndsAt: startsAt.Add(time.Hour), Status: status, Price: price,
 		}); err != nil {

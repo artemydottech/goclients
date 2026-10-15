@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -17,14 +18,14 @@ func NewAppointmentRepository(db *sql.DB) *AppointmentRepository {
 	return &AppointmentRepository{db: db}
 }
 
-func (r *AppointmentRepository) CreateIfFree(a models.Appointment) (int64, bool, error) {
-	tx, err := r.db.Begin()
+func (r *AppointmentRepository) CreateIfFree(ctx context.Context, a models.Appointment) (int64, bool, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return 0, false, err
 	}
 	defer tx.Rollback()
 
-	busy, err := hasOverlap(tx, a.EmployeeID, a.StartsAt, a.EndsAt, 0)
+	busy, err := hasOverlap(ctx, tx, a.EmployeeID, a.StartsAt, a.EndsAt, 0)
 	if err != nil {
 		return 0, false, err
 	}
@@ -32,7 +33,7 @@ func (r *AppointmentRepository) CreateIfFree(a models.Appointment) (int64, bool,
 		return 0, true, nil
 	}
 
-	id, err := insertAppointment(tx, a)
+	id, err := insertAppointment(ctx, tx, a)
 	if err != nil {
 		return 0, false, err
 	}
@@ -41,15 +42,15 @@ func (r *AppointmentRepository) CreateIfFree(a models.Appointment) (int64, bool,
 }
 
 type execer interface {
-	Exec(query string, args ...any) (sql.Result, error)
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
-func (r *AppointmentRepository) Create(a models.Appointment) (int64, error) {
-	return insertAppointment(r.db, a)
+func (r *AppointmentRepository) Create(ctx context.Context, a models.Appointment) (int64, error) {
+	return insertAppointment(ctx, r.db, a)
 }
 
-func insertAppointment(e execer, a models.Appointment) (int64, error) {
-	res, err := e.Exec(`
+func insertAppointment(ctx context.Context, e execer, a models.Appointment) (int64, error) {
+	res, err := e.ExecContext(ctx, `
         INSERT INTO appointments
             (company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -141,18 +142,18 @@ func (r *AppointmentRepository) GetAppointmentById(id int) (models.Appointment, 
 	return scanAppointment(row)
 }
 
-func (r *AppointmentRepository) HasOverlap(employeeID int, from, to time.Time) (bool, error) {
-	return hasOverlap(r.db, employeeID, from, to, 0)
+func (r *AppointmentRepository) HasOverlap(ctx context.Context, employeeID int, from, to time.Time) (bool, error) {
+	return hasOverlap(ctx, r.db, employeeID, from, to, 0)
 }
 
-func (r *AppointmentRepository) MoveIfFree(id int, a models.Appointment) (bool, error) {
-	tx, err := r.db.Begin()
+func (r *AppointmentRepository) MoveIfFree(ctx context.Context, id int, a models.Appointment) (bool, error) {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return false, err
 	}
 	defer tx.Rollback()
 
-	busy, err := hasOverlap(tx, a.EmployeeID, a.StartsAt, a.EndsAt, id)
+	busy, err := hasOverlap(ctx, tx, a.EmployeeID, a.StartsAt, a.EndsAt, id)
 	if err != nil {
 		return false, err
 	}
@@ -160,7 +161,7 @@ func (r *AppointmentRepository) MoveIfFree(id int, a models.Appointment) (bool, 
 		return true, nil
 	}
 
-	res, err := tx.Exec(
+	res, err := tx.ExecContext(ctx,
 		"UPDATE appointments SET employee_id = ?, starts_at = ?, ends_at = ? WHERE id = ?",
 		a.EmployeeID, a.StartsAt.UTC().Format(timeLayout), a.EndsAt.UTC().Format(timeLayout), id,
 	)
@@ -180,13 +181,13 @@ func (r *AppointmentRepository) MoveIfFree(id int, a models.Appointment) (bool, 
 }
 
 type querier interface {
-	QueryRow(query string, args ...any) *sql.Row
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
 }
 
-func hasOverlap(q querier, employeeID int, from, to time.Time, excludeID int) (bool, error) {
+func hasOverlap(ctx context.Context, q querier, employeeID int, from, to time.Time, excludeID int) (bool, error) {
 	var exists int
 
-	err := q.QueryRow(`
+	err := q.QueryRowContext(ctx, `
         SELECT 1 FROM appointments
         WHERE employee_id = ? AND status != ? AND id != ?
           AND starts_at < ? AND ends_at > ?
