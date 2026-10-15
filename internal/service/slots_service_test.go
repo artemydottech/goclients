@@ -48,7 +48,7 @@ type stubCalendar struct {
 	booked []models.Appointment
 }
 
-func (c stubCalendar) GetAppointmentsByEmployee(int, time.Time, time.Time) ([]models.Appointment, error) {
+func (c stubCalendar) GetAppointmentsByEmployee(context.Context, int, time.Time, time.Time) ([]models.Appointment, error) {
 	return c.booked, nil
 }
 

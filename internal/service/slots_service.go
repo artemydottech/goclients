@@ -15,7 +15,7 @@ type Schedule interface {
 }
 
 type Calendar interface {
-	GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error)
+	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
 }
 
 type SlotsService struct {
@@ -98,7 +98,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return []time.Time{}, nil
 	}
 
-	booked, err := s.calendar.GetAppointmentsByEmployee(employeeID, day, day.AddDate(0, 0, 1))
+	booked, err := s.calendar.GetAppointmentsByEmployee(context.TODO(), employeeID, day, day.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, err
 	}

@@ -26,15 +26,15 @@ func (r *stubAppointmentRepo) Create(_ context.Context, a models.Appointment) (i
 	return 11, nil
 }
 
-func (r *stubAppointmentRepo) GetAllAppointments() ([]models.Appointment, error) {
+func (r *stubAppointmentRepo) GetAllAppointments(context.Context) ([]models.Appointment, error) {
 	return nil, nil
 }
 
-func (r *stubAppointmentRepo) GetAppointmentsByEmployee(int, time.Time, time.Time) ([]models.Appointment, error) {
+func (r *stubAppointmentRepo) GetAppointmentsByEmployee(context.Context, int, time.Time, time.Time) ([]models.Appointment, error) {
 	return nil, nil
 }
 
-func (r *stubAppointmentRepo) GetAppointmentsByClient(int) ([]models.Appointment, error) {
+func (r *stubAppointmentRepo) GetAppointmentsByClient(context.Context, int) ([]models.Appointment, error) {
 	return nil, nil
 }
 

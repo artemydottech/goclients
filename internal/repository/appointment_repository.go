@@ -65,14 +65,14 @@ func insertAppointment(ctx context.Context, e execer, a models.Appointment) (int
 	return res.LastInsertId()
 }
 
-func (r *AppointmentRepository) GetAllAppointments() ([]models.Appointment, error) {
-	return r.query(`
+func (r *AppointmentRepository) GetAllAppointments(ctx context.Context) ([]models.Appointment, error) {
+	return r.query(ctx, `
         SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments ORDER BY starts_at`)
 }
 
-func (r *AppointmentRepository) GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error) {
-	return r.query(`
+func (r *AppointmentRepository) GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error) {
+	return r.query(ctx, `
         SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments
         WHERE employee_id = ? AND starts_at < ? AND ends_at > ?
@@ -80,14 +80,14 @@ func (r *AppointmentRepository) GetAppointmentsByEmployee(employeeID int, from, 
 		employeeID, to.UTC().Format(timeLayout), from.UTC().Format(timeLayout))
 }
 
-func (r *AppointmentRepository) GetAppointmentsByClient(clientID int) ([]models.Appointment, error) {
-	return r.query(`
+func (r *AppointmentRepository) GetAppointmentsByClient(ctx context.Context, clientID int) ([]models.Appointment, error) {
+	return r.query(ctx, `
         SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments WHERE client_id = ? ORDER BY starts_at`, clientID)
 }
 
-func (r *AppointmentRepository) query(query string, args ...any) ([]models.Appointment, error) {
-	rows, err := r.db.Query(query, args...)
+func (r *AppointmentRepository) query(ctx context.Context, query string, args ...any) ([]models.Appointment, error) {
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

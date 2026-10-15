@@ -565,7 +565,7 @@ func TestCreateIfFreeLetsOnlyOneConcurrentBookingThrough(t *testing.T) {
 		t.Fatalf("на один слот создано %d записей, ожидалась 1", created)
 	}
 
-	all, err := repo.GetAllAppointments()
+	all, err := repo.GetAllAppointments(context.Background())
 	if err != nil {
 		t.Fatalf("get all: %v", err)
 	}

@@ -46,7 +46,7 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 		return 0, models.Invalid("reason is too long, keep it under 200 characters")
 	}
 
-	booked, err := s.calendar.GetAppointmentsByEmployee(employeeID, t.StartsAt, t.EndsAt)
+	booked, err := s.calendar.GetAppointmentsByEmployee(context.TODO(), employeeID, t.StartsAt, t.EndsAt)
 	if err != nil {
 		return 0, err
 	}

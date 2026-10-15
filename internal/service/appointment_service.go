@@ -11,9 +11,9 @@ import (
 
 type AppointmentRepo interface {
 	Create(ctx context.Context, a models.Appointment) (int64, error)
-	GetAllAppointments() ([]models.Appointment, error)
-	GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error)
-	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
+	GetAllAppointments(ctx context.Context) ([]models.Appointment, error)
+	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
+	GetAppointmentsByClient(ctx context.Context, clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
 	CreateIfFree(ctx context.Context, a models.Appointment) (int64, bool, error)
 	MoveIfFree(ctx context.Context, id int, a models.Appointment) (bool, error)
@@ -228,15 +228,15 @@ func absenceReason(t models.TimeOff) string {
 }
 
 func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {
-	return s.repo.GetAllAppointments()
+	return s.repo.GetAllAppointments(context.TODO())
 }
 
 func (s *AppointmentService) GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error) {
-	return s.repo.GetAppointmentsByEmployee(employeeID, from, to)
+	return s.repo.GetAppointmentsByEmployee(context.TODO(), employeeID, from, to)
 }
 
 func (s *AppointmentService) GetAppointmentsByClient(clientID int) ([]models.Appointment, error) {
-	return s.repo.GetAppointmentsByClient(clientID)
+	return s.repo.GetAppointmentsByClient(context.TODO(), clientID)
 }
 
 func (s *AppointmentService) GetAppointmentById(id int) (models.Appointment, error) {
