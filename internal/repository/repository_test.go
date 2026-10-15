@@ -299,7 +299,7 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 		t.Fatalf("после замены получено %+v", got)
 	}
 
-	masters, err := assignments.GetEmployeesByService(int(second))
+	masters, err := assignments.GetEmployeesByService(context.Background(), int(second))
 	if err != nil {
 		t.Fatalf("get employees: %v", err)
 	}

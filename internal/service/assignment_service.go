@@ -10,7 +10,7 @@ import (
 type AssignmentRepo interface {
 	SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error
 	GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error)
-	GetEmployeesByService(serviceID int) ([]models.Employee, error)
+	GetEmployeesByService(ctx context.Context, serviceID int) ([]models.Employee, error)
 	EmployeePerformsService(employeeID, serviceID int) (bool, error)
 }
 
@@ -73,7 +73,7 @@ func (s *AssignmentService) GetServicesByEmployee(employeeID int) ([]models.Serv
 }
 
 func (s *AssignmentService) GetEmployeesByService(serviceID int) ([]models.Employee, error) {
-	return s.repo.GetEmployeesByService(serviceID)
+	return s.repo.GetEmployeesByService(context.TODO(), serviceID)
 }
 
 func (s *AssignmentService) EmployeePerformsService(employeeID, serviceID int) (bool, error) {

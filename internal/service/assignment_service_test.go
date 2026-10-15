@@ -23,7 +23,7 @@ func (r *stubAssignmentRepo) GetServicesByEmployee(context.Context, int) ([]mode
 	return nil, nil
 }
 
-func (r *stubAssignmentRepo) GetEmployeesByService(int) ([]models.Employee, error) {
+func (r *stubAssignmentRepo) GetEmployeesByService(context.Context, int) ([]models.Employee, error) {
 	return nil, nil
 }
 
