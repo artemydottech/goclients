@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -12,7 +13,7 @@ type stubScheduleRepo struct {
 	called bool
 }
 
-func (r *stubScheduleRepo) SetEmployeeSchedule(_ int, days []models.WorkingDay) error {
+func (r *stubScheduleRepo) SetEmployeeSchedule(_ context.Context, _ int, days []models.WorkingDay) error {
 	r.called = true
 	r.saved = days
 	return nil

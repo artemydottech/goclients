@@ -8,7 +8,7 @@ import (
 )
 
 type ScheduleRepo interface {
-	SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error
+	SetEmployeeSchedule(ctx context.Context, employeeID int, days []models.WorkingDay) error
 	GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error)
 	GetWorkingDay(employeeID, weekday int) (models.WorkingDay, error)
 }
@@ -41,7 +41,7 @@ func (s *ScheduleService) SetEmployeeSchedule(employeeID int, days []models.Work
 		seen[days[i].Weekday] = struct{}{}
 	}
 
-	return s.repo.SetEmployeeSchedule(employeeID, days)
+	return s.repo.SetEmployeeSchedule(context.TODO(), employeeID, days)
 }
 
 func (s *ScheduleService) GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error) {

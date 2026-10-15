@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,18 +15,18 @@ func NewScheduleRepository(db *sql.DB) *ScheduleRepository {
 	return &ScheduleRepository{db: db}
 }
 
-func (r *ScheduleRepository) SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error {
-	tx, err := r.db.Begin()
+func (r *ScheduleRepository) SetEmployeeSchedule(ctx context.Context, employeeID int, days []models.WorkingDay) error {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.Exec("DELETE FROM employee_schedules WHERE employee_id = ?", employeeID); err != nil {
+	if _, err := tx.ExecContext(ctx, "DELETE FROM employee_schedules WHERE employee_id = ?", employeeID); err != nil {
 		return err
 	}
 
-	statement, err := tx.Prepare(`
+	statement, err := tx.PrepareContext(ctx, `
         INSERT INTO employee_schedules
             (employee_id, weekday, starts_at, ends_at, break_starts_at, break_ends_at)
         VALUES (?, ?, ?, ?, ?, ?)`)

@@ -741,7 +741,7 @@ func TestScheduleRepositoryKeepsTheBreak(t *testing.T) {
 		BreakStartsAt: "13:00", BreakEndsAt: "14:00",
 	}
 
-	if err := repo.SetEmployeeSchedule(employeeID, []models.WorkingDay{want}); err != nil {
+	if err := repo.SetEmployeeSchedule(context.Background(), employeeID, []models.WorkingDay{want}); err != nil {
 		t.Fatalf("set: %v", err)
 	}
 
