@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -14,18 +15,18 @@ func NewAssignmentRepository(db *sql.DB) *AssignmentRepository {
 	return &AssignmentRepository{db: db}
 }
 
-func (r *AssignmentRepository) SetEmployeeServices(employeeID int, serviceIDs []int) error {
-	tx, err := r.db.Begin()
+func (r *AssignmentRepository) SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error {
+	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.Exec("DELETE FROM employee_services WHERE employee_id = ?", employeeID); err != nil {
+	if _, err := tx.ExecContext(ctx, "DELETE FROM employee_services WHERE employee_id = ?", employeeID); err != nil {
 		return err
 	}
 
-	statement, err := tx.Prepare("INSERT INTO employee_services (employee_id, service_id) VALUES (?, ?)")
+	statement, err := tx.PrepareContext(ctx, "INSERT INTO employee_services (employee_id, service_id) VALUES (?, ?)")
 	if err != nil {
 		return err
 	}

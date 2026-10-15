@@ -13,7 +13,7 @@ type stubAssignmentRepo struct {
 	calls int
 }
 
-func (r *stubAssignmentRepo) SetEmployeeServices(_ int, serviceIDs []int) error {
+func (r *stubAssignmentRepo) SetEmployeeServices(_ context.Context, _ int, serviceIDs []int) error {
 	r.calls++
 	r.saved = serviceIDs
 	return nil

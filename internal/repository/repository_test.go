@@ -275,7 +275,7 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 		t.Fatalf("create service: %v", err)
 	}
 
-	if err := assignments.SetEmployeeServices(int(employeeID), []int{int(first), int(second)}); err != nil {
+	if err := assignments.SetEmployeeServices(context.Background(), int(employeeID), []int{int(first), int(second)}); err != nil {
 		t.Fatalf("set services: %v", err)
 	}
 
@@ -287,7 +287,7 @@ func TestAssignmentRepositoryReplacesTheWholeSet(t *testing.T) {
 		t.Fatalf("услуг сотрудника: %d, ожидалось 2", len(got))
 	}
 
-	if err := assignments.SetEmployeeServices(int(employeeID), []int{int(second)}); err != nil {
+	if err := assignments.SetEmployeeServices(context.Background(), int(employeeID), []int{int(second)}); err != nil {
 		t.Fatalf("replace services: %v", err)
 	}
 
@@ -342,7 +342,7 @@ func TestAssignmentsGoAwayWithTheService(t *testing.T) {
 		t.Fatalf("create service: %v", err)
 	}
 
-	if err := assignments.SetEmployeeServices(int(employeeID), []int{int(serviceID)}); err != nil {
+	if err := assignments.SetEmployeeServices(context.Background(), int(employeeID), []int{int(serviceID)}); err != nil {
 		t.Fatalf("set services: %v", err)
 	}
 
