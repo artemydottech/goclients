@@ -23,7 +23,7 @@ type AppointmentRepo interface {
 }
 
 type ClientLookup interface {
-	GetClientById(id int) (models.Client, error)
+	GetClientById(ctx context.Context, id int) (models.Client, error)
 }
 
 type Assignments interface {
@@ -129,7 +129,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid("comment is too long, keep it under 1000 characters")
 	}
 
-	client, err := s.clients.GetClientById(a.ClientID)
+	client, err := s.clients.GetClientById(context.TODO(), a.ClientID)
 	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("client %d not found", a.ClientID)
 	}
@@ -268,7 +268,7 @@ func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) 
 }
 
 func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, error) {
-	if _, err := s.clients.GetClientById(clientID); err != nil {
+	if _, err := s.clients.GetClientById(context.TODO(), clientID); err != nil {
 		return models.ClientStats{}, err
 	}
 

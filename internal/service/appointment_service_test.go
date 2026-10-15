@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -77,7 +78,7 @@ type stubClientLookup struct {
 	err    error
 }
 
-func (l stubClientLookup) GetClientById(int) (models.Client, error) {
+func (l stubClientLookup) GetClientById(context.Context, int) (models.Client, error) {
 	return l.client, l.err
 }
 

@@ -59,10 +59,10 @@ func (r *ClientRepository) queryClients(ctx context.Context, query string, args 
 	return clients, rows.Err()
 }
 
-func (r *ClientRepository) GetClientById(id int) (models.Client, error) {
+func (r *ClientRepository) GetClientById(ctx context.Context, id int) (models.Client, error) {
 	var c models.Client
 
-	err := r.db.QueryRow(`
+	err := r.db.QueryRowContext(ctx, `
         SELECT id, company_id, name, phone, email, comment
         FROM clients WHERE id = ?`, id).
 		Scan(&c.ID, &c.CompanyID, &c.Name, &c.Phone, &c.Email, &c.Comment)

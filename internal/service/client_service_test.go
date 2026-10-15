@@ -27,7 +27,7 @@ func (r *stubClientRepo) GetClientsByCompany(context.Context, int) ([]models.Cli
 	return nil, nil
 }
 
-func (r *stubClientRepo) GetClientById(int) (models.Client, error) {
+func (r *stubClientRepo) GetClientById(context.Context, int) (models.Client, error) {
 	return models.Client{}, nil
 }
 
