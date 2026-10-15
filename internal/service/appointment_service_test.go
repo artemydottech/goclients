@@ -38,7 +38,7 @@ func (r *stubAppointmentRepo) GetAppointmentsByClient(context.Context, int) ([]m
 	return nil, nil
 }
 
-func (r *stubAppointmentRepo) GetAppointmentById(int) (models.Appointment, error) {
+func (r *stubAppointmentRepo) GetAppointmentById(context.Context, int) (models.Appointment, error) {
 	if r.existing == nil {
 		return models.Appointment{}, models.ErrNotFound
 	}

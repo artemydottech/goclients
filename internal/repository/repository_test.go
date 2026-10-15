@@ -413,7 +413,7 @@ func TestAppointmentRepositoryRoundTrip(t *testing.T) {
 		t.Fatalf("create appointment: %v", err)
 	}
 
-	got, err := repo.GetAppointmentById(int(id))
+	got, err := repo.GetAppointmentById(context.Background(), int(id))
 	if err != nil {
 		t.Fatalf("get appointment: %v", err)
 	}
@@ -517,7 +517,7 @@ func TestAppointmentsGoAwayWithTheClient(t *testing.T) {
 		t.Fatalf("delete client: %v", err)
 	}
 
-	if _, err := repo.GetAppointmentById(int(id)); !errors.Is(err, models.ErrNotFound) {
+	if _, err := repo.GetAppointmentById(context.Background(), int(id)); !errors.Is(err, models.ErrNotFound) {
 		t.Errorf("запись пережила удаление клиента: %v", err)
 	}
 }
@@ -658,7 +658,7 @@ func TestMoveIfFreeIgnoresTheAppointmentBeingMoved(t *testing.T) {
 		t.Fatal("сдвиг внутри собственного интервала посчитан конфликтом")
 	}
 
-	got, err := repo.GetAppointmentById(int(ownID))
+	got, err := repo.GetAppointmentById(context.Background(), int(ownID))
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -769,7 +769,7 @@ func TestAppointmentRepositoryKeepsThePrice(t *testing.T) {
 		t.Fatalf("create: %v", err)
 	}
 
-	got, err := repo.GetAppointmentById(int(id))
+	got, err := repo.GetAppointmentById(context.Background(), int(id))
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
@@ -804,7 +804,7 @@ func TestMigrateAddsPriceToOldAppointments(t *testing.T) {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	got, err := NewAppointmentRepository(db).GetAppointmentById(1)
+	got, err := NewAppointmentRepository(db).GetAppointmentById(context.Background(), 1)
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}

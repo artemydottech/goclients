@@ -14,7 +14,7 @@ type AppointmentRepo interface {
 	GetAllAppointments(ctx context.Context) ([]models.Appointment, error)
 	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(ctx context.Context, clientID int) ([]models.Appointment, error)
-	GetAppointmentById(id int) (models.Appointment, error)
+	GetAppointmentById(ctx context.Context, id int) (models.Appointment, error)
 	CreateIfFree(ctx context.Context, a models.Appointment) (int64, bool, error)
 	MoveIfFree(ctx context.Context, id int, a models.Appointment) (bool, error)
 	UpdateStatus(id int, status models.AppointmentStatus) error
@@ -83,7 +83,7 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 }
 
 func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
-	existing, err := s.repo.GetAppointmentById(id)
+	existing, err := s.repo.GetAppointmentById(context.TODO(), id)
 	if err != nil {
 		return models.Appointment{}, err
 	}
@@ -240,7 +240,7 @@ func (s *AppointmentService) GetAppointmentsByClient(clientID int) ([]models.App
 }
 
 func (s *AppointmentService) GetAppointmentById(id int) (models.Appointment, error) {
-	return s.repo.GetAppointmentById(id)
+	return s.repo.GetAppointmentById(context.TODO(), id)
 }
 
 func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) error {
@@ -248,7 +248,7 @@ func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) 
 		return models.Invalid("unknown appointment status %s", status)
 	}
 
-	existing, err := s.repo.GetAppointmentById(id)
+	existing, err := s.repo.GetAppointmentById(context.TODO(), id)
 	if err != nil {
 		return err
 	}

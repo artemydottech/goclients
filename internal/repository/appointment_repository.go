@@ -134,8 +134,8 @@ func scanAppointment(row rowScanner) (models.Appointment, error) {
 	return a, nil
 }
 
-func (r *AppointmentRepository) GetAppointmentById(id int) (models.Appointment, error) {
-	row := r.db.QueryRow(`
+func (r *AppointmentRepository) GetAppointmentById(ctx context.Context, id int) (models.Appointment, error) {
+	row := r.db.QueryRowContext(ctx, `
         SELECT id, company_id, client_id, employee_id, service_id, starts_at, ends_at, status, comment, price
         FROM appointments WHERE id = ?`, id)
 
