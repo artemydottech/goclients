@@ -30,7 +30,7 @@ func (f *fakeCompanyServ) GetAllCompanies(context.Context) ([]models.Company, er
 	return f.listItems, f.listErr
 }
 
-func (f *fakeCompanyServ) GetCompanyById(id int) (models.Company, error) {
+func (f *fakeCompanyServ) GetCompanyById(_ context.Context, id int) (models.Company, error) {
 	return f.item, f.getErr
 }
 

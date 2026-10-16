@@ -12,7 +12,7 @@ import (
 type CompanyServ interface {
 	CreateCompany(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies(ctx context.Context) ([]models.Company, error)
-	GetCompanyById(id int) (models.Company, error)
+	GetCompanyById(ctx context.Context, id int) (models.Company, error)
 	DeleteCompanyById(id int) error
 }
 
@@ -62,7 +62,7 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	company, err := h.service.GetCompanyById(id)
+	company, err := h.service.GetCompanyById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "company not found")
 		return
