@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -21,7 +22,7 @@ type fakeClientServ struct {
 	deleteErr error
 }
 
-func (f *fakeClientServ) CreateClient(v models.Client) (int64, error) {
+func (f *fakeClientServ) CreateClient(_ context.Context, v models.Client) (int64, error) {
 	f.created = v
 	return f.createID, f.createErr
 }

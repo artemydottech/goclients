@@ -44,7 +44,7 @@ func NormalizePhone(phone string) string {
 	return digits.String()
 }
 
-func (s *ClientService) CreateClient(c models.Client) (int64, error) {
+func (s *ClientService) CreateClient(ctx context.Context, c models.Client) (int64, error) {
 	if c.CompanyID <= 0 {
 		return 0, models.Invalid("client must belong to a company")
 	}
@@ -70,7 +70,7 @@ func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 		return 0, models.Invalid("comment is too long, keep it under 1000 characters")
 	}
 
-	existing, err := s.repo.GetClientByPhone(context.TODO(), c.CompanyID, c.Phone)
+	existing, err := s.repo.GetClientByPhone(ctx, c.CompanyID, c.Phone)
 	if err != nil && !errors.Is(err, models.ErrNotFound) {
 		return 0, err
 	}
@@ -78,7 +78,7 @@ func (s *ClientService) CreateClient(c models.Client) (int64, error) {
 		return 0, models.Invalid("client with phone %s already exists (id %d)", c.Phone, existing.ID)
 	}
 
-	return s.repo.Create(context.TODO(), c)
+	return s.repo.Create(ctx, c)
 }
 
 func (s *ClientService) GetAllClients() ([]models.Client, error) {

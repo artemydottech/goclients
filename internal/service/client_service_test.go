@@ -62,7 +62,7 @@ func TestNormalizePhoneKeepsOnlyDigits(t *testing.T) {
 func TestCreateClientStoresTheNormalizedPhone(t *testing.T) {
 	repo := &stubClientRepo{}
 
-	if _, err := NewClientService(repo).CreateClient(validClient()); err != nil {
+	if _, err := NewClientService(repo).CreateClient(context.Background(), validClient()); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -90,7 +90,7 @@ func TestCreateClientValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubClientRepo{}
 
-			_, err := NewClientService(repo).CreateClient(client)
+			_, err := NewClientService(repo).CreateClient(context.Background(), client)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -107,7 +107,7 @@ func TestCreateClientValidation(t *testing.T) {
 func TestCreateClientRejectsDuplicatePhone(t *testing.T) {
 	repo := &stubClientRepo{existing: &models.Client{ID: 7, Phone: "79991234567"}}
 
-	_, err := NewClientService(repo).CreateClient(validClient())
+	_, err := NewClientService(repo).CreateClient(context.Background(), validClient())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -125,7 +125,7 @@ func TestCreateClientCatchesDuplicateWrittenDifferently(t *testing.T) {
 	client := validClient()
 	client.Phone = "7-999-123-45-67"
 
-	if _, err := NewClientService(repo).CreateClient(client); err == nil {
+	if _, err := NewClientService(repo).CreateClient(context.Background(), client); err == nil {
 		t.Fatal("тот же номер в другом написании должен считаться дублем")
 	}
 }

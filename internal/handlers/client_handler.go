@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 )
 
 type ClientServ interface {
-	CreateClient(c models.Client) (int64, error)
+	CreateClient(ctx context.Context, c models.Client) (int64, error)
 	GetAllClients() ([]models.Client, error)
 	GetClientsByCompany(companyID int) ([]models.Client, error)
 	GetClientById(id int) (models.Client, error)
@@ -32,7 +33,7 @@ func (h *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateClient(input)
+	id, err := h.service.CreateClient(r.Context(), input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
