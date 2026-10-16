@@ -27,7 +27,7 @@ func (f *fakeClientServ) CreateClient(_ context.Context, v models.Client) (int64
 	return f.createID, f.createErr
 }
 
-func (f *fakeClientServ) GetAllClients() ([]models.Client, error) {
+func (f *fakeClientServ) GetAllClients(context.Context) ([]models.Client, error) {
 	return f.listItems, f.listErr
 }
 
