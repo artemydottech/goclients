@@ -31,7 +31,7 @@ func (f *fakeCatalogServ) GetAllServices(context.Context) ([]models.Service, err
 	return f.listItems, f.listErr
 }
 
-func (f *fakeCatalogServ) GetServicesByCompany(companyID int) ([]models.Service, error) {
+func (f *fakeCatalogServ) GetServicesByCompany(_ context.Context, companyID int) ([]models.Service, error) {
 	f.companyID = companyID
 	return f.listItems, f.listErr
 }

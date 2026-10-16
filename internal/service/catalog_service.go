@@ -61,8 +61,8 @@ func (s *CatalogService) GetAllServices(ctx context.Context) ([]models.Service, 
 	return s.repo.GetAllServices(ctx)
 }
 
-func (s *CatalogService) GetServicesByCompany(companyID int) ([]models.Service, error) {
-	return s.repo.GetServicesByCompany(context.TODO(), companyID)
+func (s *CatalogService) GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error) {
+	return s.repo.GetServicesByCompany(ctx, companyID)
 }
 
 func (s *CatalogService) GetServiceById(id int) (models.Service, error) {
