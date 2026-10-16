@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 )
 
 type CompanyServ interface {
-	CreateCompany(c models.Company) (int64, error)
+	CreateCompany(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies() ([]models.Company, error)
 	GetCompanyById(id int) (models.Company, error)
 	DeleteCompanyById(id int) error
@@ -30,7 +31,7 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateCompany(input)
+	id, err := h.service.CreateCompany(r.Context(), input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())

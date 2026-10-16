@@ -40,7 +40,7 @@ func TestCreateCompanyValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubCompanyRepo{}
 
-			_, err := NewCompanyService(repo).CreateCompany(company)
+			_, err := NewCompanyService(repo).CreateCompany(context.Background(), company)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -57,7 +57,7 @@ func TestCreateCompanyValidation(t *testing.T) {
 func TestCreateCompanyCountsRunesInSite(t *testing.T) {
 	company := models.Company{Name: "Ромашка", Site: strings.Repeat("я", 500)}
 
-	if _, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(company); err != nil {
+	if _, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(context.Background(), company); err != nil {
 		t.Fatalf("ожидался успех, получена ошибка %v", err)
 	}
 }
@@ -71,7 +71,7 @@ func TestCreateCompanyAcceptsKnownSocials(t *testing.T) {
 		},
 	}
 
-	id, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(company)
+	id, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(context.Background(), company)
 	if err != nil {
 		t.Fatalf("ожидался успех, получена ошибка %v", err)
 	}
@@ -82,7 +82,7 @@ func TestCreateCompanyAcceptsKnownSocials(t *testing.T) {
 }
 
 func TestCreateCompanyRejectsUnknownTimezone(t *testing.T) {
-	_, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(models.Company{
+	_, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(context.Background(), models.Company{
 		Name:     "Ромашка",
 		Timezone: "Mars/Olympus",
 	})
@@ -94,7 +94,7 @@ func TestCreateCompanyRejectsUnknownTimezone(t *testing.T) {
 }
 
 func TestCreateCompanyAcceptsIANATimezone(t *testing.T) {
-	_, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(models.Company{
+	_, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(context.Background(), models.Company{
 		Name:     "Ромашка",
 		Timezone: "Asia/Yekaterinburg",
 	})

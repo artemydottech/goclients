@@ -22,7 +22,7 @@ func NewCompanyService(repo CompanyRepo) *CompanyService {
 	return &CompanyService{repo: repo}
 }
 
-func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
+func (s *CompanyService) CreateCompany(ctx context.Context, c models.Company) (int64, error) {
 	if c.Name == "" {
 		return 0, models.Invalid("company name cannot be empty")
 	}
@@ -54,7 +54,7 @@ func (s *CompanyService) CreateCompany(c models.Company) (int64, error) {
 		return 0, models.Invalid("unknown timezone %s, use an IANA name such as Asia/Yekaterinburg", c.Timezone)
 	}
 
-	id, err := s.repo.Create(context.TODO(), c)
+	id, err := s.repo.Create(ctx, c)
 	if err != nil {
 		return 0, err
 	}
