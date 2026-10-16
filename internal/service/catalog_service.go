@@ -69,6 +69,6 @@ func (s *CatalogService) GetServiceById(ctx context.Context, id int) (models.Ser
 	return s.repo.GetServiceById(ctx, id)
 }
 
-func (s *CatalogService) DeleteServiceById(id int) error {
-	return s.repo.DeleteServiceById(context.TODO(), id)
+func (s *CatalogService) DeleteServiceById(ctx context.Context, id int) error {
+	return s.repo.DeleteServiceById(ctx, id)
 }

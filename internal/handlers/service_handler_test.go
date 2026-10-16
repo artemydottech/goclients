@@ -40,7 +40,7 @@ func (f *fakeCatalogServ) GetServiceById(_ context.Context, id int) (models.Serv
 	return f.item, f.getErr
 }
 
-func (f *fakeCatalogServ) DeleteServiceById(id int) error {
+func (f *fakeCatalogServ) DeleteServiceById(_ context.Context, id int) error {
 	return f.deleteErr
 }
 
