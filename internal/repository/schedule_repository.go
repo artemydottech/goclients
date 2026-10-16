@@ -36,7 +36,7 @@ func (r *ScheduleRepository) SetEmployeeSchedule(ctx context.Context, employeeID
 	defer statement.Close()
 
 	for _, day := range days {
-		if _, err := statement.Exec(
+		if _, err := statement.ExecContext(ctx,
 			employeeID, day.Weekday, day.StartsAt, day.EndsAt, day.BreakStartsAt, day.BreakEndsAt,
 		); err != nil {
 			return err

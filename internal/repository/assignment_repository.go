@@ -33,7 +33,7 @@ func (r *AssignmentRepository) SetEmployeeServices(ctx context.Context, employee
 	defer statement.Close()
 
 	for _, serviceID := range serviceIDs {
-		if _, err := statement.Exec(employeeID, serviceID); err != nil {
+		if _, err := statement.ExecContext(ctx, employeeID, serviceID); err != nil {
 			return err
 		}
 	}
