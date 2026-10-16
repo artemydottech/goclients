@@ -14,7 +14,7 @@ type ClientServ interface {
 	CreateClient(ctx context.Context, c models.Client) (int64, error)
 	GetAllClients(ctx context.Context) ([]models.Client, error)
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
-	GetClientById(id int) (models.Client, error)
+	GetClientById(ctx context.Context, id int) (models.Client, error)
 	DeleteClientById(id int) error
 }
 
@@ -80,7 +80,7 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client, err := h.service.GetClientById(id)
+	client, err := h.service.GetClientById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "client not found")
 		return
