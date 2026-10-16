@@ -12,7 +12,7 @@ import (
 type EmployeeServ interface {
 	CreateEmployee(ctx context.Context, e models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
-	GetEmployeeById(id int) (models.Employee, error)
+	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
 	DeleteEmployeeById(id int) error
 }
 
@@ -62,7 +62,7 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	employee, err := h.service.GetEmployeeById(id)
+	employee, err := h.service.GetEmployeeById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "employee not found")
 		return

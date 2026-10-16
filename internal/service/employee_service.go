@@ -59,8 +59,8 @@ func (s *EmployeeService) GetAllEmployees(ctx context.Context) ([]models.Employe
 	return s.repo.GetAllEmployees(ctx)
 }
 
-func (s *EmployeeService) GetEmployeeById(id int) (models.Employee, error) {
-	return s.repo.GetEmployeeById(context.TODO(), id)
+func (s *EmployeeService) GetEmployeeById(ctx context.Context, id int) (models.Employee, error) {
+	return s.repo.GetEmployeeById(ctx, id)
 }
 
 func (s *EmployeeService) DeleteEmployeeById(id int) error {
