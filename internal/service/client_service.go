@@ -85,8 +85,8 @@ func (s *ClientService) GetAllClients(ctx context.Context) ([]models.Client, err
 	return s.repo.GetAllClients(ctx)
 }
 
-func (s *ClientService) GetClientsByCompany(companyID int) ([]models.Client, error) {
-	return s.repo.GetClientsByCompany(context.TODO(), companyID)
+func (s *ClientService) GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error) {
+	return s.repo.GetClientsByCompany(ctx, companyID)
 }
 
 func (s *ClientService) GetClientById(id int) (models.Client, error) {

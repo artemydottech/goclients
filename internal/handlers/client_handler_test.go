@@ -31,7 +31,7 @@ func (f *fakeClientServ) GetAllClients(context.Context) ([]models.Client, error)
 	return f.listItems, f.listErr
 }
 
-func (f *fakeClientServ) GetClientsByCompany(companyID int) ([]models.Client, error) {
+func (f *fakeClientServ) GetClientsByCompany(_ context.Context, companyID int) ([]models.Client, error) {
 	f.companyID = companyID
 	return f.listItems, f.listErr
 }

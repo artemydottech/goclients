@@ -13,7 +13,7 @@ import (
 type ClientServ interface {
 	CreateClient(ctx context.Context, c models.Client) (int64, error)
 	GetAllClients(ctx context.Context) ([]models.Client, error)
-	GetClientsByCompany(companyID int) ([]models.Client, error)
+	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(id int) (models.Client, error)
 	DeleteClientById(id int) error
 }
@@ -60,7 +60,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, "invalid company_id")
 			return
 		}
-		clients, err = h.service.GetClientsByCompany(companyID)
+		clients, err = h.service.GetClientsByCompany(r.Context(), companyID)
 	} else {
 		clients, err = h.service.GetAllClients(r.Context())
 	}
