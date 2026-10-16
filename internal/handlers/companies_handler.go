@@ -13,7 +13,7 @@ type CompanyServ interface {
 	CreateCompany(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies(ctx context.Context) ([]models.Company, error)
 	GetCompanyById(ctx context.Context, id int) (models.Company, error)
-	DeleteCompanyById(id int) error
+	DeleteCompanyById(ctx context.Context, id int) error
 }
 
 type CompanyHandler struct {
@@ -81,7 +81,7 @@ func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.DeleteCompanyById(id)
+	err := h.service.DeleteCompanyById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "company not found")
 		return

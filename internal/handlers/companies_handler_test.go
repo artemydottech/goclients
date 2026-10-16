@@ -34,7 +34,7 @@ func (f *fakeCompanyServ) GetCompanyById(_ context.Context, id int) (models.Comp
 	return f.item, f.getErr
 }
 
-func (f *fakeCompanyServ) DeleteCompanyById(id int) error {
+func (f *fakeCompanyServ) DeleteCompanyById(_ context.Context, id int) error {
 	return f.deleteErr
 }
 

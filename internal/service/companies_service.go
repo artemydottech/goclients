@@ -70,6 +70,6 @@ func (s *CompanyService) GetCompanyById(ctx context.Context, id int) (models.Com
 	return s.repo.GetCompanyById(ctx, id)
 }
 
-func (s *CompanyService) DeleteCompanyById(id int) error {
-	return s.repo.DeleteCompanyById(context.TODO(), id)
+func (s *CompanyService) DeleteCompanyById(ctx context.Context, id int) error {
+	return s.repo.DeleteCompanyById(ctx, id)
 }
