@@ -40,7 +40,7 @@ func (f *fakeClientServ) GetClientById(_ context.Context, id int) (models.Client
 	return f.item, f.getErr
 }
 
-func (f *fakeClientServ) DeleteClientById(id int) error {
+func (f *fakeClientServ) DeleteClientById(_ context.Context, id int) error {
 	return f.deleteErr
 }
 

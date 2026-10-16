@@ -93,6 +93,6 @@ func (s *ClientService) GetClientById(ctx context.Context, id int) (models.Clien
 	return s.repo.GetClientById(ctx, id)
 }
 
-func (s *ClientService) DeleteClientById(id int) error {
-	return s.repo.DeleteClientById(context.TODO(), id)
+func (s *ClientService) DeleteClientById(ctx context.Context, id int) error {
+	return s.repo.DeleteClientById(ctx, id)
 }

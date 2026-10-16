@@ -15,7 +15,7 @@ type ClientServ interface {
 	GetAllClients(ctx context.Context) ([]models.Client, error)
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
-	DeleteClientById(id int) error
+	DeleteClientById(ctx context.Context, id int) error
 }
 
 type ClientHandler struct {
@@ -100,7 +100,7 @@ func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.DeleteClientById(id)
+	err := h.service.DeleteClientById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "client not found")
 		return
