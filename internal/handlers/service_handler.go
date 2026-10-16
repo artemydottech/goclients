@@ -14,7 +14,7 @@ type CatalogServ interface {
 	CreateService(ctx context.Context, s models.Service) (int64, error)
 	GetAllServices(ctx context.Context) ([]models.Service, error)
 	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
-	GetServiceById(id int) (models.Service, error)
+	GetServiceById(ctx context.Context, id int) (models.Service, error)
 	DeleteServiceById(id int) error
 }
 
@@ -80,7 +80,7 @@ func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	item, err := h.service.GetServiceById(id)
+	item, err := h.service.GetServiceById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "service not found")
 		return
