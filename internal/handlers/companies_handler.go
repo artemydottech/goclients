@@ -11,7 +11,7 @@ import (
 
 type CompanyServ interface {
 	CreateCompany(ctx context.Context, c models.Company) (int64, error)
-	GetAllCompanies() ([]models.Company, error)
+	GetAllCompanies(ctx context.Context) ([]models.Company, error)
 	GetCompanyById(id int) (models.Company, error)
 	DeleteCompanyById(id int) error
 }
@@ -46,7 +46,7 @@ func (h *CompanyHandler) CreateCompany(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *CompanyHandler) GetAllCompanies(w http.ResponseWriter, r *http.Request) {
-	companies, err := h.service.GetAllCompanies()
+	companies, err := h.service.GetAllCompanies(r.Context())
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetAllCompanies failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load companies")

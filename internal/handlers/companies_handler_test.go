@@ -26,7 +26,7 @@ func (f *fakeCompanyServ) CreateCompany(_ context.Context, v models.Company) (in
 	return f.createID, f.createErr
 }
 
-func (f *fakeCompanyServ) GetAllCompanies() ([]models.Company, error) {
+func (f *fakeCompanyServ) GetAllCompanies(context.Context) ([]models.Company, error) {
 	return f.listItems, f.listErr
 }
 
