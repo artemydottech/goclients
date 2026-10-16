@@ -13,7 +13,7 @@ type EmployeeServ interface {
 	CreateEmployee(ctx context.Context, e models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
 	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
-	DeleteEmployeeById(id int) error
+	DeleteEmployeeById(ctx context.Context, id int) error
 }
 
 type EmployeeHandler struct {
@@ -81,7 +81,7 @@ func (h *EmployeeHandler) DeleteEmployee(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err := h.service.DeleteEmployeeById(id)
+	err := h.service.DeleteEmployeeById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "employee not found")
 		return

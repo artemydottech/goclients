@@ -63,6 +63,6 @@ func (s *EmployeeService) GetEmployeeById(ctx context.Context, id int) (models.E
 	return s.repo.GetEmployeeById(ctx, id)
 }
 
-func (s *EmployeeService) DeleteEmployeeById(id int) error {
-	return s.repo.DeleteEmployeeById(context.TODO(), id)
+func (s *EmployeeService) DeleteEmployeeById(ctx context.Context, id int) error {
+	return s.repo.DeleteEmployeeById(ctx, id)
 }

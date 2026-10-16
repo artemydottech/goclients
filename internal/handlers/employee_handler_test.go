@@ -34,7 +34,7 @@ func (f *fakeEmployeeServ) GetEmployeeById(_ context.Context, id int) (models.Em
 	return f.item, f.getErr
 }
 
-func (f *fakeEmployeeServ) DeleteEmployeeById(id int) error {
+func (f *fakeEmployeeServ) DeleteEmployeeById(_ context.Context, id int) error {
 	return f.deleteErr
 }
 
