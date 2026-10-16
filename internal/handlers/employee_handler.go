@@ -11,7 +11,7 @@ import (
 
 type EmployeeServ interface {
 	CreateEmployee(ctx context.Context, e models.Employee) (int64, error)
-	GetAllEmployees() ([]models.Employee, error)
+	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
 	GetEmployeeById(id int) (models.Employee, error)
 	DeleteEmployeeById(id int) error
 }
@@ -46,7 +46,7 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request) {
-	employees, err := h.service.GetAllEmployees()
+	employees, err := h.service.GetAllEmployees(r.Context())
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetAllEmployees failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load employees")

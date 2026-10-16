@@ -55,8 +55,8 @@ func (s *EmployeeService) CreateEmployee(ctx context.Context, e models.Employee)
 	return id, nil
 }
 
-func (s *EmployeeService) GetAllEmployees() ([]models.Employee, error) {
-	return s.repo.GetAllEmployees(context.TODO())
+func (s *EmployeeService) GetAllEmployees(ctx context.Context) ([]models.Employee, error) {
+	return s.repo.GetAllEmployees(ctx)
 }
 
 func (s *EmployeeService) GetEmployeeById(id int) (models.Employee, error) {
