@@ -46,7 +46,7 @@ func TestCreateEmployeeValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubEmployeeRepo{}
 
-			_, err := NewEmployeeService(repo).CreateEmployee(employee)
+			_, err := NewEmployeeService(repo).CreateEmployee(context.Background(), employee)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -67,7 +67,7 @@ func TestCreateEmployeeCountsRunesInPosition(t *testing.T) {
 		Position: strings.Repeat("я", 500),
 	}
 
-	if _, err := NewEmployeeService(&stubEmployeeRepo{}).CreateEmployee(employee); err != nil {
+	if _, err := NewEmployeeService(&stubEmployeeRepo{}).CreateEmployee(context.Background(), employee); err != nil {
 		t.Fatalf("ожидался успех, получена ошибка %v", err)
 	}
 }
@@ -80,7 +80,7 @@ func TestCreateEmployeeAcceptsValidInput(t *testing.T) {
 		Position:  "Разработчик",
 	}
 
-	id, err := NewEmployeeService(&stubEmployeeRepo{}).CreateEmployee(employee)
+	id, err := NewEmployeeService(&stubEmployeeRepo{}).CreateEmployee(context.Background(), employee)
 	if err != nil {
 		t.Fatalf("ожидался успех, получена ошибка %v", err)
 	}

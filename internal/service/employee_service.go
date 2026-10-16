@@ -22,7 +22,7 @@ func NewEmployeeService(repo EmployeeRepo) *EmployeeService {
 	return &EmployeeService{repo: repo}
 }
 
-func (s *EmployeeService) CreateEmployee(e models.Employee) (int64, error) {
+func (s *EmployeeService) CreateEmployee(ctx context.Context, e models.Employee) (int64, error) {
 	if e.Name == "" {
 		return 0, models.Invalid("employee name cannot be empty")
 	}
@@ -47,7 +47,7 @@ func (s *EmployeeService) CreateEmployee(e models.Employee) (int64, error) {
 		return 0, models.Invalid("avatar URL is too long, keep it under 500 characters")
 	}
 
-	id, err := s.repo.Create(context.TODO(), e)
+	id, err := s.repo.Create(ctx, e)
 	if err != nil {
 		return 0, err
 	}

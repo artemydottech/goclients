@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 )
 
 type EmployeeServ interface {
-	CreateEmployee(e models.Employee) (int64, error)
+	CreateEmployee(ctx context.Context, e models.Employee) (int64, error)
 	GetAllEmployees() ([]models.Employee, error)
 	GetEmployeeById(id int) (models.Employee, error)
 	DeleteEmployeeById(id int) error
@@ -30,7 +31,7 @@ func (h *EmployeeHandler) CreateEmployee(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	id, err := h.service.CreateEmployee(input)
+	id, err := h.service.CreateEmployee(r.Context(), input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
