@@ -55,7 +55,7 @@ func TestCreateServiceValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubServiceRepo{}
 
-			_, err := NewCatalogService(repo).CreateService(item)
+			_, err := NewCatalogService(repo).CreateService(context.Background(), item)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -72,7 +72,7 @@ func TestCreateServiceValidation(t *testing.T) {
 func TestCreateServiceAcceptsValidInput(t *testing.T) {
 	repo := &stubServiceRepo{}
 
-	id, err := NewCatalogService(repo).CreateService(validService())
+	id, err := NewCatalogService(repo).CreateService(context.Background(), validService())
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestCreateServiceAllowsFreeService(t *testing.T) {
 	item := validService()
 	item.Price = 0
 
-	if _, err := NewCatalogService(&stubServiceRepo{}).CreateService(item); err != nil {
+	if _, err := NewCatalogService(&stubServiceRepo{}).CreateService(context.Background(), item); err != nil {
 		t.Fatalf("бесплатная услуга должна приниматься, получено %v", err)
 	}
 }
@@ -99,7 +99,7 @@ func TestCreateServiceAllowsExactlyOneDay(t *testing.T) {
 	item := validService()
 	item.Duration = 24 * 60
 
-	if _, err := NewCatalogService(&stubServiceRepo{}).CreateService(item); err != nil {
+	if _, err := NewCatalogService(&stubServiceRepo{}).CreateService(context.Background(), item); err != nil {
 		t.Fatalf("сутки — допустимая длительность, получено %v", err)
 	}
 }

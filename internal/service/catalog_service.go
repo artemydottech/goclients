@@ -25,7 +25,7 @@ func NewCatalogService(repo ServiceRepo) *CatalogService {
 	return &CatalogService{repo: repo}
 }
 
-func (s *CatalogService) CreateService(item models.Service) (int64, error) {
+func (s *CatalogService) CreateService(ctx context.Context, item models.Service) (int64, error) {
 	if item.CompanyID <= 0 {
 		return 0, models.Invalid("service must belong to a company")
 	}
@@ -54,7 +54,7 @@ func (s *CatalogService) CreateService(item models.Service) (int64, error) {
 		return 0, models.Invalid("price cannot be negative")
 	}
 
-	return s.repo.Create(context.TODO(), item)
+	return s.repo.Create(ctx, item)
 }
 
 func (s *CatalogService) GetAllServices() ([]models.Service, error) {

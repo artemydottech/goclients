@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 )
 
 type CatalogServ interface {
-	CreateService(s models.Service) (int64, error)
+	CreateService(ctx context.Context, s models.Service) (int64, error)
 	GetAllServices() ([]models.Service, error)
 	GetServicesByCompany(companyID int) ([]models.Service, error)
 	GetServiceById(id int) (models.Service, error)
@@ -32,7 +33,7 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateService(input)
+	id, err := h.service.CreateService(r.Context(), input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
