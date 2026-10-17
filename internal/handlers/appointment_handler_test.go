@@ -55,7 +55,7 @@ func (f *fakeAppointmentServ) GetAppointmentsByClient(_ context.Context, clientI
 	return f.all, f.allErr
 }
 
-func (f *fakeAppointmentServ) GetAppointmentById(id int) (models.Appointment, error) {
+func (f *fakeAppointmentServ) GetAppointmentById(_ context.Context, id int) (models.Appointment, error) {
 	return f.item, f.getErr
 }
 

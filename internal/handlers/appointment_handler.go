@@ -16,7 +16,7 @@ type AppointmentServ interface {
 	GetAllAppointments(ctx context.Context) ([]models.Appointment, error)
 	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(ctx context.Context, clientID int) ([]models.Appointment, error)
-	GetAppointmentById(id int) (models.Appointment, error)
+	GetAppointmentById(ctx context.Context, id int) (models.Appointment, error)
 	SetStatus(id int, status models.AppointmentStatus) error
 	Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error)
 	GetClientStats(clientID int) (models.ClientStats, error)
@@ -142,7 +142,7 @@ func (h *AppointmentHandler) GetAppointmentById(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	appointment, err := h.service.GetAppointmentById(id)
+	appointment, err := h.service.GetAppointmentById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "appointment not found")
 		return

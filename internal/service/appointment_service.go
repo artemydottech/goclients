@@ -239,8 +239,8 @@ func (s *AppointmentService) GetAppointmentsByClient(ctx context.Context, client
 	return s.repo.GetAppointmentsByClient(ctx, clientID)
 }
 
-func (s *AppointmentService) GetAppointmentById(id int) (models.Appointment, error) {
-	return s.repo.GetAppointmentById(context.TODO(), id)
+func (s *AppointmentService) GetAppointmentById(ctx context.Context, id int) (models.Appointment, error) {
+	return s.repo.GetAppointmentById(ctx, id)
 }
 
 func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) error {
