@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 )
@@ -120,50 +121,50 @@ func Open(path string) (*sql.DB, error) {
 
 var addedUserColumns = []string{"surname", "username", "avatar"}
 
-func Migrate(db *sql.DB) error {
-	if _, err := db.Exec(schema); err != nil {
+func Migrate(ctx context.Context, db *sql.DB) error {
+	if _, err := db.ExecContext(ctx, schema); err != nil {
 		return fmt.Errorf("applying schema: %w", err)
 	}
 
 	for _, column := range addedUserColumns {
-		if err := addColumn(db, "users", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
+		if err := addColumn(ctx, db, "users", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
 		}
 	}
 
-	if err := addColumn(db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
+	if err := addColumn(ctx, db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
 		return err
 	}
 
 	for _, column := range []string{"break_starts_at", "break_ends_at"} {
-		if err := addColumn(db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
+		if err := addColumn(ctx, db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
 		}
 	}
 
-	if err := addColumn(db, "appointments", "price", "REAL NOT NULL DEFAULT 0"); err != nil {
+	if err := addColumn(ctx, db, "appointments", "price", "REAL NOT NULL DEFAULT 0"); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func addColumn(db *sql.DB, table, column, definition string) error {
-	exists, err := columnExists(db, table, column)
+func addColumn(ctx context.Context, db *sql.DB, table, column, definition string) error {
+	exists, err := columnExists(ctx, db, table, column)
 	if err != nil || exists {
 		return err
 	}
 
 	statement := fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", table, column, definition)
-	if _, err := db.Exec(statement); err != nil {
+	if _, err := db.ExecContext(ctx, statement); err != nil {
 		return fmt.Errorf("adding %s.%s: %w", table, column, err)
 	}
 
 	return nil
 }
 
-func columnExists(db *sql.DB, table, column string) (bool, error) {
-	rows, err := db.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+func columnExists(ctx context.Context, db *sql.DB, table, column string) (bool, error) {
+	rows, err := db.QueryContext(ctx, fmt.Sprintf("PRAGMA table_info(%s)", table))
 	if err != nil {
 		return false, fmt.Errorf("reading %s columns: %w", table, err)
 	}

@@ -22,7 +22,7 @@ func newTestDB(t *testing.T) *sql.DB {
 	}
 	t.Cleanup(func() { db.Close() })
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(context.Background(), db); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -149,7 +149,7 @@ func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 		t.Fatalf("seed: %v", err)
 	}
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(context.Background(), db); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -161,7 +161,7 @@ func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 		t.Errorf("got %+v", users)
 	}
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(context.Background(), db); err != nil {
 		t.Errorf("second migrate: %v", err)
 	}
 }
@@ -611,7 +611,7 @@ func TestMigrateAddsTimezoneToAnOldCompaniesTable(t *testing.T) {
 		t.Fatalf("seed: %v", err)
 	}
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(context.Background(), db); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 
@@ -800,7 +800,7 @@ func TestMigrateAddsPriceToOldAppointments(t *testing.T) {
 		t.Fatalf("seed: %v", err)
 	}
 
-	if err := Migrate(db); err != nil {
+	if err := Migrate(context.Background(), db); err != nil {
 		t.Fatalf("migrate: %v", err)
 	}
 

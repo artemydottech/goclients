@@ -36,6 +36,9 @@ func main() {
 		slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: cfg.LogLevel}),
 	)))
 
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	db, err := repository.Open(cfg.DBPath)
 	if err != nil {
 		slog.Error("db connection failed", "err", err)
@@ -43,7 +46,7 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := repository.Migrate(db); err != nil {
+	if err := repository.Migrate(ctx, db); err != nil {
 		slog.Error("migrate failed", "err", err)
 		os.Exit(1)
 	}
@@ -156,9 +159,6 @@ func main() {
 		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
-
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer stop()
 
 	go func() {
 		slog.Info("server listening", "port", cfg.Port)
