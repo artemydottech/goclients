@@ -102,8 +102,7 @@ CREATE TABLE IF NOT EXISTS employee_time_off (
 CREATE INDEX IF NOT EXISTS idx_time_off_employee ON employee_time_off(employee_id, starts_at);
 `
 
-func Open(path string) (*sql.DB, error) {
-
+func Open(ctx context.Context, path string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on&_busy_timeout=5000", path))
 	if err != nil {
 		return nil, fmt.Errorf("open %s: %w", path, err)
@@ -111,7 +110,7 @@ func Open(path string) (*sql.DB, error) {
 
 	db.SetMaxOpenConns(1)
 
-	if err := db.Ping(); err != nil {
+	if err := db.PingContext(ctx); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("ping %s: %w", path, err)
 	}

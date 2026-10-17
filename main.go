@@ -39,7 +39,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	db, err := repository.Open(cfg.DBPath)
+	db, err := repository.Open(ctx, cfg.DBPath)
 	if err != nil {
 		slog.Error("db connection failed", "err", err)
 		os.Exit(1)

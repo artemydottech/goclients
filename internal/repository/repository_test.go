@@ -16,7 +16,7 @@ import (
 func newTestDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	db, err := Open(filepath.Join(t.TempDir(), "test.db"))
+	db, err := Open(context.Background(), filepath.Join(t.TempDir(), "test.db"))
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
@@ -136,7 +136,7 @@ func TestDeletingACompanyRemovesItsEmployees(t *testing.T) {
 func TestMigrateAddsTheNewUserColumnsToAnOldDatabase(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "old.db")
 
-	db, err := Open(path)
+	db, err := Open(context.Background(), path)
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
@@ -593,7 +593,7 @@ func TestCompanyRepositoryKeepsTimezone(t *testing.T) {
 }
 
 func TestMigrateAddsTimezoneToAnOldCompaniesTable(t *testing.T) {
-	db, err := Open(filepath.Join(t.TempDir(), "old.db"))
+	db, err := Open(context.Background(), filepath.Join(t.TempDir(), "old.db"))
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
@@ -779,7 +779,7 @@ func TestAppointmentRepositoryKeepsThePrice(t *testing.T) {
 }
 
 func TestMigrateAddsPriceToOldAppointments(t *testing.T) {
-	db, err := Open(filepath.Join(t.TempDir(), "old.db"))
+	db, err := Open(context.Background(), filepath.Join(t.TempDir(), "old.db"))
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
