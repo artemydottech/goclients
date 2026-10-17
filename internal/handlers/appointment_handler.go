@@ -12,13 +12,13 @@ import (
 )
 
 type AppointmentServ interface {
-	Book(a models.Appointment) (int64, error)
+	Book(ctx context.Context, a models.Appointment) (int64, error)
 	GetAllAppointments(ctx context.Context) ([]models.Appointment, error)
 	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(ctx context.Context, clientID int) ([]models.Appointment, error)
 	GetAppointmentById(ctx context.Context, id int) (models.Appointment, error)
 	SetStatus(ctx context.Context, id int, status models.AppointmentStatus) error
-	Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error)
+	Reschedule(ctx context.Context, id int, startsAt time.Time, employeeID int) (models.Appointment, error)
 	GetClientStats(ctx context.Context, clientID int) (models.ClientStats, error)
 	DeleteAppointmentById(ctx context.Context, id int) error
 }
@@ -38,7 +38,7 @@ func (h *AppointmentHandler) CreateAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	id, err := h.service.Book(input)
+	id, err := h.service.Book(r.Context(), input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
@@ -226,7 +226,7 @@ func (h *AppointmentHandler) Reschedule(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	appointment, err := h.service.Reschedule(id, input.StartsAt, input.EmployeeID)
+	appointment, err := h.service.Reschedule(r.Context(), id, input.StartsAt, input.EmployeeID)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())

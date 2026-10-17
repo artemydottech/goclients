@@ -36,7 +36,7 @@ type fakeAppointmentServ struct {
 	from, to     time.Time
 }
 
-func (f *fakeAppointmentServ) Book(a models.Appointment) (int64, error) {
+func (f *fakeAppointmentServ) Book(_ context.Context, a models.Appointment) (int64, error) {
 	f.booked = a
 	return f.bookID, f.bookErr
 }
@@ -64,7 +64,7 @@ func (f *fakeAppointmentServ) SetStatus(_ context.Context, id int, status models
 	return f.statusErr
 }
 
-func (f *fakeAppointmentServ) Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
+func (f *fakeAppointmentServ) Reschedule(_ context.Context, id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
 	f.rescheduleAt, f.rescheduleWith = startsAt, employeeID
 	return f.rescheduled, f.rescheduleErr
 }

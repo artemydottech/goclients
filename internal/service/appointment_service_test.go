@@ -127,7 +127,7 @@ func TestBookComputesEndFromServiceDuration(t *testing.T) {
 	booking := futureBooking()
 	booking.EndsAt = booking.StartsAt.Add(5 * time.Minute)
 
-	if _, err := newAppointmentService(repo).Book(booking); err != nil {
+	if _, err := newAppointmentService(repo).Book(context.Background(), booking); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -140,7 +140,7 @@ func TestBookComputesEndFromServiceDuration(t *testing.T) {
 func TestBookDefaultsToPending(t *testing.T) {
 	repo := &stubAppointmentRepo{}
 
-	if _, err := newAppointmentService(repo).Book(futureBooking()); err != nil {
+	if _, err := newAppointmentService(repo).Book(context.Background(), futureBooking()); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -155,7 +155,7 @@ func TestBookStampsTheCompanyFromTheEmployee(t *testing.T) {
 	booking := futureBooking()
 	booking.CompanyID = 999
 
-	if _, err := newAppointmentService(repo).Book(booking); err != nil {
+	if _, err := newAppointmentService(repo).Book(context.Background(), booking); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -178,7 +178,7 @@ func TestBookRejectsPastAndZeroTime(t *testing.T) {
 			booking := futureBooking()
 			booking.StartsAt = startsAt
 
-			_, err := newAppointmentService(repo).Book(booking)
+			_, err := newAppointmentService(repo).Book(context.Background(), booking)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -195,7 +195,7 @@ func TestBookRejectsPastAndZeroTime(t *testing.T) {
 func TestBookRejectsBusyEmployee(t *testing.T) {
 	repo := &stubAppointmentRepo{overlap: true}
 
-	_, err := newAppointmentService(repo).Book(futureBooking())
+	_, err := newAppointmentService(repo).Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -221,7 +221,7 @@ func TestBookRejectsEmployeeWhoDoesNotPerformTheService(t *testing.T) {
 		noTimeOff,
 	)
 
-	_, err := svc.Book(futureBooking())
+	_, err := svc.Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -243,7 +243,7 @@ func TestBookRejectsCrossCompanyParts(t *testing.T) {
 		noTimeOff,
 	)
 
-	_, err := svc.Book(futureBooking())
+	_, err := svc.Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -269,7 +269,7 @@ func TestBookReportsMissingClient(t *testing.T) {
 		noTimeOff,
 	)
 
-	_, err := svc.Book(futureBooking())
+	_, err := svc.Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -283,7 +283,7 @@ func TestBookRejectsUnknownStatus(t *testing.T) {
 	booking := futureBooking()
 	booking.Status = "вроде бы"
 
-	_, err := newAppointmentService(repo).Book(booking)
+	_, err := newAppointmentService(repo).Book(context.Background(), booking)
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -330,7 +330,7 @@ func TestBookRejectsTimeOutsideWorkingHours(t *testing.T) {
 			booking := futureBooking()
 			booking.StartsAt = startsAt
 
-			_, err := newAppointmentService(repo).Book(booking)
+			_, err := newAppointmentService(repo).Book(context.Background(), booking)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -350,7 +350,7 @@ func TestBookAcceptsTheLastSlotThatFits(t *testing.T) {
 	booking := futureBooking()
 	booking.StartsAt = slotsDate.Add(18*time.Hour + 30*time.Minute)
 
-	if _, err := newAppointmentService(repo).Book(booking); err != nil {
+	if _, err := newAppointmentService(repo).Book(context.Background(), booking); err != nil {
 		t.Fatalf("90-минутная услуга в 18:30 заканчивается ровно в 20:00, получено %v", err)
 	}
 }
@@ -362,7 +362,7 @@ func TestBookRejectsDayOff(t *testing.T) {
 		s.schedule = stubSchedule{working: false}
 	})
 
-	_, err := svc.Book(futureBooking())
+	_, err := svc.Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -390,7 +390,7 @@ func TestBookReadsWorkingHoursInTheCompanyTimezone(t *testing.T) {
 			booking := futureBooking()
 			booking.StartsAt = tc.startsAt
 
-			_, err := svc.Book(booking)
+			_, err := svc.Book(context.Background(), booking)
 			if tc.ok && err != nil {
 				t.Fatalf("запись должна пройти, получено %v", err)
 			}
@@ -414,7 +414,7 @@ func TestRescheduleMovesKeepingDurationAndDetails(t *testing.T) {
 	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
 
 	newStart := slotsDate.Add(15 * time.Hour)
-	moved, err := newAppointmentService(repo).Reschedule(5, newStart, 0)
+	moved, err := newAppointmentService(repo).Reschedule(context.Background(), 5, newStart, 0)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -435,7 +435,7 @@ func TestRescheduleRejectsInactiveAppointments(t *testing.T) {
 		t.Run(string(status), func(t *testing.T) {
 			repo := &stubAppointmentRepo{existing: existingAppointment(status)}
 
-			_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+			_, err := newAppointmentService(repo).Reschedule(context.Background(), 5, slotsDate.Add(15*time.Hour), 0)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -451,7 +451,7 @@ func TestRescheduleRejectsInactiveAppointments(t *testing.T) {
 func TestRescheduleRunsTheBookingChecks(t *testing.T) {
 	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentPending)}
 
-	_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(3*time.Hour), 0)
+	_, err := newAppointmentService(repo).Reschedule(context.Background(), 5, slotsDate.Add(3*time.Hour), 0)
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -465,7 +465,7 @@ func TestRescheduleRunsTheBookingChecks(t *testing.T) {
 func TestRescheduleRejectsBusyTime(t *testing.T) {
 	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentPending), overlap: true}
 
-	_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+	_, err := newAppointmentService(repo).Reschedule(context.Background(), 5, slotsDate.Add(15*time.Hour), 0)
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -476,7 +476,7 @@ func TestRescheduleRejectsBusyTime(t *testing.T) {
 func TestRescheduleCanChangeTheMaster(t *testing.T) {
 	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentPending)}
 
-	moved, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 2)
+	moved, err := newAppointmentService(repo).Reschedule(context.Background(), 5, slotsDate.Add(15*time.Hour), 2)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -486,7 +486,7 @@ func TestRescheduleCanChangeTheMaster(t *testing.T) {
 }
 
 func TestRescheduleReportsMissingAppointment(t *testing.T) {
-	_, err := newAppointmentService(&stubAppointmentRepo{}).Reschedule(404, slotsDate.Add(15*time.Hour), 0)
+	_, err := newAppointmentService(&stubAppointmentRepo{}).Reschedule(context.Background(), 404, slotsDate.Add(15*time.Hour), 0)
 	if !errors.Is(err, models.ErrNotFound) {
 		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
@@ -502,7 +502,7 @@ func TestBookRejectsTimeOff(t *testing.T) {
 		}}}
 	})
 
-	_, err := svc.Book(futureBooking())
+	_, err := svc.Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -519,7 +519,7 @@ func TestBookRejectsTheBreak(t *testing.T) {
 		s.schedule = workingDayWithBreak("10:00", "20:00", "13:00", "14:00")
 	})
 
-	_, err := svc.Book(futureBooking())
+	_, err := svc.Book(context.Background(), futureBooking())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -536,7 +536,7 @@ func TestBookAroundTheBreak(t *testing.T) {
 		s.schedule = workingDayWithBreak("10:00", "20:00", "13:30", "14:00")
 	})
 
-	if _, err := svc.Book(futureBooking()); err != nil {
+	if _, err := svc.Book(context.Background(), futureBooking()); err != nil {
 		t.Fatalf("12:00–13:30 заканчивается ровно к перерыву, получено %v", err)
 	}
 }
@@ -621,7 +621,7 @@ func TestBookRefusesFinalStatuses(t *testing.T) {
 			booking := futureBooking()
 			booking.Status = status
 
-			_, err := newAppointmentService(repo).Book(booking)
+			_, err := newAppointmentService(repo).Book(context.Background(), booking)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -640,7 +640,7 @@ func TestBookAcceptsConfirmed(t *testing.T) {
 	booking := futureBooking()
 	booking.Status = models.AppointmentConfirmed
 
-	if _, err := newAppointmentService(repo).Book(booking); err != nil {
+	if _, err := newAppointmentService(repo).Book(context.Background(), booking); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 }
@@ -656,7 +656,7 @@ func TestBookSnapshotsTheServicePrice(t *testing.T) {
 	booking := futureBooking()
 	booking.Price = 1
 
-	if _, err := svc.Book(booking); err != nil {
+	if _, err := svc.Book(context.Background(), booking); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -676,7 +676,7 @@ func TestRescheduleKeepsTheAgreedPrice(t *testing.T) {
 		}}
 	})
 
-	moved, err := svc.Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+	moved, err := svc.Reschedule(context.Background(), 5, slotsDate.Add(15*time.Hour), 0)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -722,7 +722,7 @@ func TestNoShowFollowsTheSameRulesAsCompletion(t *testing.T) {
 func TestRescheduleRejectsNoShow(t *testing.T) {
 	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentNoShow)}
 
-	_, err := newAppointmentService(repo).Reschedule(5, slotsDate.Add(15*time.Hour), 0)
+	_, err := newAppointmentService(repo).Reschedule(context.Background(), 5, slotsDate.Add(15*time.Hour), 0)
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {

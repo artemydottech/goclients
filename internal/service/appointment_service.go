@@ -65,13 +65,13 @@ func NewAppointmentService(
 	}
 }
 
-func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
-	prepared, err := s.prepare(a)
+func (s *AppointmentService) Book(ctx context.Context, a models.Appointment) (int64, error) {
+	prepared, err := s.prepare(ctx, a)
 	if err != nil {
 		return 0, err
 	}
 
-	id, busy, err := s.repo.CreateIfFree(context.TODO(), prepared)
+	id, busy, err := s.repo.CreateIfFree(ctx, prepared)
 	if err != nil {
 		return 0, err
 	}
@@ -82,8 +82,8 @@ func (s *AppointmentService) Book(a models.Appointment) (int64, error) {
 	return id, nil
 }
 
-func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
-	existing, err := s.repo.GetAppointmentById(context.TODO(), id)
+func (s *AppointmentService) Reschedule(ctx context.Context, id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
+	existing, err := s.repo.GetAppointmentById(ctx, id)
 	if err != nil {
 		return models.Appointment{}, err
 	}
@@ -98,14 +98,14 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 		candidate.EmployeeID = employeeID
 	}
 
-	prepared, err := s.prepare(candidate)
+	prepared, err := s.prepare(ctx, candidate)
 	if err != nil {
 		return models.Appointment{}, err
 	}
 
 	prepared.Price = existing.Price
 
-	busy, err := s.repo.MoveIfFree(context.TODO(), id, prepared)
+	busy, err := s.repo.MoveIfFree(ctx, id, prepared)
 	if err != nil {
 		return models.Appointment{}, err
 	}
@@ -116,7 +116,7 @@ func (s *AppointmentService) Reschedule(id int, startsAt time.Time, employeeID i
 	return prepared, nil
 }
 
-func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, error) {
+func (s *AppointmentService) prepare(ctx context.Context, a models.Appointment) (models.Appointment, error) {
 	if a.StartsAt.IsZero() {
 		return a, models.Invalid("appointment time is not set")
 	}
@@ -129,7 +129,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid("comment is too long, keep it under 1000 characters")
 	}
 
-	client, err := s.clients.GetClientById(context.TODO(), a.ClientID)
+	client, err := s.clients.GetClientById(ctx, a.ClientID)
 	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("client %d not found", a.ClientID)
 	}
@@ -137,7 +137,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 
-	employee, err := s.employees.GetEmployeeById(context.TODO(), a.EmployeeID)
+	employee, err := s.employees.GetEmployeeById(ctx, a.EmployeeID)
 	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("employee %d not found", a.EmployeeID)
 	}
@@ -145,7 +145,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, err
 	}
 
-	item, err := s.services.GetServiceById(context.TODO(), a.ServiceID)
+	item, err := s.services.GetServiceById(ctx, a.ServiceID)
 	if errors.Is(err, models.ErrNotFound) {
 		return a, models.Invalid("service %d not found", a.ServiceID)
 	}
@@ -157,7 +157,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid("client, employee and service must belong to the same company")
 	}
 
-	performs, err := s.assignments.EmployeePerformsService(context.TODO(), a.EmployeeID, a.ServiceID)
+	performs, err := s.assignments.EmployeePerformsService(ctx, a.EmployeeID, a.ServiceID)
 	if err != nil {
 		return a, err
 	}
@@ -180,7 +180,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid("a new appointment can only be pending or confirmed")
 	}
 
-	loc, err := companyLocation(context.TODO(), s.companies, employee.CompanyID)
+	loc, err := companyLocation(ctx, s.companies, employee.CompanyID)
 	if err != nil {
 		return a, err
 	}
@@ -188,7 +188,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	local := a.StartsAt.In(loc)
 	day := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
 
-	opens, closes, breaks, isWorkingDay, err := workingWindow(context.TODO(), s.schedule, a.EmployeeID, day)
+	opens, closes, breaks, isWorkingDay, err := workingWindow(ctx, s.schedule, a.EmployeeID, day)
 	if err != nil {
 		return a, err
 	}
@@ -209,7 +209,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		)
 	}
 
-	absences, err := s.timeOff.GetTimeOffInRange(context.TODO(), a.EmployeeID, a.StartsAt, a.EndsAt)
+	absences, err := s.timeOff.GetTimeOffInRange(ctx, a.EmployeeID, a.StartsAt, a.EndsAt)
 	if err != nil {
 		return a, err
 	}
