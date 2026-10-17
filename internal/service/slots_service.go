@@ -54,12 +54,12 @@ func NewSlotsService(
 	}
 }
 
-func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
+func (s *SlotsService) FreeSlots(ctx context.Context, employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
 	if step <= 0 {
 		step = defaultSlotStep
 	}
 
-	employee, err := s.employees.GetEmployeeById(context.TODO(), employeeID)
+	employee, err := s.employees.GetEmployeeById(ctx, employeeID)
 	if errors.Is(err, models.ErrNotFound) {
 		return nil, models.Invalid("employee %d not found", employeeID)
 	}
@@ -67,7 +67,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, err
 	}
 
-	item, err := s.services.GetServiceById(context.TODO(), serviceID)
+	item, err := s.services.GetServiceById(ctx, serviceID)
 	if errors.Is(err, models.ErrNotFound) {
 		return nil, models.Invalid("service %d not found", serviceID)
 	}
@@ -75,7 +75,7 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, err
 	}
 
-	performs, err := s.assignments.EmployeePerformsService(context.TODO(), employeeID, serviceID)
+	performs, err := s.assignments.EmployeePerformsService(ctx, employeeID, serviceID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,14 +83,14 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return nil, models.Invalid("employee %d does not provide service %d", employeeID, serviceID)
 	}
 
-	loc, err := companyLocation(s.companies, employee.CompanyID)
+	loc, err := companyLocation(ctx, s.companies, employee.CompanyID)
 	if err != nil {
 		return nil, err
 	}
 
 	day := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, loc)
 
-	opens, closes, breaks, isWorkingDay, err := workingWindow(s.schedule, employeeID, day)
+	opens, closes, breaks, isWorkingDay, err := workingWindow(ctx, s.schedule, employeeID, day)
 	if err != nil {
 		return nil, err
 	}
@@ -98,12 +98,12 @@ func (s *SlotsService) FreeSlots(employeeID, serviceID int, date time.Time, step
 		return []time.Time{}, nil
 	}
 
-	booked, err := s.calendar.GetAppointmentsByEmployee(context.TODO(), employeeID, day, day.AddDate(0, 0, 1))
+	booked, err := s.calendar.GetAppointmentsByEmployee(ctx, employeeID, day, day.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, err
 	}
 
-	absences, err := s.timeOff.GetTimeOffInRange(context.TODO(), employeeID, day, day.AddDate(0, 0, 1))
+	absences, err := s.timeOff.GetTimeOffInRange(ctx, employeeID, day, day.AddDate(0, 0, 1))
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +143,8 @@ func overlapsAny(from, to time.Time, booked []models.Appointment) bool {
 	return false
 }
 
-func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, []models.TimeOff, bool, error) {
-	working, isWorkingDay, err := schedule.WorkingDay(context.TODO(), employeeID, int(day.Weekday()))
+func workingWindow(ctx context.Context, schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, []models.TimeOff, bool, error) {
+	working, isWorkingDay, err := schedule.WorkingDay(ctx, employeeID, int(day.Weekday()))
 	if err != nil || !isWorkingDay {
 		return time.Time{}, time.Time{}, nil, false, err
 	}
@@ -186,8 +186,8 @@ func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time,
 	return opens, closes, breaks, true, nil
 }
 
-func companyLocation(companies CompanyLookup, companyID int) (*time.Location, error) {
-	company, err := companies.GetCompanyById(context.TODO(), companyID)
+func companyLocation(ctx context.Context, companies CompanyLookup, companyID int) (*time.Location, error) {
+	company, err := companies.GetCompanyById(ctx, companyID)
 	if err != nil {
 		return nil, err
 	}

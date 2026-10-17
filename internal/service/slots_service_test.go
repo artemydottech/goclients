@@ -78,7 +78,7 @@ func workingDay(from, to string) stubSchedule {
 
 func TestFreeSlotsWalksTheWorkingDay(t *testing.T) {
 	slots, err := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{}).
-		FreeSlots(2, 3, slotsDate, 60)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -97,7 +97,7 @@ func TestFreeSlotsWalksTheWorkingDay(t *testing.T) {
 
 func TestFreeSlotsNeverRunPastTheEndOfTheDay(t *testing.T) {
 	slots, err := newSlotsService(workingDay("10:00", "12:30"), stubCalendar{}).
-		FreeSlots(2, 3, slotsDate, 30)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 30)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -116,7 +116,7 @@ func TestFreeSlotsSkipBookedTime(t *testing.T) {
 	}}
 
 	slots, err := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{booked: booked}).
-		FreeSlots(2, 3, slotsDate, 60)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -140,7 +140,7 @@ func TestFreeSlotsIgnoreCancelledAppointments(t *testing.T) {
 	}}
 
 	slots, err := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{booked: booked}).
-		FreeSlots(2, 3, slotsDate, 60)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -152,7 +152,7 @@ func TestFreeSlotsIgnoreCancelledAppointments(t *testing.T) {
 
 func TestFreeSlotsAreEmptyOnADayOff(t *testing.T) {
 	slots, err := newSlotsService(stubSchedule{working: false}, stubCalendar{}).
-		FreeSlots(2, 3, slotsDate, 60)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -166,7 +166,7 @@ func TestFreeSlotsDropPastTimes(t *testing.T) {
 	svc := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{})
 	svc.now = func() time.Time { return slotsDate.Add(11*time.Hour + 30*time.Minute) }
 
-	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	slots, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -187,7 +187,7 @@ func TestFreeSlotsRejectMasterWhoDoesNotPerformTheService(t *testing.T) {
 		noTimeOff,
 	)
 
-	_, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	_, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -197,7 +197,7 @@ func TestFreeSlotsRejectMasterWhoDoesNotPerformTheService(t *testing.T) {
 
 func TestFreeSlotsFallBackToTheDefaultStep(t *testing.T) {
 	slots, err := newSlotsService(workingDay("10:00", "11:15"), stubCalendar{}).
-		FreeSlots(2, 3, slotsDate, 0)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 0)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -214,7 +214,7 @@ func TestFreeSlotsFollowTheCompanyTimezone(t *testing.T) {
 	svc := newSlotsService(workingDay("10:00", "12:00"), stubCalendar{})
 	svc.companies = stubCompanyLookup{company: models.Company{ID: 10, Timezone: "Asia/Yekaterinburg"}}
 
-	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	slots, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -241,7 +241,7 @@ func TestFreeSlotsSkipTimeOff(t *testing.T) {
 		Reason:   "врач",
 	}}}
 
-	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	slots, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -264,7 +264,7 @@ func TestFreeSlotsAreEmptyDuringVacation(t *testing.T) {
 		Reason:   "отпуск",
 	}}}
 
-	slots, err := svc.FreeSlots(2, 3, slotsDate, 60)
+	slots, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -282,7 +282,7 @@ func workingDayWithBreak(from, to, breakFrom, breakTo string) stubSchedule {
 
 func TestFreeSlotsSkipTheBreak(t *testing.T) {
 	slots, err := newSlotsService(workingDayWithBreak("10:00", "14:00", "12:00", "13:00"), stubCalendar{}).
-		FreeSlots(2, 3, slotsDate, 60)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 60)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
@@ -306,7 +306,7 @@ func TestFreeSlotsSkipTheBreak(t *testing.T) {
 
 func TestFreeSlotsDoNotStraddleTheBreak(t *testing.T) {
 	slots, err := newSlotsService(workingDayWithBreak("10:00", "14:00", "12:00", "13:00"), stubCalendar{}).
-		FreeSlots(2, 3, slotsDate, 30)
+		FreeSlots(context.Background(), 2, 3, slotsDate, 30)
 	if err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}

@@ -17,7 +17,7 @@ type ScheduleServ interface {
 }
 
 type SlotsServ interface {
-	FreeSlots(employeeID, serviceID int, date time.Time, step int) ([]time.Time, error)
+	FreeSlots(ctx context.Context, employeeID, serviceID int, date time.Time, step int) ([]time.Time, error)
 }
 
 type ScheduleHandler struct {
@@ -109,7 +109,7 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slots, err := h.slots.FreeSlots(employeeID, serviceID, date, step)
+	slots, err := h.slots.FreeSlots(r.Context(), employeeID, serviceID, date, step)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())

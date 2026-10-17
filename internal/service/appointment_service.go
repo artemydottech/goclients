@@ -180,7 +180,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 		return a, models.Invalid("a new appointment can only be pending or confirmed")
 	}
 
-	loc, err := companyLocation(s.companies, employee.CompanyID)
+	loc, err := companyLocation(context.TODO(), s.companies, employee.CompanyID)
 	if err != nil {
 		return a, err
 	}
@@ -188,7 +188,7 @@ func (s *AppointmentService) prepare(a models.Appointment) (models.Appointment, 
 	local := a.StartsAt.In(loc)
 	day := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
 
-	opens, closes, breaks, isWorkingDay, err := workingWindow(s.schedule, a.EmployeeID, day)
+	opens, closes, breaks, isWorkingDay, err := workingWindow(context.TODO(), s.schedule, a.EmployeeID, day)
 	if err != nil {
 		return a, err
 	}

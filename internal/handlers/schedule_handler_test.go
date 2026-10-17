@@ -38,7 +38,7 @@ type fakeSlotsServ struct {
 	step       int
 }
 
-func (f *fakeSlotsServ) FreeSlots(employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
+func (f *fakeSlotsServ) FreeSlots(_ context.Context, employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
 	f.employeeID, f.serviceID, f.date, f.step = employeeID, serviceID, date, step
 	return f.slots, f.err
 }
