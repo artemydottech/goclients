@@ -11,7 +11,7 @@ import (
 
 type AssignmentServ interface {
 	SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error
-	GetServicesByEmployee(employeeID int) ([]models.Service, error)
+	GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error)
 	GetEmployeesByService(serviceID int) ([]models.Employee, error)
 }
 
@@ -63,7 +63,7 @@ func (h *AssignmentHandler) GetEmployeeServices(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	services, err := h.service.GetServicesByEmployee(employeeID)
+	services, err := h.service.GetServicesByEmployee(r.Context(), employeeID)
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetEmployeeServices failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load employee services")

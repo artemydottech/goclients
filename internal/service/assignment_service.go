@@ -68,8 +68,8 @@ func (s *AssignmentService) SetEmployeeServices(ctx context.Context, employeeID 
 	return s.repo.SetEmployeeServices(ctx, employeeID, unique)
 }
 
-func (s *AssignmentService) GetServicesByEmployee(employeeID int) ([]models.Service, error) {
-	return s.repo.GetServicesByEmployee(context.TODO(), employeeID)
+func (s *AssignmentService) GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error) {
+	return s.repo.GetServicesByEmployee(ctx, employeeID)
 }
 
 func (s *AssignmentService) GetEmployeesByService(serviceID int) ([]models.Employee, error) {

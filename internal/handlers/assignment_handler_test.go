@@ -25,7 +25,7 @@ func (f *fakeAssignmentServ) SetEmployeeServices(_ context.Context, employeeID i
 	return f.setErr
 }
 
-func (f *fakeAssignmentServ) GetServicesByEmployee(employeeID int) ([]models.Service, error) {
+func (f *fakeAssignmentServ) GetServicesByEmployee(_ context.Context, employeeID int) ([]models.Service, error) {
 	return f.services, f.listErr
 }
 
