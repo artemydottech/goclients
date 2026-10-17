@@ -17,7 +17,7 @@ type AppointmentServ interface {
 	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(ctx context.Context, clientID int) ([]models.Appointment, error)
 	GetAppointmentById(ctx context.Context, id int) (models.Appointment, error)
-	SetStatus(id int, status models.AppointmentStatus) error
+	SetStatus(ctx context.Context, id int, status models.AppointmentStatus) error
 	Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error)
 	GetClientStats(clientID int) (models.ClientStats, error)
 	DeleteAppointmentById(ctx context.Context, id int) error
@@ -171,7 +171,7 @@ func (h *AppointmentHandler) SetStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.SetStatus(id, input.Status)
+	err := h.service.SetStatus(r.Context(), id, input.Status)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())

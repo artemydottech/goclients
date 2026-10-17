@@ -292,7 +292,7 @@ func TestBookRejectsUnknownStatus(t *testing.T) {
 }
 
 func TestSetStatusRejectsUnknownStatus(t *testing.T) {
-	err := newAppointmentService(&stubAppointmentRepo{}).SetStatus(1, "готово")
+	err := newAppointmentService(&stubAppointmentRepo{}).SetStatus(context.Background(), 1, "готово")
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -561,7 +561,7 @@ func TestSetStatusFollowsTheTransitionTable(t *testing.T) {
 		t.Run(string(tc.from)+"→"+string(tc.to), func(t *testing.T) {
 			repo := &stubAppointmentRepo{existing: existingAppointment(tc.from)}
 
-			err := newAppointmentService(repo).SetStatus(5, tc.to)
+			err := newAppointmentService(repo).SetStatus(context.Background(), 5, tc.to)
 
 			if tc.ok {
 				if err != nil {
@@ -587,7 +587,7 @@ func TestSetStatusFollowsTheTransitionTable(t *testing.T) {
 func TestSetStatusCannotCompleteAFutureAppointment(t *testing.T) {
 	repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
 
-	err := newAppointmentService(repo).SetStatus(5, models.AppointmentCompleted)
+	err := newAppointmentService(repo).SetStatus(context.Background(), 5, models.AppointmentCompleted)
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -601,13 +601,13 @@ func TestSetStatusCompletesAStartedAppointment(t *testing.T) {
 		s.now = func() time.Time { return slotsDate.Add(13 * time.Hour) }
 	})
 
-	if err := svc.SetStatus(5, models.AppointmentCompleted); err != nil {
+	if err := svc.SetStatus(context.Background(), 5, models.AppointmentCompleted); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 }
 
 func TestSetStatusReportsMissingAppointment(t *testing.T) {
-	err := newAppointmentService(&stubAppointmentRepo{}).SetStatus(404, models.AppointmentConfirmed)
+	err := newAppointmentService(&stubAppointmentRepo{}).SetStatus(context.Background(), 404, models.AppointmentConfirmed)
 	if !errors.Is(err, models.ErrNotFound) {
 		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
@@ -693,14 +693,14 @@ func TestNoShowFollowsTheSameRulesAsCompletion(t *testing.T) {
 
 	t.Run("после начала", func(t *testing.T) {
 		repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
-		if err := newAppointmentService(repo, started).SetStatus(5, models.AppointmentNoShow); err != nil {
+		if err := newAppointmentService(repo, started).SetStatus(context.Background(), 5, models.AppointmentNoShow); err != nil {
 			t.Fatalf("неявку после начала отметить можно, получено %v", err)
 		}
 	})
 
 	t.Run("до начала", func(t *testing.T) {
 		repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentConfirmed)}
-		err := newAppointmentService(repo).SetStatus(5, models.AppointmentNoShow)
+		err := newAppointmentService(repo).SetStatus(context.Background(), 5, models.AppointmentNoShow)
 
 		var validationErr models.ValidationError
 		if !errors.As(err, &validationErr) {
@@ -710,7 +710,7 @@ func TestNoShowFollowsTheSameRulesAsCompletion(t *testing.T) {
 
 	t.Run("из неявки обратно", func(t *testing.T) {
 		repo := &stubAppointmentRepo{existing: existingAppointment(models.AppointmentNoShow)}
-		err := newAppointmentService(repo, started).SetStatus(5, models.AppointmentCompleted)
+		err := newAppointmentService(repo, started).SetStatus(context.Background(), 5, models.AppointmentCompleted)
 
 		var validationErr models.ValidationError
 		if !errors.As(err, &validationErr) {

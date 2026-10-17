@@ -59,7 +59,7 @@ func (f *fakeAppointmentServ) GetAppointmentById(_ context.Context, id int) (mod
 	return f.item, f.getErr
 }
 
-func (f *fakeAppointmentServ) SetStatus(id int, status models.AppointmentStatus) error {
+func (f *fakeAppointmentServ) SetStatus(_ context.Context, id int, status models.AppointmentStatus) error {
 	f.status = status
 	return f.statusErr
 }

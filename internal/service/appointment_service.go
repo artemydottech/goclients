@@ -243,12 +243,12 @@ func (s *AppointmentService) GetAppointmentById(ctx context.Context, id int) (mo
 	return s.repo.GetAppointmentById(ctx, id)
 }
 
-func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) error {
+func (s *AppointmentService) SetStatus(ctx context.Context, id int, status models.AppointmentStatus) error {
 	if !status.Valid() {
 		return models.Invalid("unknown appointment status %s", status)
 	}
 
-	existing, err := s.repo.GetAppointmentById(context.TODO(), id)
+	existing, err := s.repo.GetAppointmentById(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -264,7 +264,7 @@ func (s *AppointmentService) SetStatus(id int, status models.AppointmentStatus) 
 		return models.Invalid("status %s can only be set after the appointment has started", status)
 	}
 
-	return s.repo.UpdateStatus(context.TODO(), id, status)
+	return s.repo.UpdateStatus(ctx, id, status)
 }
 
 func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, error) {
