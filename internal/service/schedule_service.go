@@ -44,8 +44,8 @@ func (s *ScheduleService) SetEmployeeSchedule(ctx context.Context, employeeID in
 	return s.repo.SetEmployeeSchedule(ctx, employeeID, days)
 }
 
-func (s *ScheduleService) GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error) {
-	return s.repo.GetEmployeeSchedule(context.TODO(), employeeID)
+func (s *ScheduleService) GetEmployeeSchedule(ctx context.Context, employeeID int) ([]models.WorkingDay, error) {
+	return s.repo.GetEmployeeSchedule(ctx, employeeID)
 }
 
 func (s *ScheduleService) WorkingDay(employeeID, weekday int) (models.WorkingDay, bool, error) {

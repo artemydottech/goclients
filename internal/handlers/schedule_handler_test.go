@@ -25,7 +25,7 @@ func (f *fakeScheduleServ) SetEmployeeSchedule(_ context.Context, employeeID int
 	return f.setErr
 }
 
-func (f *fakeScheduleServ) GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error) {
+func (f *fakeScheduleServ) GetEmployeeSchedule(_ context.Context, employeeID int) ([]models.WorkingDay, error) {
 	return f.days, f.getErr
 }
 

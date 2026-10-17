@@ -13,7 +13,7 @@ import (
 
 type ScheduleServ interface {
 	SetEmployeeSchedule(ctx context.Context, employeeID int, days []models.WorkingDay) error
-	GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error)
+	GetEmployeeSchedule(ctx context.Context, employeeID int) ([]models.WorkingDay, error)
 }
 
 type SlotsServ interface {
@@ -69,7 +69,7 @@ func (h *ScheduleHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	days, err := h.schedule.GetEmployeeSchedule(employeeID)
+	days, err := h.schedule.GetEmployeeSchedule(r.Context(), employeeID)
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetEmployeeSchedule failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load schedule")
