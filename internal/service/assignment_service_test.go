@@ -67,7 +67,7 @@ func newAssignmentService(repo *stubAssignmentRepo) *AssignmentService {
 func TestSetEmployeeServicesSavesTheSet(t *testing.T) {
 	repo := &stubAssignmentRepo{}
 
-	if err := newAssignmentService(repo).SetEmployeeServices(1, []int{100, 101}); err != nil {
+	if err := newAssignmentService(repo).SetEmployeeServices(context.Background(), 1, []int{100, 101}); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -79,7 +79,7 @@ func TestSetEmployeeServicesSavesTheSet(t *testing.T) {
 func TestSetEmployeeServicesDropsDuplicates(t *testing.T) {
 	repo := &stubAssignmentRepo{}
 
-	if err := newAssignmentService(repo).SetEmployeeServices(1, []int{100, 100, 101}); err != nil {
+	if err := newAssignmentService(repo).SetEmployeeServices(context.Background(), 1, []int{100, 100, 101}); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -91,7 +91,7 @@ func TestSetEmployeeServicesDropsDuplicates(t *testing.T) {
 func TestSetEmployeeServicesRejectsForeignCompany(t *testing.T) {
 	repo := &stubAssignmentRepo{}
 
-	err := newAssignmentService(repo).SetEmployeeServices(1, []int{100, 200})
+	err := newAssignmentService(repo).SetEmployeeServices(context.Background(), 1, []int{100, 200})
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -106,7 +106,7 @@ func TestSetEmployeeServicesRejectsForeignCompany(t *testing.T) {
 func TestSetEmployeeServicesRejectsUnknownService(t *testing.T) {
 	repo := &stubAssignmentRepo{}
 
-	err := newAssignmentService(repo).SetEmployeeServices(1, []int{404})
+	err := newAssignmentService(repo).SetEmployeeServices(context.Background(), 1, []int{404})
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -127,7 +127,7 @@ func TestSetEmployeeServicesReportsMissingEmployee(t *testing.T) {
 		stubServiceLookup{byID: map[int]models.Service{}},
 	)
 
-	if err := svc.SetEmployeeServices(1, []int{100}); !errors.Is(err, models.ErrNotFound) {
+	if err := svc.SetEmployeeServices(context.Background(), 1, []int{100}); !errors.Is(err, models.ErrNotFound) {
 		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 
@@ -139,7 +139,7 @@ func TestSetEmployeeServicesReportsMissingEmployee(t *testing.T) {
 func TestSetEmployeeServicesAcceptsEmptySet(t *testing.T) {
 	repo := &stubAssignmentRepo{}
 
-	if err := newAssignmentService(repo).SetEmployeeServices(1, nil); err != nil {
+	if err := newAssignmentService(repo).SetEmployeeServices(context.Background(), 1, nil); err != nil {
 		t.Fatalf("пустой набор снимает все услуги, получено %v", err)
 	}
 

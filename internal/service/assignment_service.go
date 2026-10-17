@@ -32,8 +32,8 @@ func NewAssignmentService(repo AssignmentRepo, employees EmployeeLookup, service
 	return &AssignmentService{repo: repo, employees: employees, services: services}
 }
 
-func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int) error {
-	employee, err := s.employees.GetEmployeeById(context.TODO(), employeeID)
+func (s *AssignmentService) SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error {
+	employee, err := s.employees.GetEmployeeById(ctx, employeeID)
 	if errors.Is(err, models.ErrNotFound) {
 		return err
 	}
@@ -50,7 +50,7 @@ func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int
 		}
 		seen[serviceID] = struct{}{}
 
-		item, err := s.services.GetServiceById(context.TODO(), serviceID)
+		item, err := s.services.GetServiceById(ctx, serviceID)
 		if errors.Is(err, models.ErrNotFound) {
 			return models.Invalid("service %d not found", serviceID)
 		}
@@ -65,7 +65,7 @@ func (s *AssignmentService) SetEmployeeServices(employeeID int, serviceIDs []int
 		unique = append(unique, serviceID)
 	}
 
-	return s.repo.SetEmployeeServices(context.TODO(), employeeID, unique)
+	return s.repo.SetEmployeeServices(ctx, employeeID, unique)
 }
 
 func (s *AssignmentService) GetServicesByEmployee(employeeID int) ([]models.Service, error) {

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -18,7 +19,7 @@ type fakeAssignmentServ struct {
 	listErr     error
 }
 
-func (f *fakeAssignmentServ) SetEmployeeServices(employeeID int, serviceIDs []int) error {
+func (f *fakeAssignmentServ) SetEmployeeServices(_ context.Context, employeeID int, serviceIDs []int) error {
 	f.setEmployee = employeeID
 	f.setServices = serviceIDs
 	return f.setErr
