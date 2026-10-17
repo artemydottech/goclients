@@ -22,8 +22,8 @@ func NewScheduleService(repo ScheduleRepo, employees EmployeeLookup) *ScheduleSe
 	return &ScheduleService{repo: repo, employees: employees}
 }
 
-func (s *ScheduleService) SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error {
-	if _, err := s.employees.GetEmployeeById(context.TODO(), employeeID); err != nil {
+func (s *ScheduleService) SetEmployeeSchedule(ctx context.Context, employeeID int, days []models.WorkingDay) error {
+	if _, err := s.employees.GetEmployeeById(ctx, employeeID); err != nil {
 		return err
 	}
 
@@ -41,7 +41,7 @@ func (s *ScheduleService) SetEmployeeSchedule(employeeID int, days []models.Work
 		seen[days[i].Weekday] = struct{}{}
 	}
 
-	return s.repo.SetEmployeeSchedule(context.TODO(), employeeID, days)
+	return s.repo.SetEmployeeSchedule(ctx, employeeID, days)
 }
 
 func (s *ScheduleService) GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error) {

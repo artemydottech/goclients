@@ -35,7 +35,7 @@ func TestSetEmployeeScheduleStampsTheEmployee(t *testing.T) {
 	repo := &stubScheduleRepo{}
 
 	days := []models.WorkingDay{{Weekday: 1, StartsAt: "10:00", EndsAt: "20:00"}}
-	if err := newScheduleService(repo).SetEmployeeSchedule(7, days); err != nil {
+	if err := newScheduleService(repo).SetEmployeeSchedule(context.Background(), 7, days); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 
@@ -63,7 +63,7 @@ func TestSetEmployeeScheduleValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubScheduleRepo{}
 
-			err := newScheduleService(repo).SetEmployeeSchedule(1, days)
+			err := newScheduleService(repo).SetEmployeeSchedule(context.Background(), 1, days)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -111,7 +111,7 @@ func TestSetEmployeeScheduleBreakValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubScheduleRepo{}
 
-			err := newScheduleService(repo).SetEmployeeSchedule(1, days)
+			err := newScheduleService(repo).SetEmployeeSchedule(context.Background(), 1, days)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -130,7 +130,7 @@ func TestSetEmployeeScheduleAcceptsBreakOnTheEdges(t *testing.T) {
 		BreakStartsAt: "10:00", BreakEndsAt: "11:00",
 	}}
 
-	if err := newScheduleService(&stubScheduleRepo{}).SetEmployeeSchedule(1, days); err != nil {
+	if err := newScheduleService(&stubScheduleRepo{}).SetEmployeeSchedule(context.Background(), 1, days); err != nil {
 		t.Fatalf("перерыв с самого открытия допустим, получено %v", err)
 	}
 }

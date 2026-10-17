@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -18,7 +19,7 @@ type fakeScheduleServ struct {
 	setEmpID int
 }
 
-func (f *fakeScheduleServ) SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error {
+func (f *fakeScheduleServ) SetEmployeeSchedule(_ context.Context, employeeID int, days []models.WorkingDay) error {
 	f.setEmpID = employeeID
 	f.setDays = days
 	return f.setErr

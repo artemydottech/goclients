@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -11,7 +12,7 @@ import (
 )
 
 type ScheduleServ interface {
-	SetEmployeeSchedule(employeeID int, days []models.WorkingDay) error
+	SetEmployeeSchedule(ctx context.Context, employeeID int, days []models.WorkingDay) error
 	GetEmployeeSchedule(employeeID int) ([]models.WorkingDay, error)
 }
 
@@ -43,7 +44,7 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err := h.schedule.SetEmployeeSchedule(employeeID, input.Days)
+	err := h.schedule.SetEmployeeSchedule(r.Context(), employeeID, input.Days)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())
