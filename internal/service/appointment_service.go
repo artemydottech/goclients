@@ -231,8 +231,8 @@ func (s *AppointmentService) GetAllAppointments(ctx context.Context) ([]models.A
 	return s.repo.GetAllAppointments(ctx)
 }
 
-func (s *AppointmentService) GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error) {
-	return s.repo.GetAppointmentsByEmployee(context.TODO(), employeeID, from, to)
+func (s *AppointmentService) GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error) {
+	return s.repo.GetAppointmentsByEmployee(ctx, employeeID, from, to)
 }
 
 func (s *AppointmentService) GetAppointmentsByClient(clientID int) ([]models.Appointment, error) {

@@ -45,7 +45,7 @@ func (f *fakeAppointmentServ) GetAllAppointments(context.Context) ([]models.Appo
 	return f.all, f.allErr
 }
 
-func (f *fakeAppointmentServ) GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error) {
+func (f *fakeAppointmentServ) GetAppointmentsByEmployee(_ context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error) {
 	f.byEmployeeID, f.from, f.to = employeeID, from, to
 	return f.all, f.allErr
 }

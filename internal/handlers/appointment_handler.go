@@ -14,7 +14,7 @@ import (
 type AppointmentServ interface {
 	Book(a models.Appointment) (int64, error)
 	GetAllAppointments(ctx context.Context) ([]models.Appointment, error)
-	GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error)
+	GetAppointmentsByEmployee(ctx context.Context, employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
 	SetStatus(id int, status models.AppointmentStatus) error
@@ -87,7 +87,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		appointments, err := h.service.GetAppointmentsByEmployee(employeeID, from, to)
+		appointments, err := h.service.GetAppointmentsByEmployee(r.Context(), employeeID, from, to)
 		if err != nil {
 			slog.ErrorContext(r.Context(), "GetAppointmentsByEmployee failed", "err", err)
 			writeError(w, http.StatusInternalServerError, "failed to load appointments")
