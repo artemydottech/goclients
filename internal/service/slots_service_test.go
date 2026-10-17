@@ -14,7 +14,7 @@ type stubSchedule struct {
 	working bool
 }
 
-func (s stubSchedule) WorkingDay(int, int) (models.WorkingDay, bool, error) {
+func (s stubSchedule) WorkingDay(context.Context, int, int) (models.WorkingDay, bool, error) {
 	return s.day, s.working, nil
 }
 

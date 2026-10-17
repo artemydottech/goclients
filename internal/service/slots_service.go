@@ -11,7 +11,7 @@ import (
 const defaultSlotStep int = 15
 
 type Schedule interface {
-	WorkingDay(employeeID, weekday int) (models.WorkingDay, bool, error)
+	WorkingDay(ctx context.Context, employeeID, weekday int) (models.WorkingDay, bool, error)
 }
 
 type Calendar interface {
@@ -144,7 +144,7 @@ func overlapsAny(from, to time.Time, booked []models.Appointment) bool {
 }
 
 func workingWindow(schedule Schedule, employeeID int, day time.Time) (time.Time, time.Time, []models.TimeOff, bool, error) {
-	working, isWorkingDay, err := schedule.WorkingDay(employeeID, int(day.Weekday()))
+	working, isWorkingDay, err := schedule.WorkingDay(context.TODO(), employeeID, int(day.Weekday()))
 	if err != nil || !isWorkingDay {
 		return time.Time{}, time.Time{}, nil, false, err
 	}
