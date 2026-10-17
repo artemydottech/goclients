@@ -29,8 +29,8 @@ func NewTimeOffService(repo TimeOffRepo, employees EmployeeLookup, calendar Cale
 	return &TimeOffService{repo: repo, employees: employees, calendar: calendar}
 }
 
-func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64, error) {
-	if _, err := s.employees.GetEmployeeById(context.TODO(), employeeID); err != nil {
+func (s *TimeOffService) CreateTimeOff(ctx context.Context, employeeID int, t models.TimeOff) (int64, error) {
+	if _, err := s.employees.GetEmployeeById(ctx, employeeID); err != nil {
 		return 0, err
 	}
 
@@ -46,7 +46,7 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 		return 0, models.Invalid("reason is too long, keep it under 200 characters")
 	}
 
-	booked, err := s.calendar.GetAppointmentsByEmployee(context.TODO(), employeeID, t.StartsAt, t.EndsAt)
+	booked, err := s.calendar.GetAppointmentsByEmployee(ctx, employeeID, t.StartsAt, t.EndsAt)
 	if err != nil {
 		return 0, err
 	}
@@ -65,7 +65,7 @@ func (s *TimeOffService) CreateTimeOff(employeeID int, t models.TimeOff) (int64,
 	t.StartsAt = t.StartsAt.UTC()
 	t.EndsAt = t.EndsAt.UTC()
 
-	return s.repo.Create(context.TODO(), t)
+	return s.repo.Create(ctx, t)
 }
 
 func (s *TimeOffService) GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error) {

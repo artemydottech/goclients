@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 )
 
 type TimeOffServ interface {
-	CreateTimeOff(employeeID int, t models.TimeOff) (int64, error)
+	CreateTimeOff(ctx context.Context, employeeID int, t models.TimeOff) (int64, error)
 	GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error)
 	DeleteTimeOffById(id int) error
 }
@@ -33,7 +34,7 @@ func (h *TimeOffHandler) CreateTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := h.service.CreateTimeOff(employeeID, input)
+	id, err := h.service.CreateTimeOff(r.Context(), employeeID, input)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
 		writeError(w, http.StatusBadRequest, validationErr.Error())

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -19,7 +20,7 @@ type fakeTimeOffServ struct {
 	deleteErr  error
 }
 
-func (f *fakeTimeOffServ) CreateTimeOff(employeeID int, t models.TimeOff) (int64, error) {
+func (f *fakeTimeOffServ) CreateTimeOff(_ context.Context, employeeID int, t models.TimeOff) (int64, error) {
 	f.employeeID = employeeID
 	f.created = t
 	return f.createID, f.createErr

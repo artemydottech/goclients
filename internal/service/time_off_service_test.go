@@ -50,7 +50,7 @@ func newTimeOffService(repo *stubTimeOffRepo, booked []models.Appointment) *Time
 func TestCreateTimeOffStampsTheEmployee(t *testing.T) {
 	repo := &stubTimeOffRepo{}
 
-	if _, err := newTimeOffService(repo, nil).CreateTimeOff(2, vacation()); err != nil {
+	if _, err := newTimeOffService(repo, nil).CreateTimeOff(context.Background(), 2, vacation()); err != nil {
 		t.Fatalf("неожиданная ошибка: %v", err)
 	}
 	if repo.saved.EmployeeID != 2 {
@@ -74,7 +74,7 @@ func TestCreateTimeOffValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubTimeOffRepo{}
 
-			_, err := newTimeOffService(repo, nil).CreateTimeOff(2, period)
+			_, err := newTimeOffService(repo, nil).CreateTimeOff(context.Background(), 2, period)
 
 			var validationErr models.ValidationError
 			if !errors.As(err, &validationErr) {
@@ -95,7 +95,7 @@ func TestCreateTimeOffRefusesToStrandActiveAppointments(t *testing.T) {
 		Status:   models.AppointmentConfirmed,
 	}}
 
-	_, err := newTimeOffService(repo, booked).CreateTimeOff(2, vacation())
+	_, err := newTimeOffService(repo, booked).CreateTimeOff(context.Background(), 2, vacation())
 
 	var validationErr models.ValidationError
 	if !errors.As(err, &validationErr) {
@@ -113,7 +113,7 @@ func TestCreateTimeOffIgnoresCancelledAndCompletedAppointments(t *testing.T) {
 		{StartsAt: slotsDate.Add(14 * time.Hour), EndsAt: slotsDate.Add(15 * time.Hour), Status: models.AppointmentCompleted},
 	}
 
-	if _, err := newTimeOffService(repo, booked).CreateTimeOff(2, vacation()); err != nil {
+	if _, err := newTimeOffService(repo, booked).CreateTimeOff(context.Background(), 2, vacation()); err != nil {
 		t.Fatalf("отменённые и завершённые записи не мешают отпуску, получено %v", err)
 	}
 }
@@ -122,7 +122,7 @@ func TestCreateTimeOffReportsMissingEmployee(t *testing.T) {
 	repo := &stubTimeOffRepo{}
 	svc := NewTimeOffService(repo, stubEmployeeLookup{err: models.ErrNotFound}, stubCalendar{})
 
-	if _, err := svc.CreateTimeOff(2, vacation()); !errors.Is(err, models.ErrNotFound) {
+	if _, err := svc.CreateTimeOff(context.Background(), 2, vacation()); !errors.Is(err, models.ErrNotFound) {
 		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }
@@ -135,7 +135,7 @@ func TestCreateTimeOffIgnoresNoShows(t *testing.T) {
 		Status:   models.AppointmentNoShow,
 	}}
 
-	if _, err := newTimeOffService(repo, booked).CreateTimeOff(2, vacation()); err != nil {
+	if _, err := newTimeOffService(repo, booked).CreateTimeOff(context.Background(), 2, vacation()); err != nil {
 		t.Fatalf("неявка не мешает отпуску, получено %v", err)
 	}
 }
