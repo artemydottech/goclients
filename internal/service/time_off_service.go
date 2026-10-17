@@ -68,8 +68,8 @@ func (s *TimeOffService) CreateTimeOff(ctx context.Context, employeeID int, t mo
 	return s.repo.Create(ctx, t)
 }
 
-func (s *TimeOffService) GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error) {
-	return s.repo.GetTimeOffByEmployee(context.TODO(), employeeID)
+func (s *TimeOffService) GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error) {
+	return s.repo.GetTimeOffByEmployee(ctx, employeeID)
 }
 
 func (s *TimeOffService) DeleteTimeOffById(id int) error {

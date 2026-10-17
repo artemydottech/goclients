@@ -11,7 +11,7 @@ import (
 
 type TimeOffServ interface {
 	CreateTimeOff(ctx context.Context, employeeID int, t models.TimeOff) (int64, error)
-	GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error)
+	GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error)
 	DeleteTimeOffById(id int) error
 }
 
@@ -59,7 +59,7 @@ func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	periods, err := h.service.GetTimeOffByEmployee(employeeID)
+	periods, err := h.service.GetTimeOffByEmployee(r.Context(), employeeID)
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetTimeOff failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load time off")

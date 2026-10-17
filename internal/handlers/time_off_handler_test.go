@@ -26,7 +26,7 @@ func (f *fakeTimeOffServ) CreateTimeOff(_ context.Context, employeeID int, t mod
 	return f.createID, f.createErr
 }
 
-func (f *fakeTimeOffServ) GetTimeOffByEmployee(employeeID int) ([]models.TimeOff, error) {
+func (f *fakeTimeOffServ) GetTimeOffByEmployee(_ context.Context, employeeID int) ([]models.TimeOff, error) {
 	return f.periods, f.listErr
 }
 
