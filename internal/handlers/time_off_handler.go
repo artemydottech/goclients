@@ -12,7 +12,7 @@ import (
 type TimeOffServ interface {
 	CreateTimeOff(ctx context.Context, employeeID int, t models.TimeOff) (int64, error)
 	GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error)
-	DeleteTimeOffById(id int) error
+	DeleteTimeOffById(ctx context.Context, id int) error
 }
 
 type TimeOffHandler struct {
@@ -75,7 +75,7 @@ func (h *TimeOffHandler) DeleteTimeOff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.service.DeleteTimeOffById(id)
+	err := h.service.DeleteTimeOffById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "time off not found")
 		return

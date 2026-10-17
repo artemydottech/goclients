@@ -30,7 +30,7 @@ func (f *fakeTimeOffServ) GetTimeOffByEmployee(_ context.Context, employeeID int
 	return f.periods, f.listErr
 }
 
-func (f *fakeTimeOffServ) DeleteTimeOffById(id int) error {
+func (f *fakeTimeOffServ) DeleteTimeOffById(_ context.Context, id int) error {
 	return f.deleteErr
 }
 

@@ -72,8 +72,8 @@ func (s *TimeOffService) GetTimeOffByEmployee(ctx context.Context, employeeID in
 	return s.repo.GetTimeOffByEmployee(ctx, employeeID)
 }
 
-func (s *TimeOffService) DeleteTimeOffById(id int) error {
-	return s.repo.DeleteTimeOffById(context.TODO(), id)
+func (s *TimeOffService) DeleteTimeOffById(ctx context.Context, id int) error {
+	return s.repo.DeleteTimeOffById(ctx, id)
 }
 
 func overlapsTimeOff(from, to time.Time, periods []models.TimeOff) bool {
