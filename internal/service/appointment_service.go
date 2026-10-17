@@ -267,12 +267,12 @@ func (s *AppointmentService) SetStatus(ctx context.Context, id int, status model
 	return s.repo.UpdateStatus(ctx, id, status)
 }
 
-func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, error) {
-	if _, err := s.clients.GetClientById(context.TODO(), clientID); err != nil {
+func (s *AppointmentService) GetClientStats(ctx context.Context, clientID int) (models.ClientStats, error) {
+	if _, err := s.clients.GetClientById(ctx, clientID); err != nil {
 		return models.ClientStats{}, err
 	}
 
-	return s.repo.GetClientStats(context.TODO(), clientID, s.now())
+	return s.repo.GetClientStats(ctx, clientID, s.now())
 }
 
 func (s *AppointmentService) DeleteAppointmentById(ctx context.Context, id int) error {

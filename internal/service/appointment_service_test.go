@@ -738,7 +738,7 @@ func TestGetClientStatsReportsMissingClient(t *testing.T) {
 		s.clients = stubClientLookup{err: models.ErrNotFound}
 	})
 
-	if _, err := svc.GetClientStats(404); !errors.Is(err, models.ErrNotFound) {
+	if _, err := svc.GetClientStats(context.Background(), 404); !errors.Is(err, models.ErrNotFound) {
 		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }

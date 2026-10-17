@@ -69,7 +69,7 @@ func (f *fakeAppointmentServ) Reschedule(id int, startsAt time.Time, employeeID 
 	return f.rescheduled, f.rescheduleErr
 }
 
-func (f *fakeAppointmentServ) GetClientStats(clientID int) (models.ClientStats, error) {
+func (f *fakeAppointmentServ) GetClientStats(_ context.Context, clientID int) (models.ClientStats, error) {
 	return f.stats, f.statsErr
 }
 
