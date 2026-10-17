@@ -275,6 +275,6 @@ func (s *AppointmentService) GetClientStats(clientID int) (models.ClientStats, e
 	return s.repo.GetClientStats(context.TODO(), clientID, s.now())
 }
 
-func (s *AppointmentService) DeleteAppointmentById(id int) error {
-	return s.repo.DeleteAppointmentById(context.TODO(), id)
+func (s *AppointmentService) DeleteAppointmentById(ctx context.Context, id int) error {
+	return s.repo.DeleteAppointmentById(ctx, id)
 }

@@ -20,7 +20,7 @@ type AppointmentServ interface {
 	SetStatus(id int, status models.AppointmentStatus) error
 	Reschedule(id int, startsAt time.Time, employeeID int) (models.Appointment, error)
 	GetClientStats(clientID int) (models.ClientStats, error)
-	DeleteAppointmentById(id int) error
+	DeleteAppointmentById(ctx context.Context, id int) error
 }
 
 type AppointmentHandler struct {
@@ -196,7 +196,7 @@ func (h *AppointmentHandler) DeleteAppointment(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err := h.service.DeleteAppointmentById(id)
+	err := h.service.DeleteAppointmentById(r.Context(), id)
 	if errors.Is(err, models.ErrNotFound) {
 		writeError(w, http.StatusNotFound, "appointment not found")
 		return

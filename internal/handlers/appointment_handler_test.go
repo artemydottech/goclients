@@ -73,7 +73,7 @@ func (f *fakeAppointmentServ) GetClientStats(clientID int) (models.ClientStats, 
 	return f.stats, f.statsErr
 }
 
-func (f *fakeAppointmentServ) DeleteAppointmentById(id int) error {
+func (f *fakeAppointmentServ) DeleteAppointmentById(_ context.Context, id int) error {
 	return f.deleteErr
 }
 
