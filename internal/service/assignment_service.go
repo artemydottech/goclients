@@ -72,8 +72,8 @@ func (s *AssignmentService) GetServicesByEmployee(ctx context.Context, employeeI
 	return s.repo.GetServicesByEmployee(ctx, employeeID)
 }
 
-func (s *AssignmentService) GetEmployeesByService(serviceID int) ([]models.Employee, error) {
-	return s.repo.GetEmployeesByService(context.TODO(), serviceID)
+func (s *AssignmentService) GetEmployeesByService(ctx context.Context, serviceID int) ([]models.Employee, error) {
+	return s.repo.GetEmployeesByService(ctx, serviceID)
 }
 
 func (s *AssignmentService) EmployeePerformsService(employeeID, serviceID int) (bool, error) {

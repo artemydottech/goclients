@@ -12,7 +12,7 @@ import (
 type AssignmentServ interface {
 	SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error
 	GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error)
-	GetEmployeesByService(serviceID int) ([]models.Employee, error)
+	GetEmployeesByService(ctx context.Context, serviceID int) ([]models.Employee, error)
 }
 
 type AssignmentHandler struct {
@@ -79,7 +79,7 @@ func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	employees, err := h.service.GetEmployeesByService(serviceID)
+	employees, err := h.service.GetEmployeesByService(r.Context(), serviceID)
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetServiceEmployees failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load service employees")
