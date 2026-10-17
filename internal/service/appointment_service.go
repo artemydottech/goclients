@@ -227,8 +227,8 @@ func absenceReason(t models.TimeOff) string {
 	return t.Reason
 }
 
-func (s *AppointmentService) GetAllAppointments() ([]models.Appointment, error) {
-	return s.repo.GetAllAppointments(context.TODO())
+func (s *AppointmentService) GetAllAppointments(ctx context.Context) ([]models.Appointment, error) {
+	return s.repo.GetAllAppointments(ctx)
 }
 
 func (s *AppointmentService) GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error) {

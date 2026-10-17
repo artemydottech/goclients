@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 type AppointmentServ interface {
 	Book(a models.Appointment) (int64, error)
-	GetAllAppointments() ([]models.Appointment, error)
+	GetAllAppointments(ctx context.Context) ([]models.Appointment, error)
 	GetAppointmentsByEmployee(employeeID int, from, to time.Time) ([]models.Appointment, error)
 	GetAppointmentsByClient(clientID int) ([]models.Appointment, error)
 	GetAppointmentById(id int) (models.Appointment, error)
@@ -97,7 +98,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	appointments, err := h.service.GetAllAppointments()
+	appointments, err := h.service.GetAllAppointments(r.Context())
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetAllAppointments failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load appointments")

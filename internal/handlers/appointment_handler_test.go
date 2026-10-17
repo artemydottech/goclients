@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -40,7 +41,7 @@ func (f *fakeAppointmentServ) Book(a models.Appointment) (int64, error) {
 	return f.bookID, f.bookErr
 }
 
-func (f *fakeAppointmentServ) GetAllAppointments() ([]models.Appointment, error) {
+func (f *fakeAppointmentServ) GetAllAppointments(context.Context) ([]models.Appointment, error) {
 	return f.all, f.allErr
 }
 
