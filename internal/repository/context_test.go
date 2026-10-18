@@ -89,3 +89,25 @@ func TestServiceRepositoryHonorsCancelledContext(t *testing.T) {
 
 	assertCancelled(t, repo.DeleteServiceById(ctx, 1))
 }
+
+func TestClientRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewClientRepository(newTestDB(t))
+	ctx := cancelledContext()
+
+	_, err := repo.Create(ctx, models.Client{CompanyID: 1, Name: "Ivan", Phone: "+79990000000"})
+	assertCancelled(t, err)
+
+	_, err = repo.GetAllClients(ctx)
+	assertCancelled(t, err)
+
+	_, err = repo.GetClientsByCompany(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.GetClientById(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.GetClientByPhone(ctx, 1, "+79990000000")
+	assertCancelled(t, err)
+
+	assertCancelled(t, repo.DeleteClientById(ctx, 1))
+}
