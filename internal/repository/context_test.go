@@ -127,3 +127,17 @@ func TestAssignmentRepositoryHonorsCancelledContext(t *testing.T) {
 	_, err = repo.EmployeePerformsService(ctx, 1, 1)
 	assertCancelled(t, err)
 }
+
+func TestScheduleRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewScheduleRepository(newTestDB(t))
+	ctx := cancelledContext()
+
+	days := []models.WorkingDay{{Weekday: 1, StartsAt: "09:00", EndsAt: "18:00"}}
+	assertCancelled(t, repo.SetEmployeeSchedule(ctx, 1, days))
+
+	_, err := repo.GetEmployeeSchedule(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.GetWorkingDay(ctx, 1, 1)
+	assertCancelled(t, err)
+}
