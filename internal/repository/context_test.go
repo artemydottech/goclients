@@ -111,3 +111,19 @@ func TestClientRepositoryHonorsCancelledContext(t *testing.T) {
 
 	assertCancelled(t, repo.DeleteClientById(ctx, 1))
 }
+
+func TestAssignmentRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewAssignmentRepository(newTestDB(t))
+	ctx := cancelledContext()
+
+	assertCancelled(t, repo.SetEmployeeServices(ctx, 1, []int{1, 2}))
+
+	_, err := repo.GetServicesByEmployee(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.GetEmployeesByService(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.EmployeePerformsService(ctx, 1, 1)
+	assertCancelled(t, err)
+}
