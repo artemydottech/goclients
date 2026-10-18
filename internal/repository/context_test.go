@@ -54,3 +54,19 @@ func TestCompanyRepositoryHonorsCancelledContext(t *testing.T) {
 
 	assertCancelled(t, repo.DeleteCompanyById(ctx, 1))
 }
+
+func TestEmployeeRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewEmployeeRepository(newTestDB(t))
+	ctx := cancelledContext()
+
+	_, err := repo.Create(ctx, models.Employee{CompanyID: 1, Name: "Anna", Surname: "Ivanova"})
+	assertCancelled(t, err)
+
+	_, err = repo.GetAllEmployees(ctx)
+	assertCancelled(t, err)
+
+	_, err = repo.GetEmployeeById(ctx, 1)
+	assertCancelled(t, err)
+
+	assertCancelled(t, repo.DeleteEmployeeById(ctx, 1))
+}
