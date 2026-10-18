@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func cancelledContext() context.Context {
@@ -19,4 +21,20 @@ func assertCancelled(t *testing.T, err error) {
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("got %v, want context.Canceled", err)
 	}
+}
+
+func TestUserRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewUserRepository(newTestDB(t))
+	ctx := cancelledContext()
+
+	_, err := repo.Create(ctx, models.User{Name: "Anna", Surname: "Ivanova", Username: "anna"})
+	assertCancelled(t, err)
+
+	_, err = repo.GetAllUsers(ctx)
+	assertCancelled(t, err)
+
+	_, err = repo.GetUserById(ctx, 1)
+	assertCancelled(t, err)
+
+	assertCancelled(t, repo.DeleteUserById(ctx, 1))
 }
