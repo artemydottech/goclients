@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -140,4 +141,21 @@ func TestScheduleRepositoryHonorsCancelledContext(t *testing.T) {
 
 	_, err = repo.GetWorkingDay(ctx, 1, 1)
 	assertCancelled(t, err)
+}
+
+func TestTimeOffRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewTimeOffRepository(newTestDB(t))
+	ctx := cancelledContext()
+	from := time.Date(2026, 10, 20, 0, 0, 0, 0, time.UTC)
+
+	_, err := repo.Create(ctx, models.TimeOff{EmployeeID: 1, StartsAt: from, EndsAt: from.AddDate(0, 0, 3)})
+	assertCancelled(t, err)
+
+	_, err = repo.GetTimeOffByEmployee(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.GetTimeOffInRange(ctx, 1, from, from.AddDate(0, 0, 7))
+	assertCancelled(t, err)
+
+	assertCancelled(t, repo.DeleteTimeOffById(ctx, 1))
 }
