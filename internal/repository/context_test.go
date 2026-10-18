@@ -159,3 +159,44 @@ func TestTimeOffRepositoryHonorsCancelledContext(t *testing.T) {
 
 	assertCancelled(t, repo.DeleteTimeOffById(ctx, 1))
 }
+
+func TestAppointmentRepositoryHonorsCancelledContext(t *testing.T) {
+	repo := NewAppointmentRepository(newTestDB(t))
+	ctx := cancelledContext()
+	from := time.Date(2026, 10, 20, 10, 0, 0, 0, time.UTC)
+	to := from.Add(time.Hour)
+	appointment := models.Appointment{
+		CompanyID: 1, ClientID: 1, EmployeeID: 1, ServiceID: 1,
+		StartsAt: from, EndsAt: to, Status: models.AppointmentPending,
+	}
+
+	_, err := repo.Create(ctx, appointment)
+	assertCancelled(t, err)
+
+	_, _, err = repo.CreateIfFree(ctx, appointment)
+	assertCancelled(t, err)
+
+	_, err = repo.MoveIfFree(ctx, 1, appointment)
+	assertCancelled(t, err)
+
+	_, err = repo.HasOverlap(ctx, 1, from, to)
+	assertCancelled(t, err)
+
+	_, err = repo.GetAllAppointments(ctx)
+	assertCancelled(t, err)
+
+	_, err = repo.GetAppointmentsByEmployee(ctx, 1, from, to)
+	assertCancelled(t, err)
+
+	_, err = repo.GetAppointmentsByClient(ctx, 1)
+	assertCancelled(t, err)
+
+	_, err = repo.GetAppointmentById(ctx, 1)
+	assertCancelled(t, err)
+
+	assertCancelled(t, repo.UpdateStatus(ctx, 1, models.AppointmentConfirmed))
+	assertCancelled(t, repo.DeleteAppointmentById(ctx, 1))
+
+	_, err = repo.GetClientStats(ctx, 1, from)
+	assertCancelled(t, err)
+}
