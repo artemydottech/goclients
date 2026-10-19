@@ -11,6 +11,7 @@ import (
 )
 
 type fakeEmployeeServ struct {
+	gotCtx    context.Context
 	createID  int64
 	createErr error
 	created   models.Employee
@@ -30,7 +31,8 @@ func (f *fakeEmployeeServ) GetAllEmployees(context.Context) ([]models.Employee, 
 	return f.listItems, f.listErr
 }
 
-func (f *fakeEmployeeServ) GetEmployeeById(_ context.Context, id int) (models.Employee, error) {
+func (f *fakeEmployeeServ) GetEmployeeById(ctx context.Context, id int) (models.Employee, error) {
+	f.gotCtx = ctx
 	return f.item, f.getErr
 }
 
@@ -157,4 +159,13 @@ func TestEmployeeDelete(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestGetEmployeeByIdPassesRequestContext(t *testing.T) {
+	serv := &fakeEmployeeServ{}
+	h := NewEmployeeHandler(serv)
+
+	serveWithContext(t, markedContext(), "GET /employees/{id}", h.GetEmployeeById, http.MethodGet, "/employees/1", "")
+
+	assertMarked(t, serv.gotCtx)
 }
