@@ -871,3 +871,44 @@ func TestClientStatsForANewClient(t *testing.T) {
 		t.Errorf("у клиента без записей получено %+v", stats)
 	}
 }
+
+func TestCompanyRepositoryUpdateReplacesTheFields(t *testing.T) {
+	repo := NewCompanyRepository(newTestDB(t))
+	ctx := context.Background()
+
+	id, err := repo.Create(ctx, models.Company{Name: "Old", Address: "Moscow", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	err = repo.UpdateCompany(ctx, models.Company{
+		ID:       int(id),
+		Name:     "New",
+		Timezone: "Asia/Yekaterinburg",
+		Socials:  models.Socials{models.SocialVK: "club1"},
+	})
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	got, err := repo.GetCompanyById(ctx, int(id))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Name != "New" || got.Address != "" || got.Timezone != "Asia/Yekaterinburg" {
+		t.Errorf("got %+v", got)
+	}
+	if got.Socials[models.SocialVK] != "club1" {
+		t.Errorf("socials = %v", got.Socials)
+	}
+}
+
+func TestCompanyRepositoryUpdateMissingCompany(t *testing.T) {
+	repo := NewCompanyRepository(newTestDB(t))
+
+	err := repo.UpdateCompany(context.Background(), models.Company{ID: 404, Name: "Ghost", Timezone: "UTC"})
+
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("got %v, want models.ErrNotFound", err)
+	}
+}

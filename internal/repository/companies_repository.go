@@ -33,6 +33,34 @@ func (r *CompanyRepository) Create(ctx context.Context, c models.Company) (int64
 	return res.LastInsertId()
 }
 
+func (r *CompanyRepository) UpdateCompany(ctx context.Context, c models.Company) error {
+	socialJSON, err := json.Marshal(c.Socials)
+	if err != nil {
+		return err
+	}
+
+	res, err := r.db.ExecContext(ctx, `
+        UPDATE companies
+        SET name = ?, address = ?, geolocation = ?, schedule = ?, site = ?, socials = ?, logo = ?, timezone = ?
+        WHERE id = ?`,
+		c.Name, c.Address, c.Geolocation, c.Schedule, c.Site, string(socialJSON), c.Logo, c.Timezone, c.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errNoRows
+	}
+
+	return nil
+}
+
 func (r *CompanyRepository) GetAllCompanies(ctx context.Context) ([]models.Company, error) {
 	rows, err := r.db.QueryContext(ctx, `
         SELECT id, name, address, geolocation, schedule, site, socials, logo, timezone
