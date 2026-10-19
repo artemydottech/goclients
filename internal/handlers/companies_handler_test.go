@@ -11,6 +11,7 @@ import (
 )
 
 type fakeCompanyServ struct {
+	gotCtx    context.Context
 	createID  int64
 	createErr error
 	created   models.Company
@@ -21,7 +22,8 @@ type fakeCompanyServ struct {
 	deleteErr error
 }
 
-func (f *fakeCompanyServ) CreateCompany(_ context.Context, v models.Company) (int64, error) {
+func (f *fakeCompanyServ) CreateCompany(ctx context.Context, v models.Company) (int64, error) {
+	f.gotCtx = ctx
 	f.created = v
 	return f.createID, f.createErr
 }
@@ -157,4 +159,13 @@ func TestCompanyDelete(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestCreateCompanyPassesRequestContext(t *testing.T) {
+	serv := &fakeCompanyServ{}
+	h := NewCompanyHandler(serv)
+
+	serveWithContext(t, markedContext(), "POST /companies", h.CreateCompany, http.MethodPost, "/companies", `{"name":"Romashka"}`)
+
+	assertMarked(t, serv.gotCtx)
 }
