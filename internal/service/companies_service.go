@@ -22,36 +22,45 @@ func NewCompanyService(repo CompanyRepo) *CompanyService {
 	return &CompanyService{repo: repo}
 }
 
-func (s *CompanyService) CreateCompany(ctx context.Context, c models.Company) (int64, error) {
+func validateCompany(c models.Company) (models.Company, error) {
 	if c.Name == "" {
-		return 0, models.Invalid("company name cannot be empty")
+		return c, models.Invalid("company name cannot be empty")
 	}
 
 	if utf8.RuneCountInString(c.Name) > 200 {
-		return 0, models.Invalid("company name is too long, keep it under 200 characters")
+		return c, models.Invalid("company name is too long, keep it under 200 characters")
 	}
 
 	if c.Address != "" && utf8.RuneCountInString(c.Address) > 500 {
-		return 0, models.Invalid("address is too long, keep it under 500 characters")
+		return c, models.Invalid("address is too long, keep it under 500 characters")
 	}
 
 	if c.Site != "" && utf8.RuneCountInString(c.Site) > 500 {
-		return 0, models.Invalid("website is too long, keep it under 500 characters")
+		return c, models.Invalid("website is too long, keep it under 500 characters")
 	}
 
 	if c.Logo != "" && utf8.RuneCountInString(c.Logo) > 500 {
-		return 0, models.Invalid("logo URL is too long, keep it under 500 characters")
+		return c, models.Invalid("logo URL is too long, keep it under 500 characters")
 	}
 
 	if err := c.Socials.Validate(); err != nil {
-		return 0, err
+		return c, err
 	}
 
 	if c.Timezone == "" {
 		c.Timezone = "UTC"
 	}
 	if _, err := c.Location(); err != nil {
-		return 0, models.Invalid("unknown timezone %s, use an IANA name such as Asia/Yekaterinburg", c.Timezone)
+		return c, models.Invalid("unknown timezone %s, use an IANA name such as Asia/Yekaterinburg", c.Timezone)
+	}
+
+	return c, nil
+}
+
+func (s *CompanyService) CreateCompany(ctx context.Context, c models.Company) (int64, error) {
+	c, err := validateCompany(c)
+	if err != nil {
+		return 0, err
 	}
 
 	id, err := s.repo.Create(ctx, c)
