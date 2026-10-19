@@ -108,6 +108,7 @@ func main() {
 	mux.HandleFunc("POST /companies", companiesHandlers.CreateCompany)
 	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
 	mux.HandleFunc("GET /companies/{id}", companiesHandlers.GetCompanyById)
+	mux.HandleFunc("PUT /companies/{id}", companiesHandlers.UpdateCompany)
 	mux.HandleFunc("DELETE /companies/{id}", companiesHandlers.DeleteCompany)
 
 	mux.HandleFunc("POST /employees", employeesHandlers.CreateEmployee)

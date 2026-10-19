@@ -66,6 +66,7 @@ make check      # gofmt, vet, test -race и build, как в CI
 | `POST`   | `/companies`       | `201` + `{"id": <int64>}`    |
 | `GET`    | `/companies`       | `200` + массив компаний      |
 | `GET`    | `/companies/{id}`  | `200` + компания             |
+| `PUT`    | `/companies/{id}`  | `204`, тело как при создании |
 | `DELETE` | `/companies/{id}`  | `204`                        |
 | `POST`   | `/employees`       | `201` + `{"id": <int64>}`    |
 | `GET`    | `/employees`       | `200` + массив сотрудников   |
