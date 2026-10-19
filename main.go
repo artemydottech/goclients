@@ -114,6 +114,7 @@ func main() {
 	mux.HandleFunc("POST /employees", employeesHandlers.CreateEmployee)
 	mux.HandleFunc("GET /employees", employeesHandlers.GetAllEmployees)
 	mux.HandleFunc("GET /employees/{id}", employeesHandlers.GetEmployeeById)
+	mux.HandleFunc("PUT /employees/{id}", employeesHandlers.UpdateEmployee)
 	mux.HandleFunc("DELETE /employees/{id}", employeesHandlers.DeleteEmployee)
 
 	mux.HandleFunc("POST /services", servicesHandlers.CreateService)

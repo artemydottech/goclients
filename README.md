@@ -71,6 +71,7 @@ make check      # gofmt, vet, test -race и build, как в CI
 | `POST`   | `/employees`       | `201` + `{"id": <int64>}`    |
 | `GET`    | `/employees`       | `200` + массив сотрудников   |
 | `GET`    | `/employees/{id}`  | `200` + сотрудник            |
+| `PUT`    | `/employees/{id}`  | `204`, `company_id` не меняется |
 | `DELETE` | `/employees/{id}`  | `204`                        |
 
 ## Услуги
