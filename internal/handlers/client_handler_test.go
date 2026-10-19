@@ -11,6 +11,7 @@ import (
 )
 
 type fakeClientServ struct {
+	gotCtx    context.Context
 	createID  int64
 	createErr error
 	created   models.Client
@@ -22,7 +23,8 @@ type fakeClientServ struct {
 	deleteErr error
 }
 
-func (f *fakeClientServ) CreateClient(_ context.Context, v models.Client) (int64, error) {
+func (f *fakeClientServ) CreateClient(ctx context.Context, v models.Client) (int64, error) {
+	f.gotCtx = ctx
 	f.created = v
 	return f.createID, f.createErr
 }
@@ -183,4 +185,13 @@ func TestClientDelete(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestCreateClientPassesRequestContext(t *testing.T) {
+	serv := &fakeClientServ{}
+	h := NewClientHandler(serv)
+
+	serveWithContext(t, markedContext(), "POST /clients", h.CreateClient, http.MethodPost, "/clients", `{"name":"Ivan","phone":"+79990000000"}`)
+
+	assertMarked(t, serv.gotCtx)
 }
