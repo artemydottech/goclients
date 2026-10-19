@@ -27,6 +27,27 @@ func (r *EmployeeRepository) Create(ctx context.Context, e models.Employee) (int
 	return res.LastInsertId()
 }
 
+func (r *EmployeeRepository) UpdateEmployee(ctx context.Context, e models.Employee) error {
+	res, err := r.db.ExecContext(ctx,
+		"UPDATE employees SET name = ?, surname = ?, position = ?, avatar = ? WHERE id = ?",
+		e.Name, e.Surname, e.Position, e.Avatar, e.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errNoRows
+	}
+
+	return nil
+}
+
 func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]models.Employee, error) {
 	rows, err := r.db.QueryContext(ctx, `
         SELECT id, company_id, name, surname, position, avatar

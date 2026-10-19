@@ -912,3 +912,46 @@ func TestCompanyRepositoryUpdateMissingCompany(t *testing.T) {
 		t.Fatalf("got %v, want models.ErrNotFound", err)
 	}
 }
+
+func TestEmployeeRepositoryUpdateKeepsTheCompany(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companyID, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "Romashka", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewEmployeeRepository(db)
+	id, err := repo.Create(ctx, models.Employee{CompanyID: int(companyID), Name: "Anna", Surname: "Ivanova"})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	err = repo.UpdateEmployee(ctx, models.Employee{
+		ID: int(id), CompanyID: 999, Name: "Maria", Surname: "Petrova", Position: "Senior stylist",
+	})
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	got, err := repo.GetEmployeeById(ctx, int(id))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Name != "Maria" || got.Position != "Senior stylist" {
+		t.Errorf("got %+v", got)
+	}
+	if got.CompanyID != int(companyID) {
+		t.Errorf("company changed to %d, an update must not move the employee", got.CompanyID)
+	}
+}
+
+func TestEmployeeRepositoryUpdateMissingEmployee(t *testing.T) {
+	repo := NewEmployeeRepository(newTestDB(t))
+
+	err := repo.UpdateEmployee(context.Background(), models.Employee{ID: 404, Name: "Ghost", Surname: "Ghost"})
+
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("got %v, want models.ErrNotFound", err)
+	}
+}
