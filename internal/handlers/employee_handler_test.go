@@ -11,6 +11,9 @@ import (
 )
 
 type fakeEmployeeServ struct {
+	updatedID int
+	updated   models.Employee
+	updateErr error
 	gotCtx    context.Context
 	createID  int64
 	createErr error
@@ -34,6 +37,12 @@ func (f *fakeEmployeeServ) GetAllEmployees(context.Context) ([]models.Employee, 
 func (f *fakeEmployeeServ) GetEmployeeById(ctx context.Context, id int) (models.Employee, error) {
 	f.gotCtx = ctx
 	return f.item, f.getErr
+}
+
+func (f *fakeEmployeeServ) UpdateEmployee(_ context.Context, id int, v models.Employee) error {
+	f.updatedID = id
+	f.updated = v
+	return f.updateErr
 }
 
 func (f *fakeEmployeeServ) DeleteEmployeeById(_ context.Context, id int) error {
@@ -168,4 +177,43 @@ func TestGetEmployeeByIdPassesRequestContext(t *testing.T) {
 	serveWithContext(t, markedContext(), "GET /employees/{id}", h.GetEmployeeById, http.MethodGet, "/employees/1", "")
 
 	assertMarked(t, serv.gotCtx)
+}
+
+func TestUpdateEmployee(t *testing.T) {
+	body := `{"name":"Anna","surname":"Ivanova"}`
+	tests := []struct {
+		name       string
+		target     string
+		body       string
+		serv       *fakeEmployeeServ
+		wantStatus int
+	}{
+		{"updated", "/employees/3", body, &fakeEmployeeServ{}, http.StatusNoContent},
+		{"bad id", "/employees/x", body, &fakeEmployeeServ{}, http.StatusBadRequest},
+		{"malformed body", "/employees/3", `{oops`, &fakeEmployeeServ{}, http.StatusBadRequest},
+		{"validation error", "/employees/3", body, &fakeEmployeeServ{updateErr: models.Invalid("employee name cannot be empty")}, http.StatusBadRequest},
+		{"not found", "/employees/3", body, &fakeEmployeeServ{updateErr: models.ErrNotFound}, http.StatusNotFound},
+		{"storage failure", "/employees/3", body, &fakeEmployeeServ{updateErr: errors.New("boom")}, http.StatusInternalServerError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewEmployeeHandler(tt.serv)
+
+			rec := serve(t, "PUT /employees/{id}", h.UpdateEmployee, http.MethodPut, tt.target, tt.body)
+
+			assertStatus(t, rec, tt.wantStatus)
+		})
+	}
+}
+
+func TestUpdateEmployeePassesIDAndBody(t *testing.T) {
+	serv := &fakeEmployeeServ{}
+	h := NewEmployeeHandler(serv)
+
+	serve(t, "PUT /employees/{id}", h.UpdateEmployee, http.MethodPut, "/employees/8", `{"name":"Anna","surname":"Ivanova","position":"Stylist"}`)
+
+	if serv.updatedID != 8 || serv.updated.Position != "Stylist" {
+		t.Errorf("service got id=%d employee=%+v", serv.updatedID, serv.updated)
+	}
 }

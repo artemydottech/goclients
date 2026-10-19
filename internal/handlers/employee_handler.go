@@ -13,6 +13,7 @@ type EmployeeServ interface {
 	CreateEmployee(ctx context.Context, e models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
 	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
+	UpdateEmployee(ctx context.Context, id int, e models.Employee) error
 	DeleteEmployeeById(ctx context.Context, id int) error
 }
 
@@ -73,6 +74,36 @@ func (h *EmployeeHandler) GetEmployeeById(w http.ResponseWriter, r *http.Request
 	}
 
 	writeJSON(w, employee)
+}
+
+func (h *EmployeeHandler) UpdateEmployee(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	var input models.Employee
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+
+	err := h.service.UpdateEmployee(r.Context(), id, input)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		writeError(w, http.StatusBadRequest, validationErr.Error())
+		return
+	}
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "employee not found")
+		return
+	}
+	if err != nil {
+		slog.ErrorContext(r.Context(), "UpdateEmployee failed", "err", err)
+		writeError(w, http.StatusInternalServerError, "failed to update employee")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *EmployeeHandler) DeleteEmployee(w http.ResponseWriter, r *http.Request) {
