@@ -13,6 +13,7 @@ type CompanyServ interface {
 	CreateCompany(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies(ctx context.Context) ([]models.Company, error)
 	GetCompanyById(ctx context.Context, id int) (models.Company, error)
+	UpdateCompany(ctx context.Context, id int, c models.Company) error
 	DeleteCompanyById(ctx context.Context, id int) error
 }
 
@@ -73,6 +74,36 @@ func (h *CompanyHandler) GetCompanyById(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, company)
+}
+
+func (h *CompanyHandler) UpdateCompany(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	var input models.Company
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+
+	err := h.service.UpdateCompany(r.Context(), id, input)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		writeError(w, http.StatusBadRequest, validationErr.Error())
+		return
+	}
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "company not found")
+		return
+	}
+	if err != nil {
+		slog.ErrorContext(r.Context(), "UpdateCompany failed", "err", err)
+		writeError(w, http.StatusInternalServerError, "failed to update company")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *CompanyHandler) DeleteCompany(w http.ResponseWriter, r *http.Request) {

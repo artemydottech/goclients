@@ -11,6 +11,9 @@ import (
 )
 
 type fakeCompanyServ struct {
+	updatedID int
+	updated   models.Company
+	updateErr error
 	gotCtx    context.Context
 	createID  int64
 	createErr error
@@ -34,6 +37,12 @@ func (f *fakeCompanyServ) GetAllCompanies(context.Context) ([]models.Company, er
 
 func (f *fakeCompanyServ) GetCompanyById(_ context.Context, id int) (models.Company, error) {
 	return f.item, f.getErr
+}
+
+func (f *fakeCompanyServ) UpdateCompany(_ context.Context, id int, v models.Company) error {
+	f.updatedID = id
+	f.updated = v
+	return f.updateErr
 }
 
 func (f *fakeCompanyServ) DeleteCompanyById(_ context.Context, id int) error {
@@ -168,4 +177,42 @@ func TestCreateCompanyPassesRequestContext(t *testing.T) {
 	serveWithContext(t, markedContext(), "POST /companies", h.CreateCompany, http.MethodPost, "/companies", `{"name":"Romashka"}`)
 
 	assertMarked(t, serv.gotCtx)
+}
+
+func TestUpdateCompany(t *testing.T) {
+	tests := []struct {
+		name       string
+		target     string
+		body       string
+		serv       *fakeCompanyServ
+		wantStatus int
+	}{
+		{"updated", "/companies/3", `{"name":"Romashka"}`, &fakeCompanyServ{}, http.StatusNoContent},
+		{"bad id", "/companies/x", `{"name":"Romashka"}`, &fakeCompanyServ{}, http.StatusBadRequest},
+		{"malformed body", "/companies/3", `{oops`, &fakeCompanyServ{}, http.StatusBadRequest},
+		{"validation error", "/companies/3", `{"name":""}`, &fakeCompanyServ{updateErr: models.Invalid("company name cannot be empty")}, http.StatusBadRequest},
+		{"not found", "/companies/3", `{"name":"Romashka"}`, &fakeCompanyServ{updateErr: models.ErrNotFound}, http.StatusNotFound},
+		{"storage failure", "/companies/3", `{"name":"Romashka"}`, &fakeCompanyServ{updateErr: errors.New("boom")}, http.StatusInternalServerError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewCompanyHandler(tt.serv)
+
+			rec := serve(t, "PUT /companies/{id}", h.UpdateCompany, http.MethodPut, tt.target, tt.body)
+
+			assertStatus(t, rec, tt.wantStatus)
+		})
+	}
+}
+
+func TestUpdateCompanyPassesIDAndBody(t *testing.T) {
+	serv := &fakeCompanyServ{}
+	h := NewCompanyHandler(serv)
+
+	serve(t, "PUT /companies/{id}", h.UpdateCompany, http.MethodPut, "/companies/5", `{"name":"Romashka","timezone":"Asia/Yekaterinburg"}`)
+
+	if serv.updatedID != 5 || serv.updated.Name != "Romashka" || serv.updated.Timezone != "Asia/Yekaterinburg" {
+		t.Errorf("service got id=%d company=%+v", serv.updatedID, serv.updated)
+	}
 }
