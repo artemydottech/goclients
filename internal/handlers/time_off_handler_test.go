@@ -11,6 +11,7 @@ import (
 )
 
 type fakeTimeOffServ struct {
+	gotCtx     context.Context
 	createID   int64
 	createErr  error
 	employeeID int
@@ -26,7 +27,8 @@ func (f *fakeTimeOffServ) CreateTimeOff(_ context.Context, employeeID int, t mod
 	return f.createID, f.createErr
 }
 
-func (f *fakeTimeOffServ) GetTimeOffByEmployee(_ context.Context, employeeID int) ([]models.TimeOff, error) {
+func (f *fakeTimeOffServ) GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error) {
+	f.gotCtx = ctx
 	return f.periods, f.listErr
 }
 
@@ -132,4 +134,13 @@ func TestDeleteTimeOff(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestGetTimeOffPassesRequestContext(t *testing.T) {
+	serv := &fakeTimeOffServ{}
+	h := NewTimeOffHandler(serv)
+
+	serveWithContext(t, markedContext(), "GET /employees/{id}/time-off", h.GetTimeOff, http.MethodGet, "/employees/1/time-off", "")
+
+	assertMarked(t, serv.gotCtx)
 }
