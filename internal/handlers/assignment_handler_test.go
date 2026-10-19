@@ -11,6 +11,7 @@ import (
 )
 
 type fakeAssignmentServ struct {
+	gotCtx      context.Context
 	setErr      error
 	setEmployee int
 	setServices []int
@@ -19,7 +20,8 @@ type fakeAssignmentServ struct {
 	listErr     error
 }
 
-func (f *fakeAssignmentServ) SetEmployeeServices(_ context.Context, employeeID int, serviceIDs []int) error {
+func (f *fakeAssignmentServ) SetEmployeeServices(ctx context.Context, employeeID int, serviceIDs []int) error {
+	f.gotCtx = ctx
 	f.setEmployee = employeeID
 	f.setServices = serviceIDs
 	return f.setErr
@@ -132,4 +134,13 @@ func TestGetServiceEmployees(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestSetEmployeeServicesPassesRequestContext(t *testing.T) {
+	serv := &fakeAssignmentServ{}
+	h := NewAssignmentHandler(serv)
+
+	serveWithContext(t, markedContext(), "PUT /employees/{id}/services", h.SetEmployeeServices, http.MethodPut, "/employees/1/services", `{"service_ids":[1]}`)
+
+	assertMarked(t, serv.gotCtx)
 }
