@@ -11,6 +11,7 @@ type EmployeeRepo interface {
 	Create(ctx context.Context, c models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context) ([]models.Employee, error)
 	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
+	UpdateEmployee(ctx context.Context, e models.Employee) error
 	DeleteEmployeeById(ctx context.Context, id int) error
 }
 
@@ -61,6 +62,16 @@ func (s *EmployeeService) CreateEmployee(ctx context.Context, e models.Employee)
 	}
 
 	return id, nil
+}
+
+func (s *EmployeeService) UpdateEmployee(ctx context.Context, id int, e models.Employee) error {
+	if err := validateEmployee(e); err != nil {
+		return err
+	}
+
+	e.ID = id
+
+	return s.repo.UpdateEmployee(ctx, e)
 }
 
 func (s *EmployeeService) GetAllEmployees(ctx context.Context) ([]models.Employee, error) {

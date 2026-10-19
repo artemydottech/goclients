@@ -10,7 +10,9 @@ import (
 )
 
 type stubEmployeeRepo struct {
-	called bool
+	updated models.Employee
+	err     error
+	called  bool
 }
 
 func (r *stubEmployeeRepo) Create(context.Context, models.Employee) (int64, error) {
@@ -24,6 +26,12 @@ func (r *stubEmployeeRepo) GetAllEmployees(context.Context) ([]models.Employee, 
 
 func (r *stubEmployeeRepo) GetEmployeeById(context.Context, int) (models.Employee, error) {
 	return models.Employee{}, nil
+}
+
+func (r *stubEmployeeRepo) UpdateEmployee(_ context.Context, e models.Employee) error {
+	r.called = true
+	r.updated = e
+	return r.err
 }
 
 func (r *stubEmployeeRepo) DeleteEmployeeById(context.Context, int) error { return nil }
@@ -87,5 +95,53 @@ func TestCreateEmployeeAcceptsValidInput(t *testing.T) {
 
 	if id != 5 {
 		t.Errorf("ожидался id 5, получен %d", id)
+	}
+}
+
+func TestUpdateEmployeeValidates(t *testing.T) {
+	cases := map[string]models.Employee{
+		"empty name":        {Name: "", Surname: "Dubov"},
+		"empty surname":     {Name: "Daniil", Surname: ""},
+		"name too long":     {Name: strings.Repeat("a", 201), Surname: "Dubov"},
+		"position too long": {Name: "Daniil", Surname: "Dubov", Position: strings.Repeat("a", 501)},
+	}
+
+	for name, employee := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := &stubEmployeeRepo{}
+
+			err := NewEmployeeService(repo).UpdateEmployee(context.Background(), 1, employee)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("expected ValidationError, got %v", err)
+			}
+			if repo.called {
+				t.Error("repository must not be called for invalid input")
+			}
+		})
+	}
+}
+
+func TestUpdateEmployeeUsesThePathID(t *testing.T) {
+	repo := &stubEmployeeRepo{}
+
+	err := NewEmployeeService(repo).UpdateEmployee(context.Background(), 4, models.Employee{ID: 99, Name: "Daniil", Surname: "Dubov"})
+	if err != nil {
+		t.Fatalf("UpdateEmployee: %v", err)
+	}
+
+	if repo.updated.ID != 4 {
+		t.Errorf("ID = %d, want the path id 4", repo.updated.ID)
+	}
+}
+
+func TestUpdateEmployeePassesRepositoryErrors(t *testing.T) {
+	repo := &stubEmployeeRepo{err: models.ErrNotFound}
+
+	err := NewEmployeeService(repo).UpdateEmployee(context.Background(), 1, models.Employee{Name: "Daniil", Surname: "Dubov"})
+
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("got %v, want models.ErrNotFound", err)
 	}
 }
