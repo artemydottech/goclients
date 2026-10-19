@@ -90,3 +90,12 @@ func TestGetFreeSlotsServiceErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFreeSlotsPassesRequestContext(t *testing.T) {
+	slots := &fakeSlotsServ{}
+	h := NewScheduleHandler(&fakeScheduleServ{}, slots)
+
+	serveWithContext(t, markedContext(), "GET /slots", h.GetFreeSlots, http.MethodGet, "/slots?employee_id=1&service_id=1&date=2026-10-20", "")
+
+	assertMarked(t, slots.gotCtx)
+}

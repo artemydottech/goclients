@@ -32,6 +32,7 @@ func (f *fakeScheduleServ) GetEmployeeSchedule(ctx context.Context, employeeID i
 }
 
 type fakeSlotsServ struct {
+	gotCtx     context.Context
 	slots      []time.Time
 	err        error
 	employeeID int
@@ -40,7 +41,8 @@ type fakeSlotsServ struct {
 	step       int
 }
 
-func (f *fakeSlotsServ) FreeSlots(_ context.Context, employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
+func (f *fakeSlotsServ) FreeSlots(ctx context.Context, employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
+	f.gotCtx = ctx
 	f.employeeID, f.serviceID, f.date, f.step = employeeID, serviceID, date, step
 	return f.slots, f.err
 }
