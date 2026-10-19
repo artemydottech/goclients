@@ -11,6 +11,7 @@ import (
 )
 
 type fakeUserServ struct {
+	gotCtx      context.Context
 	registerID  int64
 	registerErr error
 	users       []models.User
@@ -22,6 +23,7 @@ type fakeUserServ struct {
 }
 
 func (f *fakeUserServ) RegisterUser(ctx context.Context, u models.User) (int64, error) {
+	f.gotCtx = ctx
 	f.registered = u
 	return f.registerID, f.registerErr
 }
@@ -151,4 +153,13 @@ func TestDeleteUser(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestCreateUserPassesRequestContext(t *testing.T) {
+	serv := &fakeUserServ{}
+	h := NewUserHandler(serv)
+
+	serveWithContext(t, markedContext(), "POST /users", h.CreateUser, http.MethodPost, "/users", `{"name":"Anna"}`)
+
+	assertMarked(t, serv.gotCtx)
 }
