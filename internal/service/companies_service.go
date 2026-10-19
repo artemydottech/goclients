@@ -11,6 +11,7 @@ type CompanyRepo interface {
 	Create(ctx context.Context, c models.Company) (int64, error)
 	GetAllCompanies(ctx context.Context) ([]models.Company, error)
 	GetCompanyById(ctx context.Context, id int) (models.Company, error)
+	UpdateCompany(ctx context.Context, c models.Company) error
 	DeleteCompanyById(ctx context.Context, id int) error
 }
 
@@ -69,6 +70,17 @@ func (s *CompanyService) CreateCompany(ctx context.Context, c models.Company) (i
 	}
 
 	return id, nil
+}
+
+func (s *CompanyService) UpdateCompany(ctx context.Context, id int, c models.Company) error {
+	c, err := validateCompany(c)
+	if err != nil {
+		return err
+	}
+
+	c.ID = id
+
+	return s.repo.UpdateCompany(ctx, c)
 }
 
 func (s *CompanyService) GetAllCompanies(ctx context.Context) ([]models.Company, error) {
