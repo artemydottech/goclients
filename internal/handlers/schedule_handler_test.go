@@ -12,6 +12,7 @@ import (
 )
 
 type fakeScheduleServ struct {
+	gotCtx   context.Context
 	setErr   error
 	setDays  []models.WorkingDay
 	days     []models.WorkingDay
@@ -25,7 +26,8 @@ func (f *fakeScheduleServ) SetEmployeeSchedule(_ context.Context, employeeID int
 	return f.setErr
 }
 
-func (f *fakeScheduleServ) GetEmployeeSchedule(_ context.Context, employeeID int) ([]models.WorkingDay, error) {
+func (f *fakeScheduleServ) GetEmployeeSchedule(ctx context.Context, employeeID int) ([]models.WorkingDay, error) {
+	f.gotCtx = ctx
 	return f.days, f.getErr
 }
 
@@ -122,4 +124,13 @@ func TestGetEmployeeScheduleErrors(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestGetEmployeeSchedulePassesRequestContext(t *testing.T) {
+	serv := &fakeScheduleServ{}
+	h := NewScheduleHandler(serv, &fakeSlotsServ{})
+
+	serveWithContext(t, markedContext(), "GET /employees/{id}/schedule", h.GetEmployeeSchedule, http.MethodGet, "/employees/1/schedule", "")
+
+	assertMarked(t, serv.gotCtx)
 }
