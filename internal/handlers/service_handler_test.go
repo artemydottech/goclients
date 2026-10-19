@@ -11,6 +11,7 @@ import (
 )
 
 type fakeCatalogServ struct {
+	gotCtx    context.Context
 	createID  int64
 	createErr error
 	created   models.Service
@@ -36,7 +37,8 @@ func (f *fakeCatalogServ) GetServicesByCompany(_ context.Context, companyID int)
 	return f.listItems, f.listErr
 }
 
-func (f *fakeCatalogServ) GetServiceById(_ context.Context, id int) (models.Service, error) {
+func (f *fakeCatalogServ) GetServiceById(ctx context.Context, id int) (models.Service, error) {
+	f.gotCtx = ctx
 	return f.item, f.getErr
 }
 
@@ -183,4 +185,13 @@ func TestServiceDelete(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestGetServiceByIdPassesRequestContext(t *testing.T) {
+	serv := &fakeCatalogServ{}
+	h := NewServiceHandler(serv)
+
+	serveWithContext(t, markedContext(), "GET /services/{id}", h.GetServiceById, http.MethodGet, "/services/1", "")
+
+	assertMarked(t, serv.gotCtx)
 }
