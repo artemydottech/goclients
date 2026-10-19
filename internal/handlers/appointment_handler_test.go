@@ -12,6 +12,7 @@ import (
 )
 
 type fakeAppointmentServ struct {
+	gotCtx    context.Context
 	bookID    int64
 	bookErr   error
 	booked    models.Appointment
@@ -36,7 +37,8 @@ type fakeAppointmentServ struct {
 	from, to     time.Time
 }
 
-func (f *fakeAppointmentServ) Book(_ context.Context, a models.Appointment) (int64, error) {
+func (f *fakeAppointmentServ) Book(ctx context.Context, a models.Appointment) (int64, error) {
+	f.gotCtx = ctx
 	f.booked = a
 	return f.bookID, f.bookErr
 }
@@ -220,4 +222,13 @@ func TestDeleteAppointment(t *testing.T) {
 			assertStatus(t, rec, tt.wantStatus)
 		})
 	}
+}
+
+func TestCreateAppointmentPassesRequestContext(t *testing.T) {
+	serv := &fakeAppointmentServ{}
+	h := NewAppointmentHandler(serv)
+
+	serveWithContext(t, markedContext(), "POST /appointments", h.CreateAppointment, http.MethodPost, "/appointments", `{"client_id":1}`)
+
+	assertMarked(t, serv.gotCtx)
 }
