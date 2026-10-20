@@ -27,6 +27,27 @@ func (r *ClientRepository) Create(ctx context.Context, c models.Client) (int64, 
 	return res.LastInsertId()
 }
 
+func (r *ClientRepository) UpdateClient(ctx context.Context, c models.Client) error {
+	res, err := r.db.ExecContext(ctx,
+		"UPDATE clients SET name = ?, phone = ?, email = ?, comment = ? WHERE id = ?",
+		c.Name, c.Phone, c.Email, c.Comment, c.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errNoRows
+	}
+
+	return nil
+}
+
 func (r *ClientRepository) GetAllClients(ctx context.Context) ([]models.Client, error) {
 	return r.queryClients(ctx, `
         SELECT id, company_id, name, phone, email, comment

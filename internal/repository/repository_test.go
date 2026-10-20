@@ -996,3 +996,70 @@ func TestServiceRepositoryUpdateMissingService(t *testing.T) {
 		t.Fatalf("got %v, want models.ErrNotFound", err)
 	}
 }
+
+func TestClientRepositoryUpdateKeepsTheCompany(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companyID, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "Romashka", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewClientRepository(db)
+	id, err := repo.Create(ctx, models.Client{CompanyID: int(companyID), Name: "Ivan", Phone: "79990000000"})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	err = repo.UpdateClient(ctx, models.Client{
+		ID: int(id), CompanyID: 999, Name: "Ivan Petrov", Phone: "79991112233", Email: "ivan@example.com", Comment: "regular",
+	})
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	got, err := repo.GetClientById(ctx, int(id))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Name != "Ivan Petrov" || got.Phone != "79991112233" || got.Email != "ivan@example.com" || got.Comment != "regular" {
+		t.Errorf("got %+v", got)
+	}
+	if got.CompanyID != int(companyID) {
+		t.Errorf("company changed to %d, an update must not move the client", got.CompanyID)
+	}
+}
+
+func TestClientRepositoryUpdateRejectsADuplicatePhone(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companyID, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "Romashka", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewClientRepository(db)
+	if _, err := repo.Create(ctx, models.Client{CompanyID: int(companyID), Name: "Anna", Phone: "79990000001"}); err != nil {
+		t.Fatalf("create first: %v", err)
+	}
+	second, err := repo.Create(ctx, models.Client{CompanyID: int(companyID), Name: "Ivan", Phone: "79990000002"})
+	if err != nil {
+		t.Fatalf("create second: %v", err)
+	}
+
+	err = repo.UpdateClient(ctx, models.Client{ID: int(second), Name: "Ivan", Phone: "79990000001"})
+
+	if err == nil {
+		t.Fatal("expected the unique phone constraint to reject the update")
+	}
+}
+
+func TestClientRepositoryUpdateMissingClient(t *testing.T) {
+	repo := NewClientRepository(newTestDB(t))
+
+	err := repo.UpdateClient(context.Background(), models.Client{ID: 404, Name: "Ghost", Phone: "79990000000"})
+
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("got %v, want models.ErrNotFound", err)
+	}
+}
