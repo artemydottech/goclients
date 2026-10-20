@@ -11,6 +11,9 @@ import (
 )
 
 type fakeCatalogServ struct {
+	updatedID int
+	updated   models.Service
+	updateErr error
 	gotCtx    context.Context
 	createID  int64
 	createErr error
@@ -40,6 +43,12 @@ func (f *fakeCatalogServ) GetServicesByCompany(_ context.Context, companyID int)
 func (f *fakeCatalogServ) GetServiceById(ctx context.Context, id int) (models.Service, error) {
 	f.gotCtx = ctx
 	return f.item, f.getErr
+}
+
+func (f *fakeCatalogServ) UpdateService(_ context.Context, id int, v models.Service) error {
+	f.updatedID = id
+	f.updated = v
+	return f.updateErr
 }
 
 func (f *fakeCatalogServ) DeleteServiceById(_ context.Context, id int) error {
@@ -194,4 +203,43 @@ func TestGetServiceByIdPassesRequestContext(t *testing.T) {
 	serveWithContext(t, markedContext(), "GET /services/{id}", h.GetServiceById, http.MethodGet, "/services/1", "")
 
 	assertMarked(t, serv.gotCtx)
+}
+
+func TestUpdateService(t *testing.T) {
+	body := `{"name":"Haircut","duration":30,"price":1000}`
+	tests := []struct {
+		name       string
+		target     string
+		body       string
+		serv       *fakeCatalogServ
+		wantStatus int
+	}{
+		{"updated", "/services/3", body, &fakeCatalogServ{}, http.StatusNoContent},
+		{"bad id", "/services/x", body, &fakeCatalogServ{}, http.StatusBadRequest},
+		{"malformed body", "/services/3", `{oops`, &fakeCatalogServ{}, http.StatusBadRequest},
+		{"validation error", "/services/3", body, &fakeCatalogServ{updateErr: models.Invalid("duration must be greater than zero")}, http.StatusBadRequest},
+		{"not found", "/services/3", body, &fakeCatalogServ{updateErr: models.ErrNotFound}, http.StatusNotFound},
+		{"storage failure", "/services/3", body, &fakeCatalogServ{updateErr: errors.New("boom")}, http.StatusInternalServerError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewServiceHandler(tt.serv)
+
+			rec := serve(t, "PUT /services/{id}", h.UpdateService, http.MethodPut, tt.target, tt.body)
+
+			assertStatus(t, rec, tt.wantStatus)
+		})
+	}
+}
+
+func TestUpdateServicePassesIDAndBody(t *testing.T) {
+	serv := &fakeCatalogServ{}
+	h := NewServiceHandler(serv)
+
+	serve(t, "PUT /services/{id}", h.UpdateService, http.MethodPut, "/services/2", `{"name":"Haircut","duration":45}`)
+
+	if serv.updatedID != 2 || serv.updated.Duration != 45 {
+		t.Errorf("service got id=%d item=%+v", serv.updatedID, serv.updated)
+	}
 }

@@ -15,6 +15,7 @@ type CatalogServ interface {
 	GetAllServices(ctx context.Context) ([]models.Service, error)
 	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
 	GetServiceById(ctx context.Context, id int) (models.Service, error)
+	UpdateService(ctx context.Context, id int, s models.Service) error
 	DeleteServiceById(ctx context.Context, id int) error
 }
 
@@ -92,6 +93,36 @@ func (h *ServiceHandler) GetServiceById(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, item)
+}
+
+func (h *ServiceHandler) UpdateService(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	var input models.Service
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+
+	err := h.service.UpdateService(r.Context(), id, input)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		writeError(w, http.StatusBadRequest, validationErr.Error())
+		return
+	}
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "service not found")
+		return
+	}
+	if err != nil {
+		slog.ErrorContext(r.Context(), "UpdateService failed", "err", err)
+		writeError(w, http.StatusInternalServerError, "failed to update service")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ServiceHandler) DeleteService(w http.ResponseWriter, r *http.Request) {
