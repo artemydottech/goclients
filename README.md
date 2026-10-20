@@ -160,6 +160,7 @@ make check      # gofmt, vet, test -race и build, как в CI
 | `GET`    | `/clients`               | `200` + массив клиентов   |
 | `GET`    | `/clients?company_id=1`  | `200` + клиенты компании  |
 | `GET`    | `/clients/{id}`          | `200` + клиент            |
+| `PUT`    | `/clients/{id}`          | `204`, `company_id` не меняется, телефон уникален в компании |
 | `DELETE` | `/clients/{id}`          | `204`                     |
 | `GET`    | `/clients/{id}/stats`    | `200` + статистика визитов |
 

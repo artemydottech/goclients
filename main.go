@@ -130,6 +130,7 @@ func main() {
 	mux.HandleFunc("POST /clients", clientsHandlers.CreateClient)
 	mux.HandleFunc("GET /clients", clientsHandlers.GetAllClients)
 	mux.HandleFunc("GET /clients/{id}", clientsHandlers.GetClientById)
+	mux.HandleFunc("PUT /clients/{id}", clientsHandlers.UpdateClient)
 	mux.HandleFunc("DELETE /clients/{id}", clientsHandlers.DeleteClient)
 	mux.HandleFunc("GET /clients/{id}/stats", appointmentsHandlers.GetClientStats)
 
