@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strconv"
 	"testing"
 
 	"github.com/artemydottech/goclients/internal/repository"
@@ -102,4 +103,8 @@ func newClient(t *testing.T) client {
 	t.Helper()
 
 	return client{t: t, base: newServer(t).URL}
+}
+
+func itoa(n int) string {
+	return strconv.Itoa(n)
 }
