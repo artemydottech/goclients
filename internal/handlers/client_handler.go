@@ -15,6 +15,7 @@ type ClientServ interface {
 	GetAllClients(ctx context.Context) ([]models.Client, error)
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
+	UpdateClient(ctx context.Context, id int, c models.Client) error
 	DeleteClientById(ctx context.Context, id int) error
 }
 
@@ -92,6 +93,36 @@ func (h *ClientHandler) GetClientById(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, client)
+}
+
+func (h *ClientHandler) UpdateClient(w http.ResponseWriter, r *http.Request) {
+	id, ok := pathID(w, r)
+	if !ok {
+		return
+	}
+
+	var input models.Client
+	if !decodeJSON(w, r, &input) {
+		return
+	}
+
+	err := h.service.UpdateClient(r.Context(), id, input)
+	var validationErr models.ValidationError
+	if errors.As(err, &validationErr) {
+		writeError(w, http.StatusBadRequest, validationErr.Error())
+		return
+	}
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "client not found")
+		return
+	}
+	if err != nil {
+		slog.ErrorContext(r.Context(), "UpdateClient failed", "err", err)
+		writeError(w, http.StatusInternalServerError, "failed to update client")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *ClientHandler) DeleteClient(w http.ResponseWriter, r *http.Request) {

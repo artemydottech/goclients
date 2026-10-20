@@ -11,6 +11,9 @@ import (
 )
 
 type fakeClientServ struct {
+	updatedID int
+	updated   models.Client
+	updateErr error
 	gotCtx    context.Context
 	createID  int64
 	createErr error
@@ -40,6 +43,12 @@ func (f *fakeClientServ) GetClientsByCompany(_ context.Context, companyID int) (
 
 func (f *fakeClientServ) GetClientById(_ context.Context, id int) (models.Client, error) {
 	return f.item, f.getErr
+}
+
+func (f *fakeClientServ) UpdateClient(_ context.Context, id int, v models.Client) error {
+	f.updatedID = id
+	f.updated = v
+	return f.updateErr
 }
 
 func (f *fakeClientServ) DeleteClientById(_ context.Context, id int) error {
@@ -194,4 +203,43 @@ func TestCreateClientPassesRequestContext(t *testing.T) {
 	serveWithContext(t, markedContext(), "POST /clients", h.CreateClient, http.MethodPost, "/clients", `{"name":"Ivan","phone":"+79990000000"}`)
 
 	assertMarked(t, serv.gotCtx)
+}
+
+func TestUpdateClient(t *testing.T) {
+	body := `{"name":"Ivan","phone":"+79990000000"}`
+	tests := []struct {
+		name       string
+		target     string
+		body       string
+		serv       *fakeClientServ
+		wantStatus int
+	}{
+		{"updated", "/clients/3", body, &fakeClientServ{}, http.StatusNoContent},
+		{"bad id", "/clients/x", body, &fakeClientServ{}, http.StatusBadRequest},
+		{"malformed body", "/clients/3", `{oops`, &fakeClientServ{}, http.StatusBadRequest},
+		{"validation error", "/clients/3", body, &fakeClientServ{updateErr: models.Invalid("client with phone already exists")}, http.StatusBadRequest},
+		{"not found", "/clients/3", body, &fakeClientServ{updateErr: models.ErrNotFound}, http.StatusNotFound},
+		{"storage failure", "/clients/3", body, &fakeClientServ{updateErr: errors.New("boom")}, http.StatusInternalServerError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := NewClientHandler(tt.serv)
+
+			rec := serve(t, "PUT /clients/{id}", h.UpdateClient, http.MethodPut, tt.target, tt.body)
+
+			assertStatus(t, rec, tt.wantStatus)
+		})
+	}
+}
+
+func TestUpdateClientPassesIDAndBody(t *testing.T) {
+	serv := &fakeClientServ{}
+	h := NewClientHandler(serv)
+
+	serve(t, "PUT /clients/{id}", h.UpdateClient, http.MethodPut, "/clients/9", `{"name":"Ivan","phone":"+79990000000","comment":"regular"}`)
+
+	if serv.updatedID != 9 || serv.updated.Comment != "regular" {
+		t.Errorf("service got id=%d client=%+v", serv.updatedID, serv.updated)
+	}
 }
