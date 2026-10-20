@@ -27,6 +27,27 @@ func (r *ServiceRepository) Create(ctx context.Context, s models.Service) (int64
 	return res.LastInsertId()
 }
 
+func (r *ServiceRepository) UpdateService(ctx context.Context, s models.Service) error {
+	res, err := r.db.ExecContext(ctx,
+		"UPDATE services SET name = ?, description = ?, duration = ?, price = ? WHERE id = ?",
+		s.Name, s.Description, s.Duration, s.Price, s.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errNoRows
+	}
+
+	return nil
+}
+
 func (r *ServiceRepository) GetAllServices(ctx context.Context) ([]models.Service, error) {
 	rows, err := r.db.QueryContext(ctx, `
         SELECT id, company_id, name, description, duration, price

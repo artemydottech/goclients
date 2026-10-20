@@ -955,3 +955,44 @@ func TestEmployeeRepositoryUpdateMissingEmployee(t *testing.T) {
 		t.Fatalf("got %v, want models.ErrNotFound", err)
 	}
 }
+
+func TestServiceRepositoryUpdateKeepsTheCompany(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companyID, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "Romashka", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewServiceRepository(db)
+	id, err := repo.Create(ctx, models.Service{CompanyID: int(companyID), Name: "Haircut", Duration: 30, Price: 1000})
+	if err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	err = repo.UpdateService(ctx, models.Service{ID: int(id), CompanyID: 999, Name: "Long haircut", Duration: 60, Price: 1500})
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	got, err := repo.GetServiceById(ctx, int(id))
+	if err != nil {
+		t.Fatalf("get: %v", err)
+	}
+	if got.Name != "Long haircut" || got.Duration != 60 || got.Price != 1500 {
+		t.Errorf("got %+v", got)
+	}
+	if got.CompanyID != int(companyID) {
+		t.Errorf("company changed to %d, an update must not move the service", got.CompanyID)
+	}
+}
+
+func TestServiceRepositoryUpdateMissingService(t *testing.T) {
+	repo := NewServiceRepository(newTestDB(t))
+
+	err := repo.UpdateService(context.Background(), models.Service{ID: 404, Name: "Ghost", Duration: 10})
+
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("got %v, want models.ErrNotFound", err)
+	}
+}
