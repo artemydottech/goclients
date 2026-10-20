@@ -120,6 +120,7 @@ func main() {
 	mux.HandleFunc("POST /services", servicesHandlers.CreateService)
 	mux.HandleFunc("GET /services", servicesHandlers.GetAllServices)
 	mux.HandleFunc("GET /services/{id}", servicesHandlers.GetServiceById)
+	mux.HandleFunc("PUT /services/{id}", servicesHandlers.UpdateService)
 	mux.HandleFunc("DELETE /services/{id}", servicesHandlers.DeleteService)
 
 	mux.HandleFunc("PUT /employees/{id}/services", assignmentsHandlers.SetEmployeeServices)

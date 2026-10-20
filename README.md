@@ -82,6 +82,7 @@ make check      # gofmt, vet, test -race и build, как в CI
 | `GET`    | `/services`               | `200` + массив услуг      |
 | `GET`    | `/services?company_id=1`  | `200` + услуги компании   |
 | `GET`    | `/services/{id}`          | `200` + услуга            |
+| `PUT`    | `/services/{id}`          | `204`, `company_id` не меняется |
 | `DELETE` | `/services/{id}`          | `204`                     |
 | `GET`    | `/services/{id}/employees`| `200` + мастера услуги    |
 
