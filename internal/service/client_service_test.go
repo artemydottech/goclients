@@ -13,6 +13,9 @@ type stubClientRepo struct {
 	called   bool
 	existing *models.Client
 	saved    models.Client
+	current  *models.Client
+	updated  models.Client
+	err      error
 }
 
 func (r *stubClientRepo) Create(_ context.Context, c models.Client) (int64, error) {
@@ -28,6 +31,9 @@ func (r *stubClientRepo) GetClientsByCompany(context.Context, int) ([]models.Cli
 }
 
 func (r *stubClientRepo) GetClientById(context.Context, int) (models.Client, error) {
+	if r.current != nil {
+		return *r.current, nil
+	}
 	return models.Client{}, nil
 }
 
@@ -36,6 +42,12 @@ func (r *stubClientRepo) GetClientByPhone(context.Context, int, string) (models.
 		return models.Client{}, models.ErrNotFound
 	}
 	return *r.existing, nil
+}
+
+func (r *stubClientRepo) UpdateClient(_ context.Context, c models.Client) error {
+	r.called = true
+	r.updated = c
+	return r.err
 }
 
 func (r *stubClientRepo) DeleteClientById(context.Context, int) error { return nil }
@@ -127,5 +139,75 @@ func TestCreateClientCatchesDuplicateWrittenDifferently(t *testing.T) {
 
 	if _, err := NewClientService(repo).CreateClient(context.Background(), client); err == nil {
 		t.Fatal("тот же номер в другом написании должен считаться дублем")
+	}
+}
+
+func TestUpdateClientValidates(t *testing.T) {
+	cases := map[string]models.Client{
+		"empty name":    {Name: "", Phone: "+7 (999) 123-45-67"},
+		"short phone":   {Name: "Anna", Phone: "123"},
+		"bad email":     {Name: "Anna", Phone: "+7 (999) 123-45-67", Email: "anna.example.com"},
+		"long comment":  {Name: "Anna", Phone: "+7 (999) 123-45-67", Comment: strings.Repeat("a", 1001)},
+		"name too long": {Name: strings.Repeat("a", 201), Phone: "+7 (999) 123-45-67"},
+	}
+
+	for name, client := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := &stubClientRepo{current: &models.Client{ID: 1, CompanyID: 2}}
+
+			err := NewClientService(repo).UpdateClient(context.Background(), 1, client)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("expected ValidationError, got %v", err)
+			}
+			if repo.called {
+				t.Error("repository must not be called for invalid input")
+			}
+		})
+	}
+}
+
+func TestUpdateClientNormalizesPhoneAndKeepsTheCompany(t *testing.T) {
+	repo := &stubClientRepo{current: &models.Client{ID: 5, CompanyID: 2}}
+
+	err := NewClientService(repo).UpdateClient(context.Background(), 5, models.Client{CompanyID: 99, Name: "Anna", Phone: "+7 (999) 123-45-67"})
+	if err != nil {
+		t.Fatalf("UpdateClient: %v", err)
+	}
+
+	if repo.updated.Phone != "79991234567" {
+		t.Errorf("Phone = %q, want digits only", repo.updated.Phone)
+	}
+	if repo.updated.CompanyID != 2 || repo.updated.ID != 5 {
+		t.Errorf("updated = %+v, want company 2 and id 5", repo.updated)
+	}
+}
+
+func TestUpdateClientRejectsAPhoneOfAnotherClient(t *testing.T) {
+	repo := &stubClientRepo{
+		current:  &models.Client{ID: 5, CompanyID: 2},
+		existing: &models.Client{ID: 6, CompanyID: 2},
+	}
+
+	err := NewClientService(repo).UpdateClient(context.Background(), 5, validClient())
+
+	var validationErr models.ValidationError
+	if !errors.As(err, &validationErr) {
+		t.Fatalf("expected ValidationError, got %v", err)
+	}
+	if repo.called {
+		t.Error("repository must not be called when the phone is taken")
+	}
+}
+
+func TestUpdateClientAllowsKeepingItsOwnPhone(t *testing.T) {
+	repo := &stubClientRepo{
+		current:  &models.Client{ID: 5, CompanyID: 2},
+		existing: &models.Client{ID: 5, CompanyID: 2},
+	}
+
+	if err := NewClientService(repo).UpdateClient(context.Background(), 5, validClient()); err != nil {
+		t.Fatalf("UpdateClient: %v", err)
 	}
 }

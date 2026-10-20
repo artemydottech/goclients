@@ -21,6 +21,7 @@ type ClientRepo interface {
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
 	GetClientByPhone(ctx context.Context, companyID int, phone string) (models.Client, error)
+	UpdateClient(ctx context.Context, c models.Client) error
 	DeleteClientById(ctx context.Context, id int) error
 }
 
@@ -88,6 +89,31 @@ func (s *ClientService) CreateClient(ctx context.Context, c models.Client) (int6
 	}
 
 	return s.repo.Create(ctx, c)
+}
+
+func (s *ClientService) UpdateClient(ctx context.Context, id int, c models.Client) error {
+	current, err := s.repo.GetClientById(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	c, err = validateClient(c)
+	if err != nil {
+		return err
+	}
+
+	other, err := s.repo.GetClientByPhone(ctx, current.CompanyID, c.Phone)
+	if err != nil && !errors.Is(err, models.ErrNotFound) {
+		return err
+	}
+	if err == nil && other.ID != id {
+		return models.Invalid("client with phone %s already exists (id %d)", c.Phone, other.ID)
+	}
+
+	c.ID = id
+	c.CompanyID = current.CompanyID
+
+	return s.repo.UpdateClient(ctx, c)
 }
 
 func (s *ClientService) GetAllClients(ctx context.Context) ([]models.Client, error) {
