@@ -10,7 +10,9 @@ import (
 )
 
 type stubServiceRepo struct {
-	called bool
+	updated models.Service
+	err     error
+	called  bool
 }
 
 func (r *stubServiceRepo) Create(context.Context, models.Service) (int64, error) {
@@ -26,6 +28,12 @@ func (r *stubServiceRepo) GetServicesByCompany(context.Context, int) ([]models.S
 
 func (r *stubServiceRepo) GetServiceById(context.Context, int) (models.Service, error) {
 	return models.Service{}, nil
+}
+
+func (r *stubServiceRepo) UpdateService(_ context.Context, item models.Service) error {
+	r.called = true
+	r.updated = item
+	return r.err
 }
 
 func (r *stubServiceRepo) DeleteServiceById(context.Context, int) error { return nil }
@@ -101,5 +109,55 @@ func TestCreateServiceAllowsExactlyOneDay(t *testing.T) {
 
 	if _, err := NewCatalogService(&stubServiceRepo{}).CreateService(context.Background(), item); err != nil {
 		t.Fatalf("сутки — допустимая длительность, получено %v", err)
+	}
+}
+
+func TestUpdateServiceValidates(t *testing.T) {
+	cases := map[string]models.Service{
+		"empty name":          {Name: "", Duration: 30},
+		"name too long":       {Name: strings.Repeat("a", 201), Duration: 30},
+		"description long":    {Name: "Haircut", Description: strings.Repeat("a", 501), Duration: 30},
+		"zero duration":       {Name: "Haircut", Duration: 0},
+		"duration over a day": {Name: "Haircut", Duration: 24*60 + 1},
+		"negative price":      {Name: "Haircut", Duration: 30, Price: -1},
+	}
+
+	for name, item := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := &stubServiceRepo{}
+
+			err := NewCatalogService(repo).UpdateService(context.Background(), 1, item)
+
+			var validationErr models.ValidationError
+			if !errors.As(err, &validationErr) {
+				t.Fatalf("expected ValidationError, got %v", err)
+			}
+			if repo.called {
+				t.Error("repository must not be called for invalid input")
+			}
+		})
+	}
+}
+
+func TestUpdateServiceAllowsABodyWithoutCompany(t *testing.T) {
+	repo := &stubServiceRepo{}
+
+	err := NewCatalogService(repo).UpdateService(context.Background(), 6, models.Service{ID: 99, Name: "Haircut", Duration: 30})
+	if err != nil {
+		t.Fatalf("UpdateService: %v", err)
+	}
+
+	if repo.updated.ID != 6 {
+		t.Errorf("ID = %d, want the path id 6", repo.updated.ID)
+	}
+}
+
+func TestUpdateServicePassesRepositoryErrors(t *testing.T) {
+	repo := &stubServiceRepo{err: models.ErrNotFound}
+
+	err := NewCatalogService(repo).UpdateService(context.Background(), 1, models.Service{Name: "Haircut", Duration: 30})
+
+	if !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("got %v, want models.ErrNotFound", err)
 	}
 }

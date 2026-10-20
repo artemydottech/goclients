@@ -14,6 +14,7 @@ type ServiceRepo interface {
 	GetAllServices(ctx context.Context) ([]models.Service, error)
 	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
 	GetServiceById(ctx context.Context, id int) (models.Service, error)
+	UpdateService(ctx context.Context, s models.Service) error
 	DeleteServiceById(ctx context.Context, id int) error
 }
 
@@ -63,6 +64,16 @@ func (s *CatalogService) CreateService(ctx context.Context, item models.Service)
 	}
 
 	return s.repo.Create(ctx, item)
+}
+
+func (s *CatalogService) UpdateService(ctx context.Context, id int, item models.Service) error {
+	if err := validateService(item); err != nil {
+		return err
+	}
+
+	item.ID = id
+
+	return s.repo.UpdateService(ctx, item)
 }
 
 func (s *CatalogService) GetAllServices(ctx context.Context) ([]models.Service, error) {
