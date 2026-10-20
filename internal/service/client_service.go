@@ -44,30 +44,39 @@ func NormalizePhone(phone string) string {
 	return digits.String()
 }
 
+func validateClient(c models.Client) (models.Client, error) {
+	if c.Name == "" {
+		return c, models.Invalid("client name cannot be empty")
+	}
+
+	if utf8.RuneCountInString(c.Name) > 200 {
+		return c, models.Invalid("name is too long, keep it under 200 characters")
+	}
+
+	c.Phone = NormalizePhone(c.Phone)
+	if len(c.Phone) < minPhoneDigits || len(c.Phone) > maxPhoneDigits {
+		return c, models.Invalid("phone must contain from %d to %d digits", minPhoneDigits, maxPhoneDigits)
+	}
+
+	if c.Email != "" && !strings.Contains(c.Email, "@") {
+		return c, models.Invalid("email is invalid")
+	}
+
+	if utf8.RuneCountInString(c.Comment) > 1000 {
+		return c, models.Invalid("comment is too long, keep it under 1000 characters")
+	}
+
+	return c, nil
+}
+
 func (s *ClientService) CreateClient(ctx context.Context, c models.Client) (int64, error) {
 	if c.CompanyID <= 0 {
 		return 0, models.Invalid("client must belong to a company")
 	}
 
-	if c.Name == "" {
-		return 0, models.Invalid("client name cannot be empty")
-	}
-
-	if utf8.RuneCountInString(c.Name) > 200 {
-		return 0, models.Invalid("name is too long, keep it under 200 characters")
-	}
-
-	c.Phone = NormalizePhone(c.Phone)
-	if len(c.Phone) < minPhoneDigits || len(c.Phone) > maxPhoneDigits {
-		return 0, models.Invalid("phone must contain from %d to %d digits", minPhoneDigits, maxPhoneDigits)
-	}
-
-	if c.Email != "" && !strings.Contains(c.Email, "@") {
-		return 0, models.Invalid("email is invalid")
-	}
-
-	if utf8.RuneCountInString(c.Comment) > 1000 {
-		return 0, models.Invalid("comment is too long, keep it under 1000 characters")
+	c, err := validateClient(c)
+	if err != nil {
+		return 0, err
 	}
 
 	existing, err := s.repo.GetClientByPhone(ctx, c.CompanyID, c.Phone)
