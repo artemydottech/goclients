@@ -97,3 +97,46 @@ func TestEmployeeRepositoryPaging(t *testing.T) {
 		t.Errorf("ids = %v, want %v", gotIDs, created[1:3])
 	}
 }
+
+func TestServiceRepositoryPagingKeepsTheCompanyFilter(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companies := NewCompanyRepository(db)
+	first, err := companies.Create(ctx, models.Company{Name: "First", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+	second, err := companies.Create(ctx, models.Company{Name: "Second", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewServiceRepository(db)
+	var mine []int
+	for i := 1; i <= 4; i++ {
+		id, err := repo.Create(ctx, models.Service{CompanyID: int(first), Name: fmt.Sprintf("Mine %d", i), Duration: 30})
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+		mine = append(mine, int(id))
+		if _, err := repo.Create(ctx, models.Service{CompanyID: int(second), Name: fmt.Sprintf("Other %d", i), Duration: 30}); err != nil {
+			t.Fatalf("create other: %v", err)
+		}
+	}
+
+	got, err := repo.GetServicesByCompany(ctx, int(first), models.Page{Limit: 3, Offset: 2})
+	if err != nil {
+		t.Fatalf("GetServicesByCompany: %v", err)
+	}
+	if gotIDs := ids(got, func(s models.Service) int { return s.ID }); !equalInts(gotIDs, mine[2:]) {
+		t.Errorf("ids = %v, want %v", gotIDs, mine[2:])
+	}
+
+	all, err := repo.GetAllServices(ctx, models.Page{Limit: 5})
+	if err != nil {
+		t.Fatalf("GetAllServices: %v", err)
+	}
+	if len(all) != 5 {
+		t.Errorf("got %d services, want 5", len(all))
+	}
+}
