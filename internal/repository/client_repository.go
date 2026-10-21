@@ -56,10 +56,12 @@ func (r *ClientRepository) GetAllClients(ctx context.Context, page models.Page) 
 	return r.queryClients(ctx, query, args...)
 }
 
-func (r *ClientRepository) GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error) {
-	return r.queryClients(ctx, `
+func (r *ClientRepository) GetClientsByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Client, error) {
+	query, args := paginate(`
         SELECT id, company_id, name, phone, email, comment
-        FROM clients WHERE company_id = ? ORDER BY id`, companyID)
+        FROM clients WHERE company_id = ? ORDER BY id`, []any{companyID}, page)
+
+	return r.queryClients(ctx, query, args...)
 }
 
 func (r *ClientRepository) queryClients(ctx context.Context, query string, args ...any) ([]models.Client, error) {

@@ -18,7 +18,7 @@ const (
 type ClientRepo interface {
 	Create(ctx context.Context, c models.Client) (int64, error)
 	GetAllClients(ctx context.Context, page models.Page) ([]models.Client, error)
-	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
+	GetClientsByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
 	GetClientByPhone(ctx context.Context, companyID int, phone string) (models.Client, error)
 	UpdateClient(ctx context.Context, c models.Client) error
@@ -121,7 +121,7 @@ func (s *ClientService) GetAllClients(ctx context.Context) ([]models.Client, err
 }
 
 func (s *ClientService) GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error) {
-	return s.repo.GetClientsByCompany(ctx, companyID)
+	return s.repo.GetClientsByCompany(ctx, companyID, models.Page{})
 }
 
 func (s *ClientService) GetClientById(ctx context.Context, id int) (models.Client, error) {
