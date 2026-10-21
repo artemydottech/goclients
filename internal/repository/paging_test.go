@@ -69,3 +69,31 @@ func TestCompanyRepositoryPaging(t *testing.T) {
 		})
 	}
 }
+
+func TestEmployeeRepositoryPaging(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companyID, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "Romashka", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewEmployeeRepository(db)
+	var created []int
+	for i := 1; i <= 4; i++ {
+		id, err := repo.Create(ctx, models.Employee{CompanyID: int(companyID), Name: fmt.Sprintf("Name %d", i), Surname: "Surname"})
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+		created = append(created, int(id))
+	}
+
+	got, err := repo.GetAllEmployees(ctx, models.Page{Limit: 2, Offset: 1})
+	if err != nil {
+		t.Fatalf("GetAllEmployees: %v", err)
+	}
+
+	if gotIDs := ids(got, func(e models.Employee) int { return e.ID }); !equalInts(gotIDs, created[1:3]) {
+		t.Errorf("ids = %v, want %v", gotIDs, created[1:3])
+	}
+}
