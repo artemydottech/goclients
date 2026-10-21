@@ -79,7 +79,7 @@ func TestServiceRepositoryHonorsCancelledContext(t *testing.T) {
 	_, err := repo.Create(ctx, models.Service{CompanyID: 1, Name: "Haircut", Duration: 30})
 	assertCancelled(t, err)
 
-	_, err = repo.GetAllServices(ctx)
+	_, err = repo.GetAllServices(ctx, models.Page{})
 	assertCancelled(t, err)
 
 	_, err = repo.GetServicesByCompany(ctx, 1)

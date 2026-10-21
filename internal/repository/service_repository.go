@@ -48,10 +48,12 @@ func (r *ServiceRepository) UpdateService(ctx context.Context, s models.Service)
 	return nil
 }
 
-func (r *ServiceRepository) GetAllServices(ctx context.Context) ([]models.Service, error) {
-	rows, err := r.db.QueryContext(ctx, `
+func (r *ServiceRepository) GetAllServices(ctx context.Context, page models.Page) ([]models.Service, error) {
+	query, args := paginate(`
         SELECT id, company_id, name, description, duration, price
-        FROM services`)
+        FROM services ORDER BY id`, nil, page)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
