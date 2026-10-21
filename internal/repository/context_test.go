@@ -47,7 +47,7 @@ func TestCompanyRepositoryHonorsCancelledContext(t *testing.T) {
 	_, err := repo.Create(ctx, models.Company{Name: "Romashka"})
 	assertCancelled(t, err)
 
-	_, err = repo.GetAllCompanies(ctx)
+	_, err = repo.GetAllCompanies(ctx, models.Page{})
 	assertCancelled(t, err)
 
 	_, err = repo.GetCompanyById(ctx, 1)

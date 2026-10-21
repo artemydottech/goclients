@@ -20,7 +20,9 @@ func (r *stubCompanyRepo) Create(context.Context, models.Company) (int64, error)
 	return 3, nil
 }
 
-func (r *stubCompanyRepo) GetAllCompanies(context.Context) ([]models.Company, error) { return nil, nil }
+func (r *stubCompanyRepo) GetAllCompanies(context.Context, models.Page) ([]models.Company, error) {
+	return nil, nil
+}
 
 func (r *stubCompanyRepo) GetCompanyById(context.Context, int) (models.Company, error) {
 	return models.Company{}, nil

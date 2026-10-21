@@ -61,10 +61,12 @@ func (r *CompanyRepository) UpdateCompany(ctx context.Context, c models.Company)
 	return nil
 }
 
-func (r *CompanyRepository) GetAllCompanies(ctx context.Context) ([]models.Company, error) {
-	rows, err := r.db.QueryContext(ctx, `
+func (r *CompanyRepository) GetAllCompanies(ctx context.Context, page models.Page) ([]models.Company, error) {
+	query, args := paginate(`
         SELECT id, name, address, geolocation, schedule, site, socials, logo, timezone
-        FROM companies`)
+        FROM companies ORDER BY id`, nil, page)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
