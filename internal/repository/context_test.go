@@ -63,7 +63,7 @@ func TestEmployeeRepositoryHonorsCancelledContext(t *testing.T) {
 	_, err := repo.Create(ctx, models.Employee{CompanyID: 1, Name: "Anna", Surname: "Ivanova"})
 	assertCancelled(t, err)
 
-	_, err = repo.GetAllEmployees(ctx)
+	_, err = repo.GetAllEmployees(ctx, models.Page{})
 	assertCancelled(t, err)
 
 	_, err = repo.GetEmployeeById(ctx, 1)

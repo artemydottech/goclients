@@ -20,7 +20,7 @@ func (r *stubEmployeeRepo) Create(context.Context, models.Employee) (int64, erro
 	return 5, nil
 }
 
-func (r *stubEmployeeRepo) GetAllEmployees(context.Context) ([]models.Employee, error) {
+func (r *stubEmployeeRepo) GetAllEmployees(context.Context, models.Page) ([]models.Employee, error) {
 	return nil, nil
 }
 

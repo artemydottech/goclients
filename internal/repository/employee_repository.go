@@ -48,10 +48,12 @@ func (r *EmployeeRepository) UpdateEmployee(ctx context.Context, e models.Employ
 	return nil
 }
 
-func (r *EmployeeRepository) GetAllEmployees(ctx context.Context) ([]models.Employee, error) {
-	rows, err := r.db.QueryContext(ctx, `
+func (r *EmployeeRepository) GetAllEmployees(ctx context.Context, page models.Page) ([]models.Employee, error) {
+	query, args := paginate(`
         SELECT id, company_id, name, surname, position, avatar
-        FROM employees`)
+        FROM employees ORDER BY id`, nil, page)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
