@@ -108,3 +108,16 @@ func newClient(t *testing.T) client {
 func itoa(n int) string {
 	return strconv.Itoa(n)
 }
+
+func decodeID(t *testing.T, raw []byte) int {
+	t.Helper()
+
+	var created struct {
+		ID int `json:"id"`
+	}
+	if err := json.Unmarshal(raw, &created); err != nil {
+		t.Fatalf("decode id: %v", err)
+	}
+
+	return created.ID
+}
