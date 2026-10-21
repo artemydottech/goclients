@@ -82,7 +82,7 @@ func TestServiceRepositoryHonorsCancelledContext(t *testing.T) {
 	_, err = repo.GetAllServices(ctx, models.Page{})
 	assertCancelled(t, err)
 
-	_, err = repo.GetServicesByCompany(ctx, 1)
+	_, err = repo.GetServicesByCompany(ctx, 1, models.Page{})
 	assertCancelled(t, err)
 
 	_, err = repo.GetServiceById(ctx, 1)

@@ -76,10 +76,12 @@ func (r *ServiceRepository) GetAllServices(ctx context.Context, page models.Page
 	return services, nil
 }
 
-func (r *ServiceRepository) GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error) {
-	rows, err := r.db.QueryContext(ctx, `
+func (r *ServiceRepository) GetServicesByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Service, error) {
+	query, args := paginate(`
         SELECT id, company_id, name, description, duration, price
-        FROM services WHERE company_id = ?`, companyID)
+        FROM services WHERE company_id = ? ORDER BY id`, []any{companyID}, page)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
