@@ -140,3 +140,47 @@ func TestServiceRepositoryPagingKeepsTheCompanyFilter(t *testing.T) {
 		t.Errorf("got %d services, want 5", len(all))
 	}
 }
+
+func TestClientRepositoryPagingKeepsTheCompanyFilter(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	companies := NewCompanyRepository(db)
+	first, err := companies.Create(ctx, models.Company{Name: "First", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+	second, err := companies.Create(ctx, models.Company{Name: "Second", Timezone: "UTC"})
+	if err != nil {
+		t.Fatalf("create company: %v", err)
+	}
+
+	repo := NewClientRepository(db)
+	var mine []int
+	for i := 1; i <= 4; i++ {
+		phone := fmt.Sprintf("7999000000%d", i)
+		id, err := repo.Create(ctx, models.Client{CompanyID: int(first), Name: fmt.Sprintf("Mine %d", i), Phone: phone})
+		if err != nil {
+			t.Fatalf("create: %v", err)
+		}
+		mine = append(mine, int(id))
+		if _, err := repo.Create(ctx, models.Client{CompanyID: int(second), Name: fmt.Sprintf("Other %d", i), Phone: phone}); err != nil {
+			t.Fatalf("create other: %v", err)
+		}
+	}
+
+	got, err := repo.GetClientsByCompany(ctx, int(first), models.Page{Limit: 2, Offset: 1})
+	if err != nil {
+		t.Fatalf("GetClientsByCompany: %v", err)
+	}
+	if gotIDs := ids(got, func(c models.Client) int { return c.ID }); !equalInts(gotIDs, mine[1:3]) {
+		t.Errorf("ids = %v, want %v", gotIDs, mine[1:3])
+	}
+
+	all, err := repo.GetAllClients(ctx, models.Page{Limit: 3})
+	if err != nil {
+		t.Fatalf("GetAllClients: %v", err)
+	}
+	if len(all) != 3 {
+		t.Errorf("got %d clients, want 3", len(all))
+	}
+}
