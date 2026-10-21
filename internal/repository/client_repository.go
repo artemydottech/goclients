@@ -48,10 +48,12 @@ func (r *ClientRepository) UpdateClient(ctx context.Context, c models.Client) er
 	return nil
 }
 
-func (r *ClientRepository) GetAllClients(ctx context.Context) ([]models.Client, error) {
-	return r.queryClients(ctx, `
+func (r *ClientRepository) GetAllClients(ctx context.Context, page models.Page) ([]models.Client, error) {
+	query, args := paginate(`
         SELECT id, company_id, name, phone, email, comment
-        FROM clients ORDER BY id`)
+        FROM clients ORDER BY id`, nil, page)
+
+	return r.queryClients(ctx, query, args...)
 }
 
 func (r *ClientRepository) GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error) {

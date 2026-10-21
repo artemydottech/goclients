@@ -98,7 +98,7 @@ func TestClientRepositoryHonorsCancelledContext(t *testing.T) {
 	_, err := repo.Create(ctx, models.Client{CompanyID: 1, Name: "Ivan", Phone: "+79990000000"})
 	assertCancelled(t, err)
 
-	_, err = repo.GetAllClients(ctx)
+	_, err = repo.GetAllClients(ctx, models.Page{})
 	assertCancelled(t, err)
 
 	_, err = repo.GetClientsByCompany(ctx, 1)
