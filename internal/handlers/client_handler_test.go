@@ -11,6 +11,7 @@ import (
 )
 
 type fakeClientServ struct {
+	gotPage   models.Page
 	updatedID int
 	updated   models.Client
 	updateErr error
@@ -32,11 +33,13 @@ func (f *fakeClientServ) CreateClient(ctx context.Context, v models.Client) (int
 	return f.createID, f.createErr
 }
 
-func (f *fakeClientServ) GetAllClients(context.Context, models.Page) ([]models.Client, error) {
+func (f *fakeClientServ) GetAllClients(_ context.Context, page models.Page) ([]models.Client, error) {
+	f.gotPage = page
 	return f.listItems, f.listErr
 }
 
-func (f *fakeClientServ) GetClientsByCompany(_ context.Context, companyID int, _ models.Page) ([]models.Client, error) {
+func (f *fakeClientServ) GetClientsByCompany(_ context.Context, companyID int, page models.Page) ([]models.Client, error) {
+	f.gotPage = page
 	f.companyID = companyID
 	return f.listItems, f.listErr
 }
@@ -242,4 +245,36 @@ func TestUpdateClientPassesIDAndBody(t *testing.T) {
 	if serv.updatedID != 9 || serv.updated.Comment != "regular" {
 		t.Errorf("service got id=%d client=%+v", serv.updatedID, serv.updated)
 	}
+}
+
+func TestGetAllClientsPassesThePage(t *testing.T) {
+	serv := &fakeClientServ{}
+	h := NewClientHandler(serv)
+
+	rec := serve(t, "GET /clients", h.GetAllClients, http.MethodGet, "/clients?limit=25&offset=50", "")
+
+	assertStatus(t, rec, http.StatusOK)
+	if serv.gotPage != (models.Page{Limit: 25, Offset: 50}) {
+		t.Errorf("service got page %+v", serv.gotPage)
+	}
+}
+
+func TestGetAllClientsPassesThePageWithTheCompanyFilter(t *testing.T) {
+	serv := &fakeClientServ{}
+	h := NewClientHandler(serv)
+
+	rec := serve(t, "GET /clients", h.GetAllClients, http.MethodGet, "/clients?company_id=7&offset=4", "")
+
+	assertStatus(t, rec, http.StatusOK)
+	if serv.companyID != 7 || serv.gotPage != (models.Page{Offset: 4}) {
+		t.Errorf("service got company=%d page=%+v", serv.companyID, serv.gotPage)
+	}
+}
+
+func TestGetAllClientsRejectsABadPage(t *testing.T) {
+	h := NewClientHandler(&fakeClientServ{})
+
+	rec := serve(t, "GET /clients", h.GetAllClients, http.MethodGet, "/clients?limit=500", "")
+
+	assertStatus(t, rec, http.StatusBadRequest)
 }
