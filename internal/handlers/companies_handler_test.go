@@ -11,6 +11,7 @@ import (
 )
 
 type fakeCompanyServ struct {
+	gotPage   models.Page
 	updatedID int
 	updated   models.Company
 	updateErr error
@@ -31,7 +32,8 @@ func (f *fakeCompanyServ) CreateCompany(ctx context.Context, v models.Company) (
 	return f.createID, f.createErr
 }
 
-func (f *fakeCompanyServ) GetAllCompanies(context.Context, models.Page) ([]models.Company, error) {
+func (f *fakeCompanyServ) GetAllCompanies(_ context.Context, page models.Page) ([]models.Company, error) {
+	f.gotPage = page
 	return f.listItems, f.listErr
 }
 
@@ -215,4 +217,24 @@ func TestUpdateCompanyPassesIDAndBody(t *testing.T) {
 	if serv.updatedID != 5 || serv.updated.Name != "Romashka" || serv.updated.Timezone != "Asia/Yekaterinburg" {
 		t.Errorf("service got id=%d company=%+v", serv.updatedID, serv.updated)
 	}
+}
+
+func TestGetAllCompaniesPassesThePage(t *testing.T) {
+	serv := &fakeCompanyServ{}
+	h := NewCompanyHandler(serv)
+
+	rec := serve(t, "GET /companies", h.GetAllCompanies, http.MethodGet, "/companies?limit=10&offset=20", "")
+
+	assertStatus(t, rec, http.StatusOK)
+	if serv.gotPage != (models.Page{Limit: 10, Offset: 20}) {
+		t.Errorf("service got page %+v", serv.gotPage)
+	}
+}
+
+func TestGetAllCompaniesRejectsABadPage(t *testing.T) {
+	h := NewCompanyHandler(&fakeCompanyServ{})
+
+	rec := serve(t, "GET /companies", h.GetAllCompanies, http.MethodGet, "/companies?limit=999", "")
+
+	assertStatus(t, rec, http.StatusBadRequest)
 }
