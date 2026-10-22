@@ -13,7 +13,7 @@ import (
 type CatalogServ interface {
 	CreateService(ctx context.Context, s models.Service) (int64, error)
 	GetAllServices(ctx context.Context, page models.Page) ([]models.Service, error)
-	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
+	GetServicesByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Service, error)
 	GetServiceById(ctx context.Context, id int) (models.Service, error)
 	UpdateService(ctx context.Context, id int, s models.Service) error
 	DeleteServiceById(ctx context.Context, id int) error
@@ -66,7 +66,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 			writeError(w, http.StatusBadRequest, "invalid company_id")
 			return
 		}
-		services, err = h.service.GetServicesByCompany(r.Context(), companyID)
+		services, err = h.service.GetServicesByCompany(r.Context(), companyID, page)
 	} else {
 		services, err = h.service.GetAllServices(r.Context(), page)
 	}
