@@ -83,8 +83,8 @@ func (s *CompanyService) UpdateCompany(ctx context.Context, id int, c models.Com
 	return s.repo.UpdateCompany(ctx, c)
 }
 
-func (s *CompanyService) GetAllCompanies(ctx context.Context) ([]models.Company, error) {
-	return s.repo.GetAllCompanies(ctx, models.Page{})
+func (s *CompanyService) GetAllCompanies(ctx context.Context, page models.Page) ([]models.Company, error) {
+	return s.repo.GetAllCompanies(ctx, page)
 }
 
 func (s *CompanyService) GetCompanyById(ctx context.Context, id int) (models.Company, error) {

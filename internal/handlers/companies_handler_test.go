@@ -31,7 +31,7 @@ func (f *fakeCompanyServ) CreateCompany(ctx context.Context, v models.Company) (
 	return f.createID, f.createErr
 }
 
-func (f *fakeCompanyServ) GetAllCompanies(context.Context) ([]models.Company, error) {
+func (f *fakeCompanyServ) GetAllCompanies(context.Context, models.Page) ([]models.Company, error) {
 	return f.listItems, f.listErr
 }
 
