@@ -11,6 +11,7 @@ import (
 )
 
 type fakeEmployeeServ struct {
+	gotPage   models.Page
 	updatedID int
 	updated   models.Employee
 	updateErr error
@@ -30,7 +31,8 @@ func (f *fakeEmployeeServ) CreateEmployee(_ context.Context, v models.Employee) 
 	return f.createID, f.createErr
 }
 
-func (f *fakeEmployeeServ) GetAllEmployees(context.Context, models.Page) ([]models.Employee, error) {
+func (f *fakeEmployeeServ) GetAllEmployees(_ context.Context, page models.Page) ([]models.Employee, error) {
+	f.gotPage = page
 	return f.listItems, f.listErr
 }
 
@@ -216,4 +218,24 @@ func TestUpdateEmployeePassesIDAndBody(t *testing.T) {
 	if serv.updatedID != 8 || serv.updated.Position != "Stylist" {
 		t.Errorf("service got id=%d employee=%+v", serv.updatedID, serv.updated)
 	}
+}
+
+func TestGetAllEmployeesPassesThePage(t *testing.T) {
+	serv := &fakeEmployeeServ{}
+	h := NewEmployeeHandler(serv)
+
+	rec := serve(t, "GET /employees", h.GetAllEmployees, http.MethodGet, "/employees?limit=5", "")
+
+	assertStatus(t, rec, http.StatusOK)
+	if serv.gotPage != (models.Page{Limit: 5}) {
+		t.Errorf("service got page %+v", serv.gotPage)
+	}
+}
+
+func TestGetAllEmployeesRejectsABadPage(t *testing.T) {
+	h := NewEmployeeHandler(&fakeEmployeeServ{})
+
+	rec := serve(t, "GET /employees", h.GetAllEmployees, http.MethodGet, "/employees?offset=-3", "")
+
+	assertStatus(t, rec, http.StatusBadRequest)
 }
