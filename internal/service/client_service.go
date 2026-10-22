@@ -116,8 +116,8 @@ func (s *ClientService) UpdateClient(ctx context.Context, id int, c models.Clien
 	return s.repo.UpdateClient(ctx, c)
 }
 
-func (s *ClientService) GetAllClients(ctx context.Context) ([]models.Client, error) {
-	return s.repo.GetAllClients(ctx, models.Page{})
+func (s *ClientService) GetAllClients(ctx context.Context, page models.Page) ([]models.Client, error) {
+	return s.repo.GetAllClients(ctx, page)
 }
 
 func (s *ClientService) GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error) {

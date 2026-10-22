@@ -12,7 +12,7 @@ import (
 
 type ClientServ interface {
 	CreateClient(ctx context.Context, c models.Client) (int64, error)
-	GetAllClients(ctx context.Context) ([]models.Client, error)
+	GetAllClients(ctx context.Context, page models.Page) ([]models.Client, error)
 	GetClientsByCompany(ctx context.Context, companyID int) ([]models.Client, error)
 	GetClientById(ctx context.Context, id int) (models.Client, error)
 	UpdateClient(ctx context.Context, id int, c models.Client) error
@@ -50,6 +50,11 @@ func (h *ClientHandler) CreateClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
+	page, ok := parsePage(w, r)
+	if !ok {
+		return
+	}
+
 	var (
 		clients []models.Client
 		err     error
@@ -63,7 +68,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 		}
 		clients, err = h.service.GetClientsByCompany(r.Context(), companyID)
 	} else {
-		clients, err = h.service.GetAllClients(r.Context())
+		clients, err = h.service.GetAllClients(r.Context(), page)
 	}
 
 	if err != nil {

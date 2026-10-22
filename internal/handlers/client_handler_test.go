@@ -32,7 +32,7 @@ func (f *fakeClientServ) CreateClient(ctx context.Context, v models.Client) (int
 	return f.createID, f.createErr
 }
 
-func (f *fakeClientServ) GetAllClients(context.Context) ([]models.Client, error) {
+func (f *fakeClientServ) GetAllClients(context.Context, models.Page) ([]models.Client, error) {
 	return f.listItems, f.listErr
 }
 
