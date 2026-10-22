@@ -11,6 +11,7 @@ import (
 )
 
 type fakeCatalogServ struct {
+	gotPage   models.Page
 	updatedID int
 	updated   models.Service
 	updateErr error
@@ -31,11 +32,13 @@ func (f *fakeCatalogServ) CreateService(_ context.Context, v models.Service) (in
 	return f.createID, f.createErr
 }
 
-func (f *fakeCatalogServ) GetAllServices(context.Context, models.Page) ([]models.Service, error) {
+func (f *fakeCatalogServ) GetAllServices(_ context.Context, page models.Page) ([]models.Service, error) {
+	f.gotPage = page
 	return f.listItems, f.listErr
 }
 
-func (f *fakeCatalogServ) GetServicesByCompany(_ context.Context, companyID int, _ models.Page) ([]models.Service, error) {
+func (f *fakeCatalogServ) GetServicesByCompany(_ context.Context, companyID int, page models.Page) ([]models.Service, error) {
+	f.gotPage = page
 	f.companyID = companyID
 	return f.listItems, f.listErr
 }
@@ -242,4 +245,36 @@ func TestUpdateServicePassesIDAndBody(t *testing.T) {
 	if serv.updatedID != 2 || serv.updated.Duration != 45 {
 		t.Errorf("service got id=%d item=%+v", serv.updatedID, serv.updated)
 	}
+}
+
+func TestGetAllServicesPassesThePage(t *testing.T) {
+	serv := &fakeCatalogServ{}
+	h := NewServiceHandler(serv)
+
+	rec := serve(t, "GET /services", h.GetAllServices, http.MethodGet, "/services?limit=15&offset=30", "")
+
+	assertStatus(t, rec, http.StatusOK)
+	if serv.gotPage != (models.Page{Limit: 15, Offset: 30}) {
+		t.Errorf("service got page %+v", serv.gotPage)
+	}
+}
+
+func TestGetAllServicesPassesThePageWithTheCompanyFilter(t *testing.T) {
+	serv := &fakeCatalogServ{}
+	h := NewServiceHandler(serv)
+
+	rec := serve(t, "GET /services", h.GetAllServices, http.MethodGet, "/services?company_id=2&limit=3", "")
+
+	assertStatus(t, rec, http.StatusOK)
+	if serv.companyID != 2 || serv.gotPage != (models.Page{Limit: 3}) {
+		t.Errorf("service got company=%d page=%+v", serv.companyID, serv.gotPage)
+	}
+}
+
+func TestGetAllServicesRejectsABadPage(t *testing.T) {
+	h := NewServiceHandler(&fakeCatalogServ{})
+
+	rec := serve(t, "GET /services", h.GetAllServices, http.MethodGet, "/services?limit=abc", "")
+
+	assertStatus(t, rec, http.StatusBadRequest)
 }
