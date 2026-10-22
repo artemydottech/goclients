@@ -76,8 +76,8 @@ func (s *CatalogService) UpdateService(ctx context.Context, id int, item models.
 	return s.repo.UpdateService(ctx, item)
 }
 
-func (s *CatalogService) GetAllServices(ctx context.Context) ([]models.Service, error) {
-	return s.repo.GetAllServices(ctx, models.Page{})
+func (s *CatalogService) GetAllServices(ctx context.Context, page models.Page) ([]models.Service, error) {
+	return s.repo.GetAllServices(ctx, page)
 }
 
 func (s *CatalogService) GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error) {

@@ -12,7 +12,7 @@ import (
 
 type CatalogServ interface {
 	CreateService(ctx context.Context, s models.Service) (int64, error)
-	GetAllServices(ctx context.Context) ([]models.Service, error)
+	GetAllServices(ctx context.Context, page models.Page) ([]models.Service, error)
 	GetServicesByCompany(ctx context.Context, companyID int) ([]models.Service, error)
 	GetServiceById(ctx context.Context, id int) (models.Service, error)
 	UpdateService(ctx context.Context, id int, s models.Service) error
@@ -50,6 +50,11 @@ func (h *ServiceHandler) CreateService(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) {
+	page, ok := parsePage(w, r)
+	if !ok {
+		return
+	}
+
 	var (
 		services []models.Service
 		err      error
@@ -63,7 +68,7 @@ func (h *ServiceHandler) GetAllServices(w http.ResponseWriter, r *http.Request) 
 		}
 		services, err = h.service.GetServicesByCompany(r.Context(), companyID)
 	} else {
-		services, err = h.service.GetAllServices(r.Context())
+		services, err = h.service.GetAllServices(r.Context(), page)
 	}
 
 	if err != nil {

@@ -31,7 +31,7 @@ func (f *fakeCatalogServ) CreateService(_ context.Context, v models.Service) (in
 	return f.createID, f.createErr
 }
 
-func (f *fakeCatalogServ) GetAllServices(context.Context) ([]models.Service, error) {
+func (f *fakeCatalogServ) GetAllServices(context.Context, models.Page) ([]models.Service, error) {
 	return f.listItems, f.listErr
 }
 
