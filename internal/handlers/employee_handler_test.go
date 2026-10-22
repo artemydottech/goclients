@@ -30,7 +30,7 @@ func (f *fakeEmployeeServ) CreateEmployee(_ context.Context, v models.Employee) 
 	return f.createID, f.createErr
 }
 
-func (f *fakeEmployeeServ) GetAllEmployees(context.Context) ([]models.Employee, error) {
+func (f *fakeEmployeeServ) GetAllEmployees(context.Context, models.Page) ([]models.Employee, error) {
 	return f.listItems, f.listErr
 }
 

@@ -74,8 +74,8 @@ func (s *EmployeeService) UpdateEmployee(ctx context.Context, id int, e models.E
 	return s.repo.UpdateEmployee(ctx, e)
 }
 
-func (s *EmployeeService) GetAllEmployees(ctx context.Context) ([]models.Employee, error) {
-	return s.repo.GetAllEmployees(ctx, models.Page{})
+func (s *EmployeeService) GetAllEmployees(ctx context.Context, page models.Page) ([]models.Employee, error) {
+	return s.repo.GetAllEmployees(ctx, page)
 }
 
 func (s *EmployeeService) GetEmployeeById(ctx context.Context, id int) (models.Employee, error) {
