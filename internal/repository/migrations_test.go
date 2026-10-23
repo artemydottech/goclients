@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"path/filepath"
 	"testing"
 )
@@ -102,5 +104,47 @@ func TestSchemaVersionOfAnEmptyDatabase(t *testing.T) {
 	}
 	if version != 0 {
 		t.Errorf("version = %d, want 0 before any migration", version)
+	}
+}
+
+func TestFailedMigrationIsNotRecordedAndCanBeRetried(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+
+	original := migrations
+	t.Cleanup(func() { migrations = original })
+
+	attempts := 0
+	migrations = append(append([]migration{}, original...), migration{
+		version: 100, name: "flaky",
+		apply: func(ctx context.Context, db *sql.DB) error {
+			attempts++
+			if attempts == 1 {
+				return errors.New("disk is full")
+			}
+
+			return nil
+		},
+	})
+
+	if err := Migrate(ctx, db); err == nil {
+		t.Fatal("expected the first attempt to fail")
+	}
+	applied, err := appliedVersions(ctx, db)
+	if err != nil {
+		t.Fatalf("appliedVersions: %v", err)
+	}
+	if applied[100] {
+		t.Fatal("a failed migration must not be recorded")
+	}
+
+	if err := Migrate(ctx, db); err != nil {
+		t.Fatalf("retry: %v", err)
+	}
+	if applied, _ = appliedVersions(ctx, db); !applied[100] {
+		t.Error("the retry must record the migration")
+	}
+	if attempts != 2 {
+		t.Errorf("attempts = %d, want 2", attempts)
 	}
 }
