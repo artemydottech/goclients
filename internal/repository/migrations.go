@@ -119,3 +119,12 @@ func runMigrations(ctx context.Context, db *sql.DB) error {
 
 	return nil
 }
+
+func SchemaVersion(ctx context.Context, db *sql.DB) (int, error) {
+	var version sql.NullInt64
+	if err := db.QueryRowContext(ctx, "SELECT MAX(version) FROM schema_migrations").Scan(&version); err != nil {
+		return 0, fmt.Errorf("reading schema version: %w", err)
+	}
+
+	return int(version.Int64), nil
+}
