@@ -50,6 +50,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	version, err := repository.SchemaVersion(ctx, db)
+	if err != nil {
+		slog.Error("reading schema version failed", "err", err)
+		os.Exit(1)
+	}
+	slog.Info("database ready", "path", cfg.DBPath, "schema_version", version)
+
 	handler := app.New(db)
 
 	server := &http.Server{
