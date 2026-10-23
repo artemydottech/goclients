@@ -121,8 +121,8 @@ func Open(ctx context.Context, path string) (*sql.DB, error) {
 var addedUserColumns = []string{"surname", "username", "avatar"}
 
 func Migrate(ctx context.Context, db *sql.DB) error {
-	if _, err := db.ExecContext(ctx, schema); err != nil {
-		return fmt.Errorf("applying schema: %w", err)
+	if err := runMigrations(ctx, db); err != nil {
+		return err
 	}
 
 	for _, column := range addedUserColumns {

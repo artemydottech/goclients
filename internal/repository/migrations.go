@@ -52,3 +52,46 @@ func markApplied(ctx context.Context, db *sql.DB, version int, name string) erro
 
 	return nil
 }
+
+type migration struct {
+	version int
+	name    string
+	apply   func(ctx context.Context, db *sql.DB) error
+}
+
+var migrations = []migration{
+	{1, "initial schema", func(ctx context.Context, db *sql.DB) error {
+		if _, err := db.ExecContext(ctx, schema); err != nil {
+			return fmt.Errorf("applying schema: %w", err)
+		}
+
+		return nil
+	}},
+}
+
+func runMigrations(ctx context.Context, db *sql.DB) error {
+	if err := ensureMigrationsTable(ctx, db); err != nil {
+		return err
+	}
+
+	applied, err := appliedVersions(ctx, db)
+	if err != nil {
+		return err
+	}
+
+	for _, m := range migrations {
+		if applied[m.version] {
+			continue
+		}
+
+		if err := m.apply(ctx, db); err != nil {
+			return fmt.Errorf("migration %d (%s): %w", m.version, m.name, err)
+		}
+
+		if err := markApplied(ctx, db, m.version, m.name); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
