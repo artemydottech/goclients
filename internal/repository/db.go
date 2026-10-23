@@ -123,10 +123,6 @@ func Migrate(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	if err := addColumn(ctx, db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
-		return err
-	}
-
 	for _, column := range []string{"break_starts_at", "break_ends_at"} {
 		if err := addColumn(ctx, db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
 			return err
