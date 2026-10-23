@@ -79,6 +79,15 @@ var migrations = []migration{
 	{3, "add company timezone", func(ctx context.Context, db *sql.DB) error {
 		return addColumn(ctx, db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'")
 	}},
+	{4, "add schedule breaks", func(ctx context.Context, db *sql.DB) error {
+		for _, column := range []string{"break_starts_at", "break_ends_at"} {
+			if err := addColumn(ctx, db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {

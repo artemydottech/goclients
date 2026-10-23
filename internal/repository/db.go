@@ -123,12 +123,6 @@ func Migrate(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	for _, column := range []string{"break_starts_at", "break_ends_at"} {
-		if err := addColumn(ctx, db, "employee_schedules", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
-			return err
-		}
-	}
-
 	if err := addColumn(ctx, db, "appointments", "price", "REAL NOT NULL DEFAULT 0"); err != nil {
 		return err
 	}
