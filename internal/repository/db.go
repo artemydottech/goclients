@@ -119,11 +119,7 @@ func Open(ctx context.Context, path string) (*sql.DB, error) {
 }
 
 func Migrate(ctx context.Context, db *sql.DB) error {
-	if err := runMigrations(ctx, db); err != nil {
-		return err
-	}
-
-	return nil
+	return runMigrations(ctx, db)
 }
 
 func addColumn(ctx context.Context, db *sql.DB, table, column, definition string) error {
