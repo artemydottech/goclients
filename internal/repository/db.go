@@ -123,10 +123,6 @@ func Migrate(ctx context.Context, db *sql.DB) error {
 		return err
 	}
 
-	if err := addColumn(ctx, db, "appointments", "price", "REAL NOT NULL DEFAULT 0"); err != nil {
-		return err
-	}
-
 	return nil
 }
 
