@@ -67,6 +67,15 @@ var migrations = []migration{
 
 		return nil
 	}},
+	{2, "add user profile columns", func(ctx context.Context, db *sql.DB) error {
+		for _, column := range []string{"surname", "username", "avatar"} {
+			if err := addColumn(ctx, db, "users", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {

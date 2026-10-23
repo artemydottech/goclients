@@ -118,17 +118,9 @@ func Open(ctx context.Context, path string) (*sql.DB, error) {
 	return db, nil
 }
 
-var addedUserColumns = []string{"surname", "username", "avatar"}
-
 func Migrate(ctx context.Context, db *sql.DB) error {
 	if err := runMigrations(ctx, db); err != nil {
 		return err
-	}
-
-	for _, column := range addedUserColumns {
-		if err := addColumn(ctx, db, "users", column, "TEXT NOT NULL DEFAULT ''"); err != nil {
-			return err
-		}
 	}
 
 	if err := addColumn(ctx, db, "companies", "timezone", "TEXT NOT NULL DEFAULT 'UTC'"); err != nil {
