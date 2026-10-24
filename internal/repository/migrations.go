@@ -91,6 +91,9 @@ var migrations = []migration{
 	{5, "add appointment price", func(ctx context.Context, db *sql.DB) error {
 		return addColumn(ctx, db, "appointments", "price", "REAL NOT NULL DEFAULT 0")
 	}},
+	{6, "add appointment reminded_at", func(ctx context.Context, db *sql.DB) error {
+		return addColumn(ctx, db, "appointments", "reminded_at", "TEXT NOT NULL DEFAULT ''")
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {
