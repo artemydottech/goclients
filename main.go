@@ -59,7 +59,7 @@ func main() {
 	}
 	slog.Info("database ready", "path", cfg.DBPath, "schema_version", version)
 
-	handler := app.New(db)
+	handler := app.New(db, app.Options{DebugEndpoints: cfg.DebugEndpoints})
 
 	var background sync.WaitGroup
 	if cfg.ReminderInterval > 0 {
@@ -77,6 +77,7 @@ func main() {
 		Addr: ":" + cfg.Port,
 		Handler: middleware.Chain(handler,
 			middleware.RequestID,
+			middleware.Metrics,
 			middleware.AccessLog(slog.Default()),
 			middleware.Recover,
 			middleware.SecureHeaders,

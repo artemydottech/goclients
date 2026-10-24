@@ -28,7 +28,7 @@ func newServer(t *testing.T) *httptest.Server {
 		t.Fatalf("migrate: %v", err)
 	}
 
-	server := httptest.NewServer(New(db))
+	server := httptest.NewServer(New(db, Options{}))
 	t.Cleanup(server.Close)
 
 	return server

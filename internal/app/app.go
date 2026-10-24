@@ -9,7 +9,11 @@ import (
 	"github.com/artemydottech/goclients/internal/service"
 )
 
-func New(db *sql.DB) http.Handler {
+type Options struct {
+	DebugEndpoints bool
+}
+
+func New(db *sql.DB, opts Options) http.Handler {
 	userRepo := repository.NewUserRepository(db)
 	userServ := service.NewUserService(userRepo)
 	userHandlers := handlers.NewUserHandler(userServ)
@@ -107,6 +111,10 @@ func New(db *sql.DB) http.Handler {
 	mux.HandleFunc("POST /employees/{id}/time-off", timeOffHandlers.CreateTimeOff)
 	mux.HandleFunc("GET /employees/{id}/time-off", timeOffHandlers.GetTimeOff)
 	mux.HandleFunc("DELETE /time-off/{id}", timeOffHandlers.DeleteTimeOff)
+
+	if opts.DebugEndpoints {
+		mountDebug(mux)
+	}
 
 	return mux
 }
