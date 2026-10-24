@@ -299,3 +299,65 @@ func parseOptionalTime(value sql.NullString) (*time.Time, error) {
 
 	return &parsed, nil
 }
+
+type reminderScanner struct {
+	row   rowScanner
+	extra []any
+}
+
+func (s reminderScanner) Scan(dest ...any) error {
+	return s.row.Scan(append(dest, s.extra...)...)
+}
+
+func (r *AppointmentRepository) GetDueReminders(ctx context.Context, from, to time.Time) ([]models.Reminder, error) {
+	rows, err := r.db.QueryContext(ctx, `
+        SELECT a.id, a.company_id, a.client_id, a.employee_id, a.service_id,
+               a.starts_at, a.ends_at, a.status, a.comment, a.price, c.name, c.phone
+        FROM appointments a
+        JOIN clients c ON c.id = a.client_id
+        WHERE a.status IN (?, ?) AND a.reminded_at = ''
+          AND a.starts_at > ? AND a.starts_at <= ?
+        ORDER BY a.starts_at`,
+		string(models.AppointmentPending), string(models.AppointmentConfirmed),
+		from.UTC().Format(timeLayout), to.UTC().Format(timeLayout),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	reminders := []models.Reminder{}
+	for rows.Next() {
+		var reminder models.Reminder
+		scanner := reminderScanner{row: rows, extra: []any{&reminder.ClientName, &reminder.ClientPhone}}
+
+		reminder.Appointment, err = scanAppointment(scanner)
+		if err != nil {
+			return nil, err
+		}
+		reminders = append(reminders, reminder)
+	}
+
+	return reminders, rows.Err()
+}
+
+func (r *AppointmentRepository) MarkReminded(ctx context.Context, id int, at time.Time) error {
+	res, err := r.db.ExecContext(ctx,
+		"UPDATE appointments SET reminded_at = ? WHERE id = ?",
+		at.UTC().Format(timeLayout), id,
+	)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return errNoRows
+	}
+
+	return nil
+}
