@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 	_ "time/tzdata"
@@ -14,6 +15,7 @@ import (
 	"github.com/artemydottech/goclients/internal/app"
 	"github.com/artemydottech/goclients/internal/config"
 	"github.com/artemydottech/goclients/internal/middleware"
+	"github.com/artemydottech/goclients/internal/reminder"
 	"github.com/artemydottech/goclients/internal/repository"
 
 	"github.com/joho/godotenv"
@@ -59,6 +61,18 @@ func main() {
 
 	handler := app.New(db)
 
+	var background sync.WaitGroup
+	if cfg.ReminderInterval > 0 {
+		worker := reminder.NewWorker(repository.NewAppointmentRepository(db), reminder.LogNotifier{}, cfg.ReminderLead)
+
+		background.Add(1)
+		go func() {
+			defer background.Done()
+			worker.Run(ctx, cfg.ReminderInterval)
+		}()
+		slog.Info("reminders enabled", "interval", cfg.ReminderInterval, "lead", cfg.ReminderLead)
+	}
+
 	server := &http.Server{
 		Addr: ":" + cfg.Port,
 		Handler: middleware.Chain(handler,
@@ -90,5 +104,6 @@ func main() {
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		slog.Error("shutdown failed", "err", err)
 	}
+	background.Wait()
 	slog.Info("server stopped")
 }
