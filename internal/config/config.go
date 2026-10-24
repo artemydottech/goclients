@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Config struct {
@@ -13,6 +14,9 @@ type Config struct {
 	DBPath       string
 	LogLevel     slog.Level
 	MaxBodyBytes int64
+
+	ReminderInterval time.Duration
+	ReminderLead     time.Duration
 }
 
 func Load() (Config, error) {
@@ -38,7 +42,37 @@ func Load() (Config, error) {
 		}
 	}
 
+	cfg.ReminderInterval, err = durationEnv("REMINDER_INTERVAL", time.Minute)
+	if err != nil {
+		return Config{}, err
+	}
+	if cfg.ReminderInterval < 0 {
+		return Config{}, fmt.Errorf("REMINDER_INTERVAL cannot be negative, use 0 to turn reminders off")
+	}
+
+	cfg.ReminderLead, err = durationEnv("REMINDER_LEAD", 24*time.Hour)
+	if err != nil {
+		return Config{}, err
+	}
+	if cfg.ReminderLead <= 0 {
+		return Config{}, fmt.Errorf("REMINDER_LEAD must be positive")
+	}
+
 	return cfg, nil
+}
+
+func durationEnv(key string, fallback time.Duration) (time.Duration, error) {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return fallback, nil
+	}
+
+	value, err := time.ParseDuration(raw)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be a duration such as 30s or 24h, got %q", key, raw)
+	}
+
+	return value, nil
 }
 
 func getenv(key, fallback string) string {
