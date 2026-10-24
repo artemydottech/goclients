@@ -17,6 +17,8 @@ type Config struct {
 
 	ReminderInterval time.Duration
 	ReminderLead     time.Duration
+
+	DebugEndpoints bool
 }
 
 func Load() (Config, error) {
@@ -48,6 +50,13 @@ func Load() (Config, error) {
 	}
 	if cfg.ReminderInterval < 0 {
 		return Config{}, fmt.Errorf("REMINDER_INTERVAL cannot be negative, use 0 to turn reminders off")
+	}
+
+	if raw := os.Getenv("DEBUG_ENDPOINTS"); raw != "" {
+		cfg.DebugEndpoints, err = strconv.ParseBool(raw)
+		if err != nil {
+			return Config{}, fmt.Errorf("DEBUG_ENDPOINTS must be true or false, got %q", raw)
+		}
 	}
 
 	cfg.ReminderLead, err = durationEnv("REMINDER_LEAD", 24*time.Hour)

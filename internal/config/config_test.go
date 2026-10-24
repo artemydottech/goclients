@@ -8,7 +8,7 @@ import (
 
 func clearEnv(t *testing.T) {
 	t.Helper()
-	for _, key := range []string{"PORT", "DB_PATH", "LOG_LEVEL", "MAX_BODY_BYTES", "REMINDER_INTERVAL", "REMINDER_LEAD"} {
+	for _, key := range []string{"PORT", "DB_PATH", "LOG_LEVEL", "MAX_BODY_BYTES", "REMINDER_INTERVAL", "REMINDER_LEAD", "DEBUG_ENDPOINTS"} {
 		t.Setenv(key, "")
 	}
 }
@@ -82,6 +82,7 @@ func TestLoadRejectsBadValues(t *testing.T) {
 		{"reminder interval is negative", "REMINDER_INTERVAL", "-1m"},
 		{"reminder lead is not a duration", "REMINDER_LEAD", "tomorrow"},
 		{"reminder lead is zero", "REMINDER_LEAD", "0s"},
+		{"debug flag is not a boolean", "DEBUG_ENDPOINTS", "maybe"},
 	}
 
 	for _, tt := range tests {
@@ -107,5 +108,26 @@ func TestZeroReminderIntervalTurnsRemindersOff(t *testing.T) {
 
 	if cfg.ReminderInterval != 0 {
 		t.Errorf("ReminderInterval = %v, want 0", cfg.ReminderInterval)
+	}
+}
+
+func TestDebugEndpointsAreOffByDefault(t *testing.T) {
+	clearEnv(t)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.DebugEndpoints {
+		t.Error("debug endpoints must be off unless asked for")
+	}
+
+	t.Setenv("DEBUG_ENDPOINTS", "true")
+	cfg, err = Load()
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if !cfg.DebugEndpoints {
+		t.Error("DEBUG_ENDPOINTS=true must turn them on")
 	}
 }
