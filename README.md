@@ -295,6 +295,13 @@ GET /services?company_id=1&limit=20&offset=40
 Каждый ответ содержит заголовок `X-Request-ID`. Если клиент прислал свой, он
 сохраняется, иначе генерируется новый. Тот же id попадает в лог запроса.
 
+### Отладка
+
+С `DEBUG_ENDPOINTS=true` появляются `GET /debug/vars` (счётчики запросов
+`http_requests_total`, `http_requests_by_status_class`, `http_response_bytes_total`
+и стандартные метрики Go через `expvar`) и `GET /debug/pprof/`. По умолчанию они
+выключены: не открывайте их наружу без закрытого периметра.
+
 ## Коды ошибок
 
 | Код   | Когда                                                          |
