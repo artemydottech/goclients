@@ -1,4 +1,4 @@
-.PHONY: run fmt vet test check
+.PHONY: run fmt vet test cover check
 
 run:
 	go run .
@@ -14,3 +14,6 @@ test:
 
 check: fmt vet test
 	go build ./...
+
+cover:
+	go test -race -cover ./...
