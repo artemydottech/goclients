@@ -24,6 +24,8 @@ make check
 - `internal/service`: бизнес-логика и валидация, тесты рядом
 - `internal/handlers`: HTTP, интерфейсы сервисов объявлены здесь, общие ответы и `decodeJSON` в `respond.go`
 - `internal/middleware`: Recover, RequestID, AccessLog, BodyLimit, SecureHeaders, Chain
+- `internal/app`: сборка роутов и зависимостей, сквозные тесты на реальной SQLite
+- `internal/reminder`: фоновый воркер напоминаний
 - `internal/config`: чтение и валидация env
 
 Зависимости направлены внутрь: handlers -> service -> repository. Интерфейсы на стороне потребителя.
