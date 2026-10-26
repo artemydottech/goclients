@@ -26,6 +26,8 @@ func TestGetFreeSlotsValidatesQuery(t *testing.T) {
 		{"date in wrong format", "/slots?employee_id=1&service_id=1&date=20.10.2026"},
 		{"step is not a number", "/slots?employee_id=1&service_id=1&date=2026-10-20&step=x"},
 		{"step is zero", "/slots?employee_id=1&service_id=1&date=2026-10-20&step=0"},
+		{"step exceeds a day", "/slots?employee_id=1&service_id=1&date=2026-10-20&step=1441"},
+		{"step may overflow duration", "/slots?employee_id=1&service_id=1&date=2026-10-20&step=9223372036854775807"},
 		{"step is negative", "/slots?employee_id=1&service_id=1&date=2026-10-20&step=-5"},
 	}
 

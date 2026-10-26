@@ -55,6 +55,10 @@ func NewSlotsService(
 }
 
 func (s *SlotsService) FreeSlots(ctx context.Context, employeeID, serviceID int, date time.Time, step int) ([]time.Time, error) {
+	if step > 1440 {
+		return nil, models.Invalid("step cannot exceed 1440 minutes")
+	}
+
 	if step <= 0 {
 		step = defaultSlotStep
 	}

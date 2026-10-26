@@ -317,3 +317,10 @@ func TestFreeSlotsDoNotStraddleTheBreak(t *testing.T) {
 		}
 	}
 }
+
+func TestFreeSlotsRejectStepThatMayOverflowDuration(t *testing.T) {
+	svc := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{})
+	if _, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 1<<62); err == nil {
+		t.Fatal("oversized step was accepted")
+	}
+}

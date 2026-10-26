@@ -103,8 +103,8 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 	step := 0
 	if raw := query.Get("step"); raw != "" {
 		step, err = strconv.Atoi(raw)
-		if err != nil || step <= 0 {
-			writeError(w, http.StatusBadRequest, "step must be a positive number of minutes")
+		if err != nil || step <= 0 || step > 1440 {
+			writeError(w, http.StatusBadRequest, "step must be between 1 and 1440 minutes")
 			return
 		}
 	}
