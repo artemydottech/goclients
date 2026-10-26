@@ -15,6 +15,10 @@ func TestGetFreeSlotsValidatesQuery(t *testing.T) {
 		name   string
 		target string
 	}{
+		{"zero employee", "/slots?employee_id=0&service_id=1&date=2026-10-20"},
+		{"negative employee", "/slots?employee_id=-1&service_id=1&date=2026-10-20"},
+		{"zero service", "/slots?employee_id=1&service_id=0&date=2026-10-20"},
+		{"negative service", "/slots?employee_id=1&service_id=-1&date=2026-10-20"},
 		{"no employee", "/slots?service_id=1&date=2026-10-20"},
 		{"employee is not a number", "/slots?employee_id=x&service_id=1&date=2026-10-20"},
 		{"no service", "/slots?employee_id=1&date=2026-10-20"},

@@ -83,13 +83,13 @@ func (h *ScheduleHandler) GetFreeSlots(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	employeeID, err := strconv.Atoi(query.Get("employee_id"))
-	if err != nil {
+	if err != nil || employeeID <= 0 {
 		writeError(w, http.StatusBadRequest, "employee_id is required")
 		return
 	}
 
 	serviceID, err := strconv.Atoi(query.Get("service_id"))
-	if err != nil {
+	if err != nil || serviceID <= 0 {
 		writeError(w, http.StatusBadRequest, "service_id is required")
 		return
 	}
