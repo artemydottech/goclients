@@ -11,3 +11,10 @@ func TestServicesRejectNonpositiveCompanyFilter(t *testing.T) {
 		assertStatus(t, rec, http.StatusBadRequest)
 	}
 }
+
+func TestClientsRejectNonpositiveCompanyFilter(t *testing.T) {
+	for _, value := range []string{"0", "-1", "99999999999999999999999"} {
+		rec := serve(t, "GET /clients", NewClientHandler(nil).GetAllClients, http.MethodGet, "/clients?company_id="+value, "")
+		assertStatus(t, rec, http.StatusBadRequest)
+	}
+}

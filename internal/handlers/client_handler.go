@@ -62,7 +62,7 @@ func (h *ClientHandler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 
 	if raw := r.URL.Query().Get("company_id"); raw != "" {
 		companyID, convErr := strconv.Atoi(raw)
-		if convErr != nil {
+		if convErr != nil || companyID <= 0 {
 			writeError(w, http.StatusBadRequest, "invalid company_id")
 			return
 		}
