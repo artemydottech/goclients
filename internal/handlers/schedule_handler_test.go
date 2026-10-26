@@ -136,3 +136,16 @@ func TestGetEmployeeSchedulePassesRequestContext(t *testing.T) {
 
 	assertMarked(t, serv.gotCtx)
 }
+
+func TestScheduleRequiresAnExplicitDaysArray(t *testing.T) {
+	for _, body := range []string{`{}`, `{"days":null}`} {
+		serv := &fakeScheduleServ{}
+		rec := serve(t, "PUT /employees/{id}/schedule", NewScheduleHandler(serv, nil).SetEmployeeSchedule, http.MethodPut, "/employees/1/schedule", body)
+		assertStatus(t, rec, http.StatusBadRequest)
+		if serv.setEmpID != 0 {
+			t.Fatal("invalid body reached service")
+		}
+	}
+	rec := serve(t, "PUT /employees/{id}/schedule", NewScheduleHandler(&fakeScheduleServ{}, nil).SetEmployeeSchedule, http.MethodPut, "/employees/1/schedule", `{"days":[]}`)
+	assertStatus(t, rec, http.StatusNoContent)
+}

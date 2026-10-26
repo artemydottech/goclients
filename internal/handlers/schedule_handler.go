@@ -44,6 +44,11 @@ func (h *ScheduleHandler) SetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if input.Days == nil {
+		writeError(w, http.StatusBadRequest, "days must be an array, use [] to clear the schedule")
+		return
+	}
+
 	err := h.schedule.SetEmployeeSchedule(r.Context(), employeeID, input.Days)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {
