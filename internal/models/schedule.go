@@ -23,6 +23,14 @@ func (d WorkingDay) HasBreak() bool {
 }
 
 func ParseDayTime(value string) (int, error) {
+	if len(value) != 5 || value[2] != ':' {
+		return 0, fmt.Errorf("expected HH:MM format, got %q", value)
+	}
+	for i, r := range value {
+		if i != 2 && (r < '0' || r > '9') {
+			return 0, fmt.Errorf("expected HH:MM format, got %q", value)
+		}
+	}
 	parts := strings.Split(value, ":")
 	if len(parts) != 2 {
 		return 0, fmt.Errorf("expected HH:MM format, got %q", value)
