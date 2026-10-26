@@ -18,3 +18,12 @@ func TestClientsRejectNonpositiveCompanyFilter(t *testing.T) {
 		assertStatus(t, rec, http.StatusBadRequest)
 	}
 }
+
+func TestAppointmentsRejectNonpositiveFilters(t *testing.T) {
+	for _, key := range []string{"client_id", "employee_id"} {
+		for _, value := range []string{"0", "-1"} {
+			rec := serve(t, "GET /appointments", NewAppointmentHandler(nil).GetAllAppointments, http.MethodGet, "/appointments?"+key+"="+value, "")
+			assertStatus(t, rec, http.StatusBadRequest)
+		}
+	}
+}

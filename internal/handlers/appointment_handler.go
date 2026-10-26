@@ -58,7 +58,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 
 	if raw := query.Get("client_id"); raw != "" {
 		clientID, err := strconv.Atoi(raw)
-		if err != nil {
+		if err != nil || clientID <= 0 {
 			writeError(w, http.StatusBadRequest, "invalid client_id")
 			return
 		}
@@ -76,7 +76,7 @@ func (h *AppointmentHandler) GetAllAppointments(w http.ResponseWriter, r *http.R
 
 	if raw := query.Get("employee_id"); raw != "" {
 		employeeID, err := strconv.Atoi(raw)
-		if err != nil {
+		if err != nil || employeeID <= 0 {
 			writeError(w, http.StatusBadRequest, "invalid employee_id")
 			return
 		}
