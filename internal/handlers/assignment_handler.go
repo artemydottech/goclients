@@ -38,6 +38,11 @@ func (h *AssignmentHandler) SetEmployeeServices(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if input.ServiceIDs == nil {
+		writeError(w, http.StatusBadRequest, "service_ids must be an array, use [] to clear assignments")
+		return
+	}
+
 	err := h.service.SetEmployeeServices(r.Context(), employeeID, input.ServiceIDs)
 	var validationErr models.ValidationError
 	if errors.As(err, &validationErr) {

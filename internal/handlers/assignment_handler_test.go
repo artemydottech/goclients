@@ -144,3 +144,16 @@ func TestSetEmployeeServicesPassesRequestContext(t *testing.T) {
 
 	assertMarked(t, serv.gotCtx)
 }
+
+func TestAssignmentsRequireAnExplicitServiceArray(t *testing.T) {
+	for _, body := range []string{`{}`, `{"service_ids":null}`} {
+		serv := &fakeAssignmentServ{}
+		rec := serve(t, "PUT /employees/{id}/services", NewAssignmentHandler(serv).SetEmployeeServices, http.MethodPut, "/employees/1/services", body)
+		assertStatus(t, rec, http.StatusBadRequest)
+		if serv.setEmployee != 0 {
+			t.Fatal("invalid body reached service")
+		}
+	}
+	rec := serve(t, "PUT /employees/{id}/services", NewAssignmentHandler(&fakeAssignmentServ{}).SetEmployeeServices, http.MethodPut, "/employees/1/services", `{"service_ids":[]}`)
+	assertStatus(t, rec, http.StatusNoContent)
+}
