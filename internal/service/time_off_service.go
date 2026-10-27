@@ -30,6 +30,9 @@ func NewTimeOffService(repo TimeOffRepo, employees EmployeeLookup, calendar Cale
 }
 
 func (s *TimeOffService) CreateTimeOff(ctx context.Context, employeeID int, t models.TimeOff) (int64, error) {
+	if employeeID <= 0 {
+		return 0, models.Invalid("employee_id must be positive")
+	}
 	if _, err := s.employees.GetEmployeeById(ctx, employeeID); err != nil {
 		return 0, err
 	}

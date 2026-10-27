@@ -139,3 +139,10 @@ func TestCreateTimeOffIgnoresNoShows(t *testing.T) {
 		t.Fatalf("неявка не мешает отпуску, получено %v", err)
 	}
 }
+
+func TestTimeOffRejectsInvalidEmployeeBeforeLookup(t *testing.T) {
+	for _, id := range []int{0, -1} {
+		_, err := (&TimeOffService{}).CreateTimeOff(context.Background(), id, vacation())
+		assertValidation(t, err)
+	}
+}
