@@ -117,6 +117,9 @@ func (s *AppointmentService) Reschedule(ctx context.Context, id int, startsAt ti
 }
 
 func (s *AppointmentService) prepare(ctx context.Context, a models.Appointment) (models.Appointment, error) {
+	if a.ClientID <= 0 || a.EmployeeID <= 0 || a.ServiceID <= 0 {
+		return a, models.Invalid("client_id, employee_id and service_id must be positive")
+	}
 	if a.StartsAt.IsZero() {
 		return a, models.Invalid("appointment time is not set")
 	}

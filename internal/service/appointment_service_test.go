@@ -742,3 +742,25 @@ func TestGetClientStatsReportsMissingClient(t *testing.T) {
 		t.Fatalf("ожидалась models.ErrNotFound, получено %v", err)
 	}
 }
+
+func TestBookRejectsNonpositiveRelationsBeforeLookup(t *testing.T) {
+	for _, field := range []string{"client", "employee", "service"} {
+		for _, id := range []int{0, -1} {
+			candidate := futureBooking()
+			switch field {
+			case "client":
+				candidate.ClientID = id
+			case "employee":
+				candidate.EmployeeID = id
+			case "service":
+				candidate.ServiceID = id
+			}
+			repo := &stubAppointmentRepo{}
+			_, err := newAppointmentService(repo).Book(context.Background(), candidate)
+			assertValidation(t, err)
+			if repo.calls != 0 {
+				t.Fatal("invalid booking was stored")
+			}
+		}
+	}
+}
