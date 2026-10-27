@@ -134,3 +134,17 @@ func TestSetEmployeeScheduleAcceptsBreakOnTheEdges(t *testing.T) {
 		t.Fatalf("перерыв с самого открытия допустим, получено %v", err)
 	}
 }
+
+func TestScheduleReplacementDoesNotMutateCallerDays(t *testing.T) {
+	repo := &stubScheduleRepo{}
+	days := []models.WorkingDay{{Weekday: 1, StartsAt: "10:00", EndsAt: "20:00"}}
+	if err := newScheduleService(repo).SetEmployeeSchedule(context.Background(), 7, days); err != nil {
+		t.Fatal(err)
+	}
+	if days[0].EmployeeID != 0 {
+		t.Fatal("caller-owned schedule was mutated")
+	}
+	if repo.saved[0].EmployeeID != 7 {
+		t.Fatal("stored schedule lost employee ID")
+	}
+}

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
@@ -27,6 +28,7 @@ func (s *ScheduleService) SetEmployeeSchedule(ctx context.Context, employeeID in
 		return err
 	}
 
+	days = slices.Clone(days)
 	seen := make(map[int]struct{}, len(days))
 	for i := range days {
 		days[i].EmployeeID = employeeID
