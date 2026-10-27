@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"net/mail"
 	"strings"
 	"unicode/utf8"
 
@@ -58,8 +59,15 @@ func validateClient(c models.Client) (models.Client, error) {
 		return c, models.Invalid("phone must contain from %d to %d digits", minPhoneDigits, maxPhoneDigits)
 	}
 
-	if c.Email != "" && !strings.Contains(c.Email, "@") {
-		return c, models.Invalid("email is invalid")
+	c.Email = strings.TrimSpace(c.Email)
+	if c.Email != "" {
+		address, err := mail.ParseAddress(c.Email)
+		if err != nil || address.Address != c.Email {
+			return c, models.Invalid("email is invalid")
+		}
+		if utf8.RuneCountInString(c.Email) > 254 {
+			return c, models.Invalid("email cannot exceed 254 characters")
+		}
 	}
 
 	if utf8.RuneCountInString(c.Comment) > 1000 {
