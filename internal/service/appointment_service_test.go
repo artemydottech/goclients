@@ -764,3 +764,8 @@ func TestBookRejectsNonpositiveRelationsBeforeLookup(t *testing.T) {
 		}
 	}
 }
+
+func TestRescheduleRejectsNegativeEmployeeBeforeLookup(t *testing.T) {
+	_, err := (&AppointmentService{}).Reschedule(context.Background(), 1, slotsDate, -1)
+	assertValidation(t, err)
+}

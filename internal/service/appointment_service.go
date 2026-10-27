@@ -83,6 +83,9 @@ func (s *AppointmentService) Book(ctx context.Context, a models.Appointment) (in
 }
 
 func (s *AppointmentService) Reschedule(ctx context.Context, id int, startsAt time.Time, employeeID int) (models.Appointment, error) {
+	if employeeID < 0 {
+		return models.Appointment{}, models.Invalid("employee_id cannot be negative")
+	}
 	existing, err := s.repo.GetAppointmentById(ctx, id)
 	if err != nil {
 		return models.Appointment{}, err
