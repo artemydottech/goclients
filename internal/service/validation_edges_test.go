@@ -40,3 +40,10 @@ func TestServiceRejectsNonfinitePrices(t *testing.T) {
 	}
 	_ = context.Background()
 }
+
+func TestUserRejectsBlankNameAndOversizedAvatar(t *testing.T) {
+	for _, user := range []models.User{{Name: " \t\n"}, {Name: "Anna", Avatar: strings.Repeat("a", 501)}} {
+		_, err := NewUserService(&stubUserRepo{}).RegisterUser(context.Background(), user)
+		assertValidation(t, err)
+	}
+}

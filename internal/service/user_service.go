@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -23,7 +24,7 @@ func NewUserService(repo UserRepo) *UserService {
 }
 
 func (s *UserService) RegisterUser(ctx context.Context, u models.User) (int64, error) {
-	if u.Name == "" {
+	if strings.TrimSpace(u.Name) == "" {
 		return 0, models.Invalid("name cannot be empty")
 	}
 
@@ -37,6 +38,10 @@ func (s *UserService) RegisterUser(ctx context.Context, u models.User) (int64, e
 
 	if utf8.RuneCountInString(u.Username) > 50 {
 		return 0, models.Invalid("username is too long, keep it under 50 characters")
+	}
+
+	if utf8.RuneCountInString(u.Avatar) > 500 {
+		return 0, models.Invalid("avatar URL cannot exceed 500 characters")
 	}
 
 	id, err := s.repo.Create(ctx, u)
