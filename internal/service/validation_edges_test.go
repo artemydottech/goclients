@@ -32,7 +32,11 @@ func TestClientRejectsMalformedMailbox(t *testing.T) {
 	}
 }
 
-func TestValidationHarnessImports(t *testing.T) {
+func TestServiceRejectsNonfinitePrices(t *testing.T) {
+	for _, price := range []float64{math.NaN(), math.Inf(1), math.Inf(-1)} {
+		item := validService()
+		item.Price = price
+		assertValidation(t, validateService(item))
+	}
 	_ = context.Background()
-	_ = math.NaN()
 }

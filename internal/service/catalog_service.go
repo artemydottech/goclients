@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math"
 	"strings"
 	"unicode/utf8"
 
@@ -46,6 +47,10 @@ func validateService(item models.Service) error {
 
 	if item.Duration > maxServiceDuration {
 		return models.Invalid("duration cannot exceed 24 hours")
+	}
+
+	if math.IsNaN(item.Price) || math.IsInf(item.Price, 0) {
+		return models.Invalid("price must be finite")
 	}
 
 	if item.Price < 0 {
