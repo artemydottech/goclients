@@ -56,6 +56,7 @@ func TestCreateEmployeeValidation(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			repo := &stubEmployeeRepo{}
 
+			employee.CompanyID = 1
 			_, err := NewEmployeeService(repo).CreateEmployee(context.Background(), employee)
 
 			var validationErr models.ValidationError
@@ -72,9 +73,10 @@ func TestCreateEmployeeValidation(t *testing.T) {
 
 func TestCreateEmployeeCountsRunesInPosition(t *testing.T) {
 	employee := models.Employee{
-		Name:     "Daniil",
-		Surname:  "Dubov",
-		Position: strings.Repeat("я", 500),
+		CompanyID: 1,
+		Name:      "Daniil",
+		Surname:   "Dubov",
+		Position:  strings.Repeat("я", 500),
 	}
 
 	if _, err := NewEmployeeService(&stubEmployeeRepo{}).CreateEmployee(context.Background(), employee); err != nil {

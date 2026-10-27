@@ -80,6 +80,8 @@ make check      # gofmt, vet, test -race и build, как в CI
 | `PUT`    | `/employees/{id}`  | `204`, `company_id` не меняется |
 | `DELETE` | `/employees/{id}`  | `204`                        |
 
+При создании сотрудника `company_id` обязателен и должен быть положительным.
+
 ## Услуги
 
 | Метод    | Путь                      | Ответ                     |

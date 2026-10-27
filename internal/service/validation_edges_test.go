@@ -47,3 +47,14 @@ func TestUserRejectsBlankNameAndOversizedAvatar(t *testing.T) {
 		assertValidation(t, err)
 	}
 }
+
+func TestEmployeeRequiresACompanyBeforeInsertion(t *testing.T) {
+	for _, id := range []int{0, -1} {
+		repo := &stubEmployeeRepo{}
+		_, err := NewEmployeeService(repo).CreateEmployee(context.Background(), models.Employee{CompanyID: id, Name: "Anna", Surname: "Ivanova"})
+		assertValidation(t, err)
+		if repo.called {
+			t.Fatal("invalid company reached repository")
+		}
+	}
+}

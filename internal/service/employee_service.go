@@ -53,6 +53,9 @@ func validateEmployee(e models.Employee) error {
 }
 
 func (s *EmployeeService) CreateEmployee(ctx context.Context, e models.Employee) (int64, error) {
+	if e.CompanyID <= 0 {
+		return 0, models.Invalid("employee must belong to a company")
+	}
 	if err := validateEmployee(e); err != nil {
 		return 0, err
 	}
