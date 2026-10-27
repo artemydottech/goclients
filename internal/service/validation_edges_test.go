@@ -38,7 +38,6 @@ func TestServiceRejectsNonfinitePrices(t *testing.T) {
 		item.Price = price
 		assertValidation(t, validateService(item))
 	}
-	_ = context.Background()
 }
 
 func TestUserRejectsBlankNameAndOversizedAvatar(t *testing.T) {
@@ -56,5 +55,21 @@ func TestEmployeeRequiresACompanyBeforeInsertion(t *testing.T) {
 		if repo.called {
 			t.Fatal("invalid company reached repository")
 		}
+	}
+}
+
+func TestCompanyRejectsUnsafeLinksAndOversizedMetadata(t *testing.T) {
+	for _, company := range []models.Company{
+		{Name: "Salon", Site: "javascript:alert(1)"},
+		{Name: "Salon", Logo: "data:image/svg+xml,test"},
+		{Name: "Salon", Site: "https://"},
+		{Name: "Salon", Geolocation: strings.Repeat("a", 501)},
+		{Name: "Salon", Schedule: strings.Repeat("a", 1001)},
+	} {
+		_, err := validateCompany(company)
+		assertValidation(t, err)
+	}
+	if _, err := validateCompany(models.Company{Name: "Salon", Site: "https://example.com", Logo: "https://example.com/logo.png"}); err != nil {
+		t.Fatal(err)
 	}
 }

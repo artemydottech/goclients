@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"net/url"
 	"strings"
 	"unicode/utf8"
 
@@ -43,6 +44,19 @@ func validateCompany(c models.Company) (models.Company, error) {
 
 	if c.Logo != "" && utf8.RuneCountInString(c.Logo) > 500 {
 		return c, models.Invalid("logo URL is too long, keep it under 500 characters")
+	}
+
+	if utf8.RuneCountInString(c.Geolocation) > 500 || utf8.RuneCountInString(c.Schedule) > 1000 {
+		return c, models.Invalid("geolocation cannot exceed 500 characters and schedule cannot exceed 1000 characters")
+	}
+	for _, raw := range []string{c.Site, c.Logo} {
+		if raw == "" {
+			continue
+		}
+		parsed, err := url.Parse(raw)
+		if err != nil || parsed.Host == "" || (strings.ToLower(parsed.Scheme) != "http" && strings.ToLower(parsed.Scheme) != "https") {
+			return c, models.Invalid("website and logo must use absolute HTTP or HTTPS URLs")
+		}
 	}
 
 	if err := c.Socials.Validate(); err != nil {

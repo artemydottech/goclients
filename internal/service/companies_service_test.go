@@ -67,7 +67,7 @@ func TestCreateCompanyValidation(t *testing.T) {
 }
 
 func TestCreateCompanyCountsRunesInSite(t *testing.T) {
-	company := models.Company{Name: "Ромашка", Site: strings.Repeat("я", 500)}
+	company := models.Company{Name: "Ромашка", Site: "https://example.com/" + strings.Repeat("я", 480)}
 
 	if _, err := NewCompanyService(&stubCompanyRepo{}).CreateCompany(context.Background(), company); err != nil {
 		t.Fatalf("ожидался успех, получена ошибка %v", err)
