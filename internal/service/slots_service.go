@@ -79,6 +79,13 @@ func (s *SlotsService) FreeSlots(ctx context.Context, employeeID, serviceID int,
 		return nil, err
 	}
 
+	if item.CompanyID != employee.CompanyID {
+		return nil, models.Invalid("employee and service must belong to the same company")
+	}
+	if item.Duration <= 0 || item.Duration > maxServiceDuration {
+		return nil, models.Invalid("service duration must be between 1 and 1440 minutes")
+	}
+
 	performs, err := s.assignments.EmployeePerformsService(ctx, employeeID, serviceID)
 	if err != nil {
 		return nil, err

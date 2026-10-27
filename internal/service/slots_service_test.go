@@ -324,3 +324,12 @@ func TestFreeSlotsRejectStepThatMayOverflowDuration(t *testing.T) {
 		t.Fatal("oversized step was accepted")
 	}
 }
+
+func TestSlotsRejectMismatchedCompanyOrInvalidDuration(t *testing.T) {
+	for _, item := range []models.Service{{ID: 3, CompanyID: 99, Duration: 60}, {ID: 3, CompanyID: 10, Duration: 0}, {ID: 3, CompanyID: 10, Duration: 1441}} {
+		svc := newSlotsService(workingDay("10:00", "13:00"), stubCalendar{})
+		svc.services = stubServiceLookup{byID: map[int]models.Service{3: item}}
+		_, err := svc.FreeSlots(context.Background(), 2, 3, slotsDate, 15)
+		assertValidation(t, err)
+	}
+}
