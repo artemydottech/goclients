@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"time"
+	"unicode/utf8"
+)
 
 type Company struct {
 	ID          int     `json:"id"`
@@ -23,7 +26,10 @@ func (c Company) Location() (*time.Location, error) {
 }
 
 func (s Socials) Validate() error {
-	for network := range s {
+	for network, value := range s {
+		if utf8.RuneCountInString(value) > 500 {
+			return Invalid("social contact %s cannot exceed 500 characters", network)
+		}
 		switch network {
 		case SocialVK, SocialTelegram, SocialWhatsApp, SocialViber:
 		default:

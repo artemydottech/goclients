@@ -1,6 +1,7 @@
 package models
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -53,5 +54,14 @@ func TestCompanyLocationLoadsIANAName(t *testing.T) {
 func TestCompanyLocationRejectsUnknownName(t *testing.T) {
 	if _, err := (Company{Timezone: "Mars/Olympus"}).Location(); err == nil {
 		t.Fatal("expected an error for an unknown timezone")
+	}
+}
+
+func TestSocialContactsHaveBoundedRuneLengths(t *testing.T) {
+	if err := (Socials{SocialTelegram: strings.Repeat("я", 500)}).Validate(); err != nil {
+		t.Fatal(err)
+	}
+	if err := (Socials{SocialTelegram: strings.Repeat("я", 501)}).Validate(); err == nil {
+		t.Fatal("oversized contact accepted")
 	}
 }
