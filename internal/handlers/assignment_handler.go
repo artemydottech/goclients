@@ -89,6 +89,10 @@ func (h *AssignmentHandler) GetServiceEmployees(w http.ResponseWriter, r *http.R
 	}
 
 	employees, err := h.service.GetEmployeesByService(r.Context(), serviceID)
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "service not found")
+		return
+	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetServiceEmployees failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load service employees")
