@@ -12,3 +12,7 @@ func TestMissingResourceList0(t *testing.T) {
 func TestMissingResourceList1(t *testing.T) {
 	newClient(t).expect(http.MethodGet, "/employees/999/schedule", nil, http.StatusNotFound)
 }
+
+func TestMissingResourceList2(t *testing.T) {
+	newClient(t).expect(http.MethodGet, "/employees/999/services", nil, http.StatusNotFound)
+}

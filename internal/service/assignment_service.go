@@ -72,6 +72,9 @@ func (s *AssignmentService) SetEmployeeServices(ctx context.Context, employeeID 
 }
 
 func (s *AssignmentService) GetServicesByEmployee(ctx context.Context, employeeID int) ([]models.Service, error) {
+	if _, err := s.employees.GetEmployeeById(ctx, employeeID); err != nil {
+		return nil, err
+	}
 	return s.repo.GetServicesByEmployee(ctx, employeeID)
 }
 
