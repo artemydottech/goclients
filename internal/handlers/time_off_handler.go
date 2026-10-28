@@ -60,6 +60,10 @@ func (h *TimeOffHandler) GetTimeOff(w http.ResponseWriter, r *http.Request) {
 	}
 
 	periods, err := h.service.GetTimeOffByEmployee(r.Context(), employeeID)
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "employee not found")
+		return
+	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetTimeOff failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load time off")

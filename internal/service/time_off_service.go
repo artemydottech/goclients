@@ -72,6 +72,9 @@ func (s *TimeOffService) CreateTimeOff(ctx context.Context, employeeID int, t mo
 }
 
 func (s *TimeOffService) GetTimeOffByEmployee(ctx context.Context, employeeID int) ([]models.TimeOff, error) {
+	if _, err := s.employees.GetEmployeeById(ctx, employeeID); err != nil {
+		return nil, err
+	}
 	return s.repo.GetTimeOffByEmployee(ctx, employeeID)
 }
 
