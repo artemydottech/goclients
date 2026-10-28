@@ -47,6 +47,9 @@ func (s *ScheduleService) SetEmployeeSchedule(ctx context.Context, employeeID in
 }
 
 func (s *ScheduleService) GetEmployeeSchedule(ctx context.Context, employeeID int) ([]models.WorkingDay, error) {
+	if _, err := s.employees.GetEmployeeById(ctx, employeeID); err != nil {
+		return nil, err
+	}
 	return s.repo.GetEmployeeSchedule(ctx, employeeID)
 }
 

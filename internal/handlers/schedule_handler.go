@@ -75,6 +75,10 @@ func (h *ScheduleHandler) GetEmployeeSchedule(w http.ResponseWriter, r *http.Req
 	}
 
 	days, err := h.schedule.GetEmployeeSchedule(r.Context(), employeeID)
+	if errors.Is(err, models.ErrNotFound) {
+		writeError(w, http.StatusNotFound, "employee not found")
+		return
+	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetEmployeeSchedule failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load schedule")
