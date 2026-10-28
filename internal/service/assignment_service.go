@@ -45,6 +45,9 @@ func (s *AssignmentService) SetEmployeeServices(ctx context.Context, employeeID 
 	unique := make([]int, 0, len(serviceIDs))
 
 	for _, serviceID := range serviceIDs {
+		if serviceID <= 0 {
+			return models.Invalid("service IDs must be positive")
+		}
 		if _, duplicate := seen[serviceID]; duplicate {
 			continue
 		}

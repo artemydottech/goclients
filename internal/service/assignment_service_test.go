@@ -147,3 +147,14 @@ func TestSetEmployeeServicesAcceptsEmptySet(t *testing.T) {
 		t.Error("пустой набор всё равно должен дойти до репозитория")
 	}
 }
+
+func TestAssignmentsRejectNonpositiveServiceIDs(t *testing.T) {
+	for _, id := range []int{0, -1} {
+		repo := &stubAssignmentRepo{}
+		err := newAssignmentService(repo).SetEmployeeServices(context.Background(), 1, []int{100, id})
+		assertValidation(t, err)
+		if repo.calls != 0 {
+			t.Fatal("invalid assignment was stored")
+		}
+	}
+}
