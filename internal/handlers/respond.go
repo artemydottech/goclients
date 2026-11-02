@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -29,7 +31,14 @@ func writeError(w http.ResponseWriter, status int, message string) {
 }
 
 func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) bool {
-	err := json.NewDecoder(r.Body).Decode(dst)
+	body, err := io.ReadAll(r.Body)
+	if err == nil {
+		if bytes.Equal(bytes.TrimSpace(body), []byte("null")) {
+			err = errors.New("request body cannot be null")
+		} else {
+			err = json.Unmarshal(body, dst)
+		}
+	}
 	if err == nil {
 		return true
 	}

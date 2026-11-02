@@ -87,6 +87,44 @@ func TestDecodeJSONReportsTooLargeBody(t *testing.T) {
 	}
 }
 
+func TestDecodeJSONRejectsExtraValuesAndNull(t *testing.T) {
+	for _, body := range []string{`{"name":"Anna"} {"name":"Other"}`, `{"name":"Anna"} garbage`, `null`} {
+		t.Run(body, func(t *testing.T) {
+			rec := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
+			var dst struct{ Name string }
+			if decodeJSON(rec, req, &dst) {
+				t.Fatal("decodeJSON accepted an invalid request body")
+			}
+			if rec.Code != http.StatusBadRequest {
+				t.Errorf("status = %d, want 400", rec.Code)
+			}
+		})
+	}
+}
+
+func TestDecodeJSONAllowsTrailingWhitespace(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("{\"name\":\"Anna\"}\n \t"))
+	var dst struct{ Name string }
+	if !decodeJSON(rec, req, &dst) || dst.Name != "Anna" {
+		t.Fatalf("decodeJSON failed: %s", rec.Body.String())
+	}
+}
+
+func TestDecodeJSONChecksBodyLimitAfterFirstValue(t *testing.T) {
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"name":"Anna"}`+strings.Repeat(" ", 100)))
+	req.Body = http.MaxBytesReader(rec, req.Body, 32)
+	var dst struct{ Name string }
+	if decodeJSON(rec, req, &dst) {
+		t.Fatal("decodeJSON accepted an oversized body")
+	}
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Errorf("status = %d, want 413", rec.Code)
+	}
+}
+
 func TestPathID(t *testing.T) {
 	tests := []struct {
 		name   string
