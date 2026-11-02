@@ -133,7 +133,9 @@ func TestPathID(t *testing.T) {
 		wantOK bool
 	}{
 		{"number", "/items/12", 12, true},
-		{"zero", "/items/0", 0, true},
+		{"zero", "/items/0", 0, false},
+		{"negative", "/items/-1", 0, false},
+		{"overflow", "/items/999999999999999999999999", 0, false},
 		{"letters", "/items/abc", 0, false},
 		{"float", "/items/1.5", 0, false},
 	}

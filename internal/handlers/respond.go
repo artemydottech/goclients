@@ -55,7 +55,7 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, dst any) bool {
 
 func pathID(w http.ResponseWriter, r *http.Request) (int, bool) {
 	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
+	if err != nil || id <= 0 {
 		writeError(w, http.StatusBadRequest, "invalid ID")
 		return 0, false
 	}
