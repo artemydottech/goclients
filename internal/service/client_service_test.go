@@ -63,6 +63,9 @@ func TestNormalizePhoneKeepsOnlyDigits(t *testing.T) {
 		"+7 (999) 123-45-67": "79991234567",
 		"8-999-123-45-67":    "89991234567",
 		"79991234567":        "79991234567",
+		"٧٩٩٩١٢٣٤٥٦٧":        "",
+		"７９９９１２３４５６７":        "",
+		"+7 (999) １２３-45-67": "79994567",
 		"":                   "",
 	}
 
@@ -93,6 +96,7 @@ func TestCreateClientValidation(t *testing.T) {
 		"телефон без цифр": {CompanyID: 1, Name: "Анна", Phone: "не телефон"},
 		"телефон короткий": {CompanyID: 1, Name: "Анна", Phone: "12345"},
 		"телефон длинный":  {CompanyID: 1, Name: "Анна", Phone: "1234567890123456"},
+		"цифры Unicode":    {CompanyID: 1, Name: "Анна", Phone: "١٢٣٤٥"},
 		"почта без собаки": {CompanyID: 1, Name: "Анна", Phone: "79991234567", Email: "anna.ru"},
 		"длинный комментарий": {
 			CompanyID: 1, Name: "Анна", Phone: "79991234567",
@@ -148,6 +152,7 @@ func TestUpdateClientValidates(t *testing.T) {
 	cases := map[string]models.Client{
 		"empty name":    {Name: "", Phone: "+7 (999) 123-45-67"},
 		"short phone":   {Name: "Anna", Phone: "123"},
+		"unicode phone": {Name: "Anna", Phone: "١٢٣٤٥"},
 		"bad email":     {Name: "Anna", Phone: "+7 (999) 123-45-67", Email: "anna.example.com"},
 		"long comment":  {Name: "Anna", Phone: "+7 (999) 123-45-67", Comment: strings.Repeat("a", 1001)},
 		"name too long": {Name: strings.Repeat("a", 201), Phone: "+7 (999) 123-45-67"},

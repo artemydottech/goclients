@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"strings"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -37,7 +36,7 @@ func NormalizePhone(phone string) string {
 	var digits strings.Builder
 
 	for _, r := range phone {
-		if unicode.IsDigit(r) {
+		if r >= '0' && r <= '9' {
 			digits.WriteRune(r)
 		}
 	}
