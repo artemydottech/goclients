@@ -90,14 +90,16 @@ func TestCreateClientStoresTheNormalizedPhone(t *testing.T) {
 
 func TestCreateClientValidation(t *testing.T) {
 	cases := map[string]models.Client{
-		"без компании":     {CompanyID: 0, Name: "Анна", Phone: "79991234567"},
-		"пустое имя":       {CompanyID: 1, Name: "", Phone: "79991234567"},
-		"имя длиннее 200":  {CompanyID: 1, Name: strings.Repeat("а", 201), Phone: "79991234567"},
-		"телефон без цифр": {CompanyID: 1, Name: "Анна", Phone: "не телефон"},
-		"телефон короткий": {CompanyID: 1, Name: "Анна", Phone: "12345"},
-		"телефон длинный":  {CompanyID: 1, Name: "Анна", Phone: "1234567890123456"},
-		"цифры Unicode":    {CompanyID: 1, Name: "Анна", Phone: "١٢٣٤٥"},
-		"почта без собаки": {CompanyID: 1, Name: "Анна", Phone: "79991234567", Email: "anna.ru"},
+		"blank required field 0": {CompanyID: 1, Name: " \t\n", Phone: "79991234567"},
+		"blank required field 1": {CompanyID: 1, Name: "\u00a0\u2003", Phone: "79991234567"},
+		"без компании":           {CompanyID: 0, Name: "Анна", Phone: "79991234567"},
+		"пустое имя":             {CompanyID: 1, Name: "", Phone: "79991234567"},
+		"имя длиннее 200":        {CompanyID: 1, Name: strings.Repeat("а", 201), Phone: "79991234567"},
+		"телефон без цифр":       {CompanyID: 1, Name: "Анна", Phone: "не телефон"},
+		"телефон короткий":       {CompanyID: 1, Name: "Анна", Phone: "12345"},
+		"телефон длинный":        {CompanyID: 1, Name: "Анна", Phone: "1234567890123456"},
+		"цифры Unicode":          {CompanyID: 1, Name: "Анна", Phone: "١٢٣٤٥"},
+		"почта без собаки":       {CompanyID: 1, Name: "Анна", Phone: "79991234567", Email: "anna.ru"},
 		"длинный комментарий": {
 			CompanyID: 1, Name: "Анна", Phone: "79991234567",
 			Comment: strings.Repeat("а", 1001),
@@ -150,12 +152,14 @@ func TestCreateClientCatchesDuplicateWrittenDifferently(t *testing.T) {
 
 func TestUpdateClientValidates(t *testing.T) {
 	cases := map[string]models.Client{
-		"empty name":    {Name: "", Phone: "+7 (999) 123-45-67"},
-		"short phone":   {Name: "Anna", Phone: "123"},
-		"unicode phone": {Name: "Anna", Phone: "١٢٣٤٥"},
-		"bad email":     {Name: "Anna", Phone: "+7 (999) 123-45-67", Email: "anna.example.com"},
-		"long comment":  {Name: "Anna", Phone: "+7 (999) 123-45-67", Comment: strings.Repeat("a", 1001)},
-		"name too long": {Name: strings.Repeat("a", 201), Phone: "+7 (999) 123-45-67"},
+		"blank required field 0": {CompanyID: 1, Name: " \t\n", Phone: "79991234567"},
+		"blank required field 1": {CompanyID: 1, Name: "\u00a0\u2003", Phone: "79991234567"},
+		"empty name":             {Name: "", Phone: "+7 (999) 123-45-67"},
+		"short phone":            {Name: "Anna", Phone: "123"},
+		"unicode phone":          {Name: "Anna", Phone: "١٢٣٤٥"},
+		"bad email":              {Name: "Anna", Phone: "+7 (999) 123-45-67", Email: "anna.example.com"},
+		"long comment":           {Name: "Anna", Phone: "+7 (999) 123-45-67", Comment: strings.Repeat("a", 1001)},
+		"name too long":          {Name: strings.Repeat("a", 201), Phone: "+7 (999) 123-45-67"},
 	}
 
 	for name, client := range cases {

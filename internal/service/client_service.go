@@ -45,7 +45,7 @@ func NormalizePhone(phone string) string {
 }
 
 func validateClient(c models.Client) (models.Client, error) {
-	if c.Name == "" {
+	if strings.TrimSpace(c.Name) == "" {
 		return c, models.Invalid("client name cannot be empty")
 	}
 

@@ -48,9 +48,11 @@ func TestCreateServiceValidation(t *testing.T) {
 	long := strings.Repeat("а", 201)
 
 	cases := map[string]models.Service{
-		"без компании":         {CompanyID: 0, Name: "Стрижка", Duration: 60},
-		"пустое название":      {CompanyID: 1, Name: "", Duration: 60},
-		"название длиннее 200": {CompanyID: 1, Name: long, Duration: 60},
+		"blank required field 0": {CompanyID: 1, Name: " \t\n", Duration: 30},
+		"blank required field 1": {CompanyID: 1, Name: "\u00a0\u2003", Duration: 30},
+		"без компании":           {CompanyID: 0, Name: "Стрижка", Duration: 60},
+		"пустое название":        {CompanyID: 1, Name: "", Duration: 60},
+		"название длиннее 200":   {CompanyID: 1, Name: long, Duration: 60},
 		"описание длиннее 500": {
 			CompanyID: 1, Name: "Стрижка", Duration: 60,
 			Description: strings.Repeat("а", 501),
@@ -116,12 +118,14 @@ func TestCreateServiceAllowsExactlyOneDay(t *testing.T) {
 
 func TestUpdateServiceValidates(t *testing.T) {
 	cases := map[string]models.Service{
-		"empty name":          {Name: "", Duration: 30},
-		"name too long":       {Name: strings.Repeat("a", 201), Duration: 30},
-		"description long":    {Name: "Haircut", Description: strings.Repeat("a", 501), Duration: 30},
-		"zero duration":       {Name: "Haircut", Duration: 0},
-		"duration over a day": {Name: "Haircut", Duration: 24*60 + 1},
-		"negative price":      {Name: "Haircut", Duration: 30, Price: -1},
+		"blank required field 0": {CompanyID: 1, Name: " \t\n", Duration: 30},
+		"blank required field 1": {CompanyID: 1, Name: "\u00a0\u2003", Duration: 30},
+		"empty name":             {Name: "", Duration: 30},
+		"name too long":          {Name: strings.Repeat("a", 201), Duration: 30},
+		"description long":       {Name: "Haircut", Description: strings.Repeat("a", 501), Duration: 30},
+		"zero duration":          {Name: "Haircut", Duration: 0},
+		"duration over a day":    {Name: "Haircut", Duration: 24*60 + 1},
+		"negative price":         {Name: "Haircut", Duration: 30, Price: -1},
 	}
 
 	for name, item := range cases {

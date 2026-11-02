@@ -38,10 +38,12 @@ func (r *stubEmployeeRepo) DeleteEmployeeById(context.Context, int) error { retu
 
 func TestCreateEmployeeValidation(t *testing.T) {
 	cases := map[string]models.Employee{
-		"пустое имя":          {Name: "", Surname: "Dubov"},
-		"пустая фамилия":      {Name: "Daniil", Surname: ""},
-		"имя длиннее 200":     {Name: strings.Repeat("a", 201), Surname: "Dubov"},
-		"фамилия длиннее 200": {Name: "Daniil", Surname: strings.Repeat("a", 201)},
+		"blank required field 0": {Name: " \t\n", Surname: "Dubov"},
+		"blank required field 1": {Name: "Daniil", Surname: " \t\n"},
+		"пустое имя":             {Name: "", Surname: "Dubov"},
+		"пустая фамилия":         {Name: "Daniil", Surname: ""},
+		"имя длиннее 200":        {Name: strings.Repeat("a", 201), Surname: "Dubov"},
+		"фамилия длиннее 200":    {Name: "Daniil", Surname: strings.Repeat("a", 201)},
 		"должность длиннее 500": {
 			Name: "Daniil", Surname: "Dubov", Position: strings.Repeat("a", 501),
 		},
@@ -100,10 +102,12 @@ func TestCreateEmployeeAcceptsValidInput(t *testing.T) {
 
 func TestUpdateEmployeeValidates(t *testing.T) {
 	cases := map[string]models.Employee{
-		"empty name":        {Name: "", Surname: "Dubov"},
-		"empty surname":     {Name: "Daniil", Surname: ""},
-		"name too long":     {Name: strings.Repeat("a", 201), Surname: "Dubov"},
-		"position too long": {Name: "Daniil", Surname: "Dubov", Position: strings.Repeat("a", 501)},
+		"blank required field 0": {Name: " \t\n", Surname: "Dubov"},
+		"blank required field 1": {Name: "Daniil", Surname: " \t\n"},
+		"empty name":             {Name: "", Surname: "Dubov"},
+		"empty surname":          {Name: "Daniil", Surname: ""},
+		"name too long":          {Name: strings.Repeat("a", 201), Surname: "Dubov"},
+		"position too long":      {Name: "Daniil", Surname: "Dubov", Position: strings.Repeat("a", 501)},
 	}
 
 	for name, employee := range cases {

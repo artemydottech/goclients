@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -24,11 +25,11 @@ func NewEmployeeService(repo EmployeeRepo) *EmployeeService {
 }
 
 func validateEmployee(e models.Employee) error {
-	if e.Name == "" {
+	if strings.TrimSpace(e.Name) == "" {
 		return models.Invalid("employee name cannot be empty")
 	}
 
-	if e.Surname == "" {
+	if strings.TrimSpace(e.Surname) == "" {
 		return models.Invalid("employee surname cannot be empty")
 	}
 

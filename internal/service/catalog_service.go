@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/artemydottech/goclients/internal/models"
@@ -27,7 +28,7 @@ func NewCatalogService(repo ServiceRepo) *CatalogService {
 }
 
 func validateService(item models.Service) error {
-	if item.Name == "" {
+	if strings.TrimSpace(item.Name) == "" {
 		return models.Invalid("service name cannot be empty")
 	}
 

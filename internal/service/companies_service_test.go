@@ -38,12 +38,14 @@ func (r *stubCompanyRepo) DeleteCompanyById(context.Context, int) error { return
 
 func TestCreateCompanyValidation(t *testing.T) {
 	cases := map[string]models.Company{
-		"пустое название":       {Name: ""},
-		"название длиннее 200":  {Name: strings.Repeat("a", 201)},
-		"адрес длиннее 500":     {Name: "Ромашка", Address: strings.Repeat("a", 501)},
-		"сайт длиннее 500":      {Name: "Ромашка", Site: strings.Repeat("a", 501)},
-		"логотип длиннее 500":   {Name: "Ромашка", Logo: strings.Repeat("a", 501)},
-		"неизвестная соц. сеть": {Name: "Ромашка", Socials: models.Socials{"myspace": "@x"}},
+		"blank required field 0": {Name: " \t\n"},
+		"blank required field 1": {Name: "\u00a0\u2003"},
+		"пустое название":        {Name: ""},
+		"название длиннее 200":   {Name: strings.Repeat("a", 201)},
+		"адрес длиннее 500":      {Name: "Ромашка", Address: strings.Repeat("a", 501)},
+		"сайт длиннее 500":       {Name: "Ромашка", Site: strings.Repeat("a", 501)},
+		"логотип длиннее 500":    {Name: "Ромашка", Logo: strings.Repeat("a", 501)},
+		"неизвестная соц. сеть":  {Name: "Ромашка", Socials: models.Socials{"myspace": "@x"}},
 	}
 
 	for name, company := range cases {
@@ -115,10 +117,12 @@ func TestCreateCompanyAcceptsIANATimezone(t *testing.T) {
 
 func TestUpdateCompanyValidates(t *testing.T) {
 	cases := map[string]models.Company{
-		"empty name":      {Name: ""},
-		"name too long":   {Name: strings.Repeat("a", 201)},
-		"unknown network": {Name: "Romashka", Socials: models.Socials{"myspace": "@x"}},
-		"unknown zone":    {Name: "Romashka", Timezone: "Mars/Olympus"},
+		"blank required field 0": {Name: " \t\n"},
+		"blank required field 1": {Name: "\u00a0\u2003"},
+		"empty name":             {Name: ""},
+		"name too long":          {Name: strings.Repeat("a", 201)},
+		"unknown network":        {Name: "Romashka", Socials: models.Socials{"myspace": "@x"}},
+		"unknown zone":           {Name: "Romashka", Timezone: "Mars/Olympus"},
 	}
 
 	for name, company := range cases {
