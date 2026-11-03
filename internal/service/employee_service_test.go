@@ -156,3 +156,19 @@ func (r *stubEmployeeRepo) GetEmployeesByCompany(context.Context, int, models.Pa
 	r.called = true
 	return nil, r.err
 }
+
+func TestEmployeeDirectoryRejectsInvalidScopeAndPage(t *testing.T) {
+	for _, tt := range []struct {
+		id   int
+		page models.Page
+	}{{0, models.Page{}}, {-1, models.Page{}}, {1, models.Page{Limit: 201}}, {1, models.Page{Offset: -1}}} {
+		repo := &stubEmployeeRepo{}
+		if _, err := NewEmployeeService(repo).GetEmployeesByCompany(context.Background(), tt.id, tt.page); err == nil || repo.called {
+			t.Fatalf("invalid input reached storage: %+v", tt)
+		}
+	}
+	repo := &stubEmployeeRepo{err: errors.New("storage")}
+	if _, err := NewEmployeeService(repo).GetEmployeesByCompany(context.Background(), 1, models.Page{}); !errors.Is(err, repo.err) {
+		t.Fatalf("error: %v", err)
+	}
+}
