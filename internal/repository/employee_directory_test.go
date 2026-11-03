@@ -42,3 +42,27 @@ func TestEmployeeCompanyIsolation(t *testing.T) {
 		t.Fatalf("cancel: %v", err)
 	}
 }
+func TestEmployeeCompanyPaging(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	repo := NewEmployeeRepository(db)
+	id, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "A"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for range 3 {
+		if _, err := repo.Create(ctx, models.Employee{CompanyID: int(id), Name: "Anna", Surname: "Ivanova"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, page := range []models.Page{{Limit: 1, Offset: 1}, {Offset: 2}} {
+		got, err := repo.GetEmployeesByCompany(ctx, int(id), page)
+		if err != nil || len(got) != 1 {
+			t.Fatalf("page %+v: %+v %v", page, got, err)
+		}
+	}
+	got, err := repo.GetEmployeesByCompany(ctx, 999, models.Page{})
+	if err != nil || got == nil || len(got) != 0 {
+		t.Fatalf("empty: %+v %v", got, err)
+	}
+}
