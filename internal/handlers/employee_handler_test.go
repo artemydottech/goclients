@@ -245,3 +245,21 @@ func (f *fakeEmployeeServ) GetEmployeesByCompany(ctx context.Context, id int, pa
 	f.gotPage = page
 	return f.listItems, f.listErr
 }
+
+func TestEmployeeDirectoryInvalidCompanies(t *testing.T) {
+	h := NewEmployeeHandler(&fakeEmployeeServ{})
+	for _, id := range []string{"0", "-1", "abc", "99999999999999999999"} {
+		rec := serve(t, "GET /employees", h.GetAllEmployees, http.MethodGet, "/employees?company_id="+id, "")
+		assertStatus(t, rec, http.StatusBadRequest)
+	}
+}
+func TestEmployeeDirectoryPassesPageAndContext(t *testing.T) {
+	serv := &fakeEmployeeServ{}
+	h := NewEmployeeHandler(serv)
+	rec := serveWithContext(t, markedContext(), "GET /employees", h.GetAllEmployees, http.MethodGet, "/employees?company_id=1&limit=2&offset=1", "")
+	assertStatus(t, rec, http.StatusOK)
+	assertMarked(t, serv.gotCtx)
+	if serv.gotPage != (models.Page{Limit: 2, Offset: 1}) {
+		t.Fatal(serv.gotPage)
+	}
+}
