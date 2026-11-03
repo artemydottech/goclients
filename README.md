@@ -371,3 +371,9 @@ GET /services?company_id=1&limit=20&offset=40
   "socials": { "vk": "vk.com/romashka", "telegram": "@romashka" }
 }
 ```
+
+### Сотрудники компании
+
+`GET /employees?company_id=1&limit=20&offset=0` фильтрует сотрудников в БД
+до пагинации. Без `company_id` сохраняется общий список. Идентификатор должен
+быть положительным; неизвестная компания возвращает `[]`.
