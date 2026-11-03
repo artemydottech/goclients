@@ -9,6 +9,7 @@ import (
 )
 
 type EmployeeRepo interface {
+	GetEmployeesByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Employee, error)
 	Create(ctx context.Context, c models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context, page models.Page) ([]models.Employee, error)
 	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
@@ -88,4 +89,13 @@ func (s *EmployeeService) GetEmployeeById(ctx context.Context, id int) (models.E
 
 func (s *EmployeeService) DeleteEmployeeById(ctx context.Context, id int) error {
 	return s.repo.DeleteEmployeeById(ctx, id)
+}
+func (s *EmployeeService) GetEmployeesByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Employee, error) {
+	if companyID <= 0 {
+		return nil, models.Invalid("invalid company_id")
+	}
+	if err := page.Validate(); err != nil {
+		return nil, err
+	}
+	return s.repo.GetEmployeesByCompany(ctx, companyID, page)
 }

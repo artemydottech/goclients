@@ -151,3 +151,8 @@ func TestUpdateEmployeePassesRepositoryErrors(t *testing.T) {
 		t.Fatalf("got %v, want models.ErrNotFound", err)
 	}
 }
+
+func (r *stubEmployeeRepo) GetEmployeesByCompany(context.Context, int, models.Page) ([]models.Employee, error) {
+	r.called = true
+	return nil, r.err
+}
