@@ -94,6 +94,10 @@ var migrations = []migration{
 	{6, "add appointment reminded_at", func(ctx context.Context, db *sql.DB) error {
 		return addColumn(ctx, db, "appointments", "reminded_at", "TEXT NOT NULL DEFAULT ''")
 	}},
+	{7, "index employees by company", func(ctx context.Context, db *sql.DB) error {
+		_, err := db.ExecContext(ctx, "CREATE INDEX IF NOT EXISTS idx_employees_company ON employees(company_id, id)")
+		return err
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {
