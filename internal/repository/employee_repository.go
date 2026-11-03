@@ -111,3 +111,8 @@ func (r *EmployeeRepository) DeleteEmployeeById(ctx context.Context, id int) err
 
 	return nil
 }
+
+func (r *EmployeeRepository) GetEmployeesByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Employee, error) {
+	query, args := paginate(`SELECT id, company_id, name, surname, position, avatar FROM employees WHERE company_id = ? ORDER BY id`, []any{companyID}, page)
+	return r.queryEmployees(ctx, query, args...)
+}
