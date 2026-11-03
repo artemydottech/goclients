@@ -53,6 +53,10 @@ func (r *EmployeeRepository) GetAllEmployees(ctx context.Context, page models.Pa
         SELECT id, company_id, name, surname, position, avatar
         FROM employees ORDER BY id`, nil, page)
 
+	return r.queryEmployees(ctx, query, args...)
+}
+
+func (r *EmployeeRepository) queryEmployees(ctx context.Context, query string, args ...any) ([]models.Employee, error) {
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
