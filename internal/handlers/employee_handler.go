@@ -5,11 +5,13 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/artemydottech/goclients/internal/models"
 )
 
 type EmployeeServ interface {
+	GetEmployeesByCompany(ctx context.Context, companyID int, page models.Page) ([]models.Employee, error)
 	CreateEmployee(ctx context.Context, e models.Employee) (int64, error)
 	GetAllEmployees(ctx context.Context, page models.Page) ([]models.Employee, error)
 	GetEmployeeById(ctx context.Context, id int) (models.Employee, error)
@@ -52,7 +54,18 @@ func (h *EmployeeHandler) GetAllEmployees(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	employees, err := h.service.GetAllEmployees(r.Context(), page)
+	var employees []models.Employee
+	var err error
+	if raw := r.URL.Query().Get("company_id"); raw != "" {
+		companyID, parseErr := strconv.Atoi(raw)
+		if parseErr != nil || companyID <= 0 {
+			writeError(w, http.StatusBadRequest, "invalid company_id")
+			return
+		}
+		employees, err = h.service.GetEmployeesByCompany(r.Context(), companyID, page)
+	} else {
+		employees, err = h.service.GetAllEmployees(r.Context(), page)
+	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "GetAllEmployees failed", "err", err)
 		writeError(w, http.StatusInternalServerError, "failed to load employees")

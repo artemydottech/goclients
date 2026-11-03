@@ -239,3 +239,9 @@ func TestGetAllEmployeesRejectsABadPage(t *testing.T) {
 
 	assertStatus(t, rec, http.StatusBadRequest)
 }
+
+func (f *fakeEmployeeServ) GetEmployeesByCompany(ctx context.Context, id int, page models.Page) ([]models.Employee, error) {
+	f.gotCtx = ctx
+	f.gotPage = page
+	return f.listItems, f.listErr
+}
