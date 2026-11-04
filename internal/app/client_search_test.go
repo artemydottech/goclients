@@ -5,6 +5,7 @@ import (
 	"github.com/artemydottech/goclients/internal/models"
 	"net/http"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -19,5 +20,11 @@ func TestClientSearchHTTP(t *testing.T) {
 	raw = s.api.expect(http.MethodGet, "/clients/search?company_id="+itoa(other)+"&q=Ivan", nil, http.StatusOK)
 	if string(raw) != "[]\n" {
 		t.Fatalf("foreign result: %s", raw)
+	}
+}
+func TestClientSearchRejectsInvalidRequests(t *testing.T) {
+	api := newClient(t)
+	for _, q := range []string{"", "company_id=0", "company_id=no", "company_id=1&phone=abc", "company_id=1&limit=201", "company_id=1&offset=-1", "company_id=1&q=" + strings.Repeat("x", 201)} {
+		api.expect(http.MethodGet, "/clients/search?"+q, nil, http.StatusBadRequest)
 	}
 }
