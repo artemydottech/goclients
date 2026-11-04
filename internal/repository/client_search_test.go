@@ -28,3 +28,28 @@ func TestClientSearchIsolationAndExactPhone(t *testing.T) {
 		t.Fatalf("missing: %+v %v", got, err)
 	}
 }
+func TestClientSearchUnicodeLiteralAndPaging(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	repo := NewClientRepository(db)
+	id, err := NewCompanyRepository(db).Create(ctx, models.Company{Name: "A"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, name := range []string{"Анна", "АННА", "100%_special", "Other"} {
+		phone := []string{"79990000000", "79990000001", "79990000002", "79990000003"}[i]
+		if _, err := repo.Create(ctx, models.Client{CompanyID: int(id), Name: name, Phone: phone, Email: "USER@example.com"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, tt := range []struct {
+		q     string
+		p     models.Page
+		count int
+	}{{"анна", models.Page{}, 2}, {"АННА", models.Page{Limit: 1, Offset: 1}, 1}, {"%_", models.Page{}, 1}, {"' OR 1=1", models.Page{}, 0}, {"example", models.Page{}, 4}, {"00003", models.Page{}, 1}} {
+		got, err := repo.SearchClients(ctx, models.ClientSearch{CompanyID: int(id), Query: tt.q, Page: tt.p})
+		if err != nil || len(got) != tt.count {
+			t.Fatalf("%q: %+v %v", tt.q, got, err)
+		}
+	}
+}
