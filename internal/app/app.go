@@ -49,6 +49,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ, companiesRepo, timeOffRepo,
 	)
 	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
+	appointmentSearch := handlers.NewAppointmentSearchHandler(service.NewAppointmentSearchService(appointmentsRepo))
 	slotsServ := service.NewSlotsService(
 		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo, companiesRepo, timeOffRepo,
 	)
@@ -101,6 +102,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 
 	mux.HandleFunc("POST /appointments", appointmentsHandlers.CreateAppointment)
 	mux.HandleFunc("GET /appointments", appointmentsHandlers.GetAllAppointments)
+	mux.HandleFunc("GET /appointments/search", appointmentSearch.Search)
 	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
 	mux.HandleFunc("PUT /appointments/{id}/status", appointmentsHandlers.SetStatus)
 	mux.HandleFunc("PUT /appointments/{id}/time", appointmentsHandlers.Reschedule)
