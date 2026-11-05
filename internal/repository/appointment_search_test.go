@@ -29,3 +29,28 @@ func TestAppointmentSearchCombinesFilters(t *testing.T) {
 		}
 	}
 }
+func TestAppointmentSearchHalfOpenRangeAndStablePages(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	company, employee, item, client := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+	at := time.Date(2027, 1, 1, 10, 0, 0, 0, time.UTC)
+	var ids []int64
+	for _, start := range []time.Time{at, at, at.Add(time.Hour)} {
+		id, err := repo.Create(ctx, models.Appointment{CompanyID: company, EmployeeID: employee, ServiceID: item, ClientID: client, StartsAt: start, EndsAt: start.Add(time.Hour), Status: models.AppointmentPending})
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, id)
+	}
+	f := models.AppointmentFilter{CompanyID: company, From: at, To: at.Add(time.Hour), Page: models.Page{Limit: 1, Offset: 1}}
+	got, err := repo.SearchAppointments(ctx, f)
+	if err != nil || len(got) != 1 || got[0].ID != int(ids[1]) {
+		t.Fatalf("page: %+v %v", got, err)
+	}
+	f.Page = models.Page{}
+	got, err = repo.SearchAppointments(ctx, f)
+	if err != nil || len(got) != 2 {
+		t.Fatalf("half-open: %+v %v", got, err)
+	}
+}
