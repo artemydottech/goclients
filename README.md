@@ -387,3 +387,11 @@ GET /services?company_id=1&limit=20&offset=40
 Фильтры сочетаются, пагинация применяется после поиска; пустой результат `[]`.
 Точный телефон использует индекс БД. Текстовый поиск выполняет Unicode-сравнение
 в Go по клиентам выбранной компании: SQLite без расширений не умеет Unicode lower.
+
+### Фильтры календаря
+
+`GET /appointments/search?company_id=1&employee_id=2&status=pending&from=2026-11-01T00:00:00Z&to=2026-12-01T00:00:00Z`
+сочетает `company_id` (обязателен), `client_id`, `employee_id`, `service_id`,
+`status`, `from`, `to`, `limit`, `offset`. Временное окно по началу записи:
+`from` включительно, `to` исключительно; границы необязательны, формат RFC3339.
+Порядок: `starts_at`, затем `id`. Старый `/appointments` сохраняет поведение.
