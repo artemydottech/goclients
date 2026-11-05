@@ -98,6 +98,11 @@ var migrations = []migration{
 		_, err := db.ExecContext(ctx, "CREATE INDEX IF NOT EXISTS idx_employees_company ON employees(company_id, id)")
 		return err
 	}},
+	{8, "index company appointment searches", func(ctx context.Context, db *sql.DB) error {
+		_, err := db.ExecContext(ctx, `CREATE INDEX IF NOT EXISTS idx_appointments_company_time ON appointments(company_id, starts_at, id);
+ CREATE INDEX IF NOT EXISTS idx_appointments_company_status ON appointments(company_id, status, starts_at);`)
+		return err
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {
