@@ -23,5 +23,32 @@ func (r *AppointmentRepository) GetCompanyReport(ctx context.Context, q models.R
 	if err != nil {
 		return result, err
 	}
+	result.Services, err = reportGroups(ctx, tx, q, "services", "service_id", "name")
+	if err != nil {
+		return result, err
+	}
+	result.Employees, err = reportGroups(ctx, tx, q, "employees", "employee_id", "name || ' ' || d.surname")
+	if err != nil {
+		return result, err
+	}
 	return result, tx.Commit()
+}
+func reportGroups(ctx context.Context, tx *sql.Tx, q models.ReportQuery, table, column, name string) ([]models.ReportGroup, error) {
+	rows, err := tx.QueryContext(ctx, `SELECT d.id,d.`+name+`,COUNT(*),COALESCE(SUM(a.status='completed'),0),
+ COALESCE(SUM(CASE WHEN a.status='completed' THEN a.price ELSE 0 END),0)
+ FROM appointments a JOIN `+table+` d ON d.id=a.`+column+`
+ WHERE a.company_id=? AND a.starts_at>=? AND a.starts_at<? GROUP BY d.id ORDER BY COUNT(*) DESC,d.id`, q.CompanyID, q.From.UTC().Format(timeLayout), q.To.UTC().Format(timeLayout))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []models.ReportGroup{}
+	for rows.Next() {
+		var item models.ReportGroup
+		if err := rows.Scan(&item.ID, &item.Name, &item.Appointments, &item.Completed, &item.Revenue); err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
 }
