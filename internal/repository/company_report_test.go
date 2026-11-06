@@ -39,3 +39,23 @@ func TestCompanyReportRevenueAndBoundaries(t *testing.T) {
 		t.Fatalf("foreign: %+v %v", got, err)
 	}
 }
+func TestCompanyReportGroupsUseBookedPrices(t *testing.T) {
+	db := newTestDB(t)
+	ctx := context.Background()
+	company, employee, item, client := bookingFixture(t, db)
+	repo := NewAppointmentRepository(db)
+	at := time.Now().UTC()
+	if _, err := repo.Create(ctx, models.Appointment{CompanyID: company, EmployeeID: employee, ServiceID: item, ClientID: client, StartsAt: at, EndsAt: at.Add(time.Hour), Status: models.AppointmentCompleted, Price: 777}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.ExecContext(ctx, "UPDATE services SET price=9999 WHERE id=?", item); err != nil {
+		t.Fatal(err)
+	}
+	got, err := repo.GetCompanyReport(ctx, models.ReportQuery{CompanyID: company, From: at.Add(-time.Second), To: at.Add(time.Hour)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got.Services) != 1 || len(got.Employees) != 1 || got.Services[0].Revenue != 777 || got.Employees[0].Revenue != 777 || got.Services[0].ID != item || got.Employees[0].ID != employee {
+		t.Fatalf("groups: %+v", got)
+	}
+}
