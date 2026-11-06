@@ -59,3 +59,13 @@ func TestCompanyReportGroupsUseBookedPrices(t *testing.T) {
 		t.Fatalf("groups: %+v", got)
 	}
 }
+func TestCompanyReportCancelledContext(t *testing.T) {
+	repo := NewAppointmentRepository(newTestDB(t))
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	at := time.Now()
+	_, err := repo.GetCompanyReport(ctx, models.ReportQuery{CompanyID: 1, From: at, To: at.Add(time.Hour)})
+	if err == nil {
+		t.Fatal("expected cancellation")
+	}
+}
