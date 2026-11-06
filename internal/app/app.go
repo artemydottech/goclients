@@ -50,6 +50,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	)
 	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
 	appointmentSearch := handlers.NewAppointmentSearchHandler(service.NewAppointmentSearchService(appointmentsRepo))
+	companyReport := handlers.NewCompanyReportHandler(service.NewCompanyReportService(appointmentsRepo, companiesRepo))
 	slotsServ := service.NewSlotsService(
 		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo, companiesRepo, timeOffRepo,
 	)
@@ -73,6 +74,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	mux.HandleFunc("POST /companies", companiesHandlers.CreateCompany)
 	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
 	mux.HandleFunc("GET /companies/{id}", companiesHandlers.GetCompanyById)
+	mux.HandleFunc("GET /companies/{id}/report", companyReport.Get)
 	mux.HandleFunc("PUT /companies/{id}", companiesHandlers.UpdateCompany)
 	mux.HandleFunc("DELETE /companies/{id}", companiesHandlers.DeleteCompany)
 
