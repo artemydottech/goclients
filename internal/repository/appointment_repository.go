@@ -162,7 +162,7 @@ func (r *AppointmentRepository) MoveIfFree(ctx context.Context, id int, a models
 	}
 
 	res, err := tx.ExecContext(ctx,
-		"UPDATE appointments SET employee_id = ?, starts_at = ?, ends_at = ? WHERE id = ?",
+		"UPDATE appointments SET employee_id = ?, starts_at = ?, ends_at = ?, reminded_at = '' WHERE id = ?",
 		a.EmployeeID, a.StartsAt.UTC().Format(timeLayout), a.EndsAt.UTC().Format(timeLayout), id,
 	)
 	if err != nil {
