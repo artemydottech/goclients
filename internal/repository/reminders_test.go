@@ -132,3 +132,25 @@ func TestMarkRemindedMissingAppointment(t *testing.T) {
 		t.Fatal("expected an error for a missing appointment")
 	}
 }
+func TestReschedulingAllowsANewReminder(t *testing.T) {
+	f := newReminderFixture(t)
+	ctx := context.Background()
+	now := time.Now().UTC().Truncate(time.Second)
+	id := f.book(t, now.Add(time.Hour), models.AppointmentPending)
+	if err := f.repo.MarkReminded(ctx, id, now); err != nil {
+		t.Fatal(err)
+	}
+	a, err := f.repo.GetAppointmentById(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.StartsAt = now.Add(2 * time.Hour)
+	a.EndsAt = a.StartsAt.Add(time.Hour)
+	if busy, err := f.repo.MoveIfFree(ctx, id, a); err != nil || busy {
+		t.Fatalf("move: busy=%v %v", busy, err)
+	}
+	due, err := f.repo.GetDueReminders(ctx, now, now.Add(24*time.Hour))
+	if err != nil || len(due) != 1 || due[0].Appointment.ID != id {
+		t.Fatalf("due: %+v %v", due, err)
+	}
+}
