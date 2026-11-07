@@ -23,7 +23,7 @@ func (s *fakeStore) GetDueReminders(_ context.Context, from, to time.Time) ([]mo
 	return s.due, s.dueErr
 }
 
-func (s *fakeStore) MarkReminded(_ context.Context, id int, at time.Time) error {
+func (s *fakeStore) MarkRemindedIfUnchanged(_ context.Context, id int, _ time.Time, at time.Time) error {
 	if s.markErr != nil {
 		return s.markErr
 	}

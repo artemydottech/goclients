@@ -10,7 +10,7 @@ import (
 
 type Store interface {
 	GetDueReminders(ctx context.Context, from, to time.Time) ([]models.Reminder, error)
-	MarkReminded(ctx context.Context, id int, at time.Time) error
+	MarkRemindedIfUnchanged(ctx context.Context, id int, startsAt, at time.Time) error
 }
 
 type Worker struct {
@@ -43,7 +43,7 @@ func (w *Worker) RunOnce(ctx context.Context) (int, error) {
 			continue
 		}
 
-		if err := w.store.MarkReminded(ctx, reminder.Appointment.ID, now); err != nil {
+		if err := w.store.MarkRemindedIfUnchanged(ctx, reminder.Appointment.ID, reminder.Appointment.StartsAt, now); err != nil {
 			slog.ErrorContext(ctx, "marking reminder failed", "appointment_id", reminder.Appointment.ID, "err", err)
 			continue
 		}
