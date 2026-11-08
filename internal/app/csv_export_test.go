@@ -25,3 +25,16 @@ func TestClientCSVExportIsolationAndEscaping(t *testing.T) {
 		t.Fatalf("foreign: %s %v", raw, err)
 	}
 }
+func TestAppointmentCSVExportFiltersAndPrices(t *testing.T) {
+	s := newSalon(t)
+	s.mustBook(s.at(10, 0))
+	s.mustBook(s.at(11, 0))
+	q := "?company_id=" + itoa(s.companyID) + "&employee_id=" + itoa(s.employeeID) + "&status=pending&limit=1&offset=1"
+	raw := s.api.expect(http.MethodGet, "/appointments/export"+q, nil, http.StatusOK)
+	rows, err := csv.NewReader(strings.NewReader(string(raw))).ReadAll()
+	if err != nil || len(rows) != 2 || rows[1][8] != "1000.00" || rows[1][7] != "pending" {
+		t.Fatalf("csv: %s %v", raw, err)
+	}
+	s.api.expect(http.MethodGet, "/appointments/export?company_id=0", nil, http.StatusBadRequest)
+	s.api.expect(http.MethodGet, "/clients/export?company_id=1&phone=bad", nil, http.StatusBadRequest)
+}
