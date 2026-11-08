@@ -154,3 +154,33 @@ func TestReschedulingAllowsANewReminder(t *testing.T) {
 		t.Fatalf("due: %+v %v", due, err)
 	}
 }
+func TestStaleReminderCannotMarkRescheduledAppointment(t *testing.T) {
+	f := newReminderFixture(t)
+	ctx := context.Background()
+	now := time.Now().UTC().Truncate(time.Second)
+	old := now.Add(time.Hour)
+	id := f.book(t, old, models.AppointmentPending)
+	a, err := f.repo.GetAppointmentById(ctx, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.StartsAt = old.Add(time.Hour)
+	a.EndsAt = a.StartsAt.Add(time.Hour)
+	if busy, err := f.repo.MoveIfFree(ctx, id, a); err != nil || busy {
+		t.Fatalf("move: %v %v", busy, err)
+	}
+	if err := f.repo.MarkRemindedIfUnchanged(ctx, id, old, now); err != nil {
+		t.Fatal(err)
+	}
+	due, err := f.repo.GetDueReminders(ctx, now, now.Add(24*time.Hour))
+	if err != nil || len(due) != 1 {
+		t.Fatalf("stale mark hid new reminder: %+v %v", due, err)
+	}
+	if err := f.repo.MarkRemindedIfUnchanged(ctx, id, a.StartsAt, now); err != nil {
+		t.Fatal(err)
+	}
+	due, err = f.repo.GetDueReminders(ctx, now, now.Add(24*time.Hour))
+	if err != nil || len(due) != 0 {
+		t.Fatalf("matching mark failed: %+v %v", due, err)
+	}
+}
