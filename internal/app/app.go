@@ -107,6 +107,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	mux.HandleFunc("POST /appointments", appointmentsHandlers.CreateAppointment)
 	mux.HandleFunc("GET /appointments", appointmentsHandlers.GetAllAppointments)
 	mux.HandleFunc("GET /appointments/search", appointmentSearch.Search)
+	mux.HandleFunc("GET /appointments/export", appointmentSearch.Export)
 	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
 	mux.HandleFunc("PUT /appointments/{id}/status", appointmentsHandlers.SetStatus)
 	mux.HandleFunc("PUT /appointments/{id}/comment", appointmentComment.Update)

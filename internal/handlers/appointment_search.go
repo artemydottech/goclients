@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
@@ -72,4 +73,21 @@ func (h *AppointmentSearchHandler) Search(w http.ResponseWriter, r *http.Request
 		return
 	}
 	writeJSON(w, items)
+}
+func (h *AppointmentSearchHandler) Export(w http.ResponseWriter, r *http.Request) {
+	f, ok := parseAppointmentFilter(w, r)
+	if !ok {
+		return
+	}
+	items, err := h.service.SearchAppointments(r.Context(), f)
+	if err != nil {
+		slog.ErrorContext(r.Context(), "appointment export failed", "err", err)
+		writeError(w, 500, "failed to export appointments")
+		return
+	}
+	rows := make([][]string, 0, len(items))
+	for _, a := range items {
+		rows = append(rows, []string{strconv.Itoa(a.ID), strconv.Itoa(a.CompanyID), strconv.Itoa(a.ClientID), strconv.Itoa(a.EmployeeID), strconv.Itoa(a.ServiceID), a.StartsAt.UTC().Format(time.RFC3339), a.EndsAt.UTC().Format(time.RFC3339), string(a.Status), fmt.Sprintf("%.2f", a.Price), a.Comment})
+	}
+	writeCSV(w, "appointments.csv", []string{"id", "company_id", "client_id", "employee_id", "service_id", "starts_at", "ends_at", "status", "price", "comment"}, rows)
 }
