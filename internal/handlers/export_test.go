@@ -30,3 +30,16 @@ func TestExportErrorsRemainJSON(t *testing.T) {
 		}
 	}
 }
+func TestEmptyCSVAttachmentAndContext(t *testing.T) {
+	stub := &exportClientStub{}
+	h := NewClientSearchHandler(stub)
+	rec := serveWithContext(t, markedContext(), "GET /clients/export", h.Export, http.MethodGet, "/clients/export?company_id=1", "")
+	assertStatus(t, rec, 200)
+	assertMarked(t, stub.ctx)
+	if rec.Header().Get("Content-Type") != "text/csv; charset=utf-8" || rec.Header().Get("Content-Disposition") != `attachment; filename="clients.csv"` || rec.Header().Get("Cache-Control") != "no-store" {
+		t.Fatal(rec.Header())
+	}
+	if rec.Body.String() != "id,company_id,name,phone,email,comment\n" {
+		t.Fatal(rec.Body.String())
+	}
+}
