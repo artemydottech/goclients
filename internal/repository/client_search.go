@@ -24,8 +24,14 @@ func (r *ClientRepository) SearchClients(ctx context.Context, filter models.Clie
 	}
 	found := []models.Client{}
 	q := strings.ToLower(filter.Query)
+	phoneQuery := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, filter.Query)
 	for _, c := range items {
-		if strings.Contains(strings.ToLower(c.Name), q) || strings.Contains(c.Phone, q) || strings.Contains(strings.ToLower(c.Email), q) {
+		if strings.Contains(strings.ToLower(c.Name), q) || (phoneQuery != "" && strings.Contains(c.Phone, phoneQuery)) || strings.Contains(strings.ToLower(c.Email), q) {
 			found = append(found, c)
 		}
 	}

@@ -46,7 +46,7 @@ func TestClientSearchUnicodeLiteralAndPaging(t *testing.T) {
 		q     string
 		p     models.Page
 		count int
-	}{{"анна", models.Page{}, 2}, {"АННА", models.Page{Limit: 1, Offset: 1}, 1}, {"%_", models.Page{}, 1}, {"' OR 1=1", models.Page{}, 0}, {"example", models.Page{}, 4}, {"00003", models.Page{}, 1}} {
+	}{{"анна", models.Page{}, 2}, {"АННА", models.Page{Limit: 1, Offset: 1}, 1}, {"%_", models.Page{}, 1}, {"' OR 1=1", models.Page{}, 0}, {"example", models.Page{}, 4}, {"00003", models.Page{}, 1}, {"+7 (999) 000-00-03", models.Page{}, 1}} {
 		got, err := repo.SearchClients(ctx, models.ClientSearch{CompanyID: int(id), Query: tt.q, Page: tt.p})
 		if err != nil || len(got) != tt.count {
 			t.Fatalf("%q: %+v %v", tt.q, got, err)
