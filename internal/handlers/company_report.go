@@ -3,9 +3,11 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -50,4 +52,20 @@ func (h *CompanyReportHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		writeJSON(w, result)
 	}
+}
+func (h *CompanyReportHandler) Export(w http.ResponseWriter, r *http.Request) {
+	report, ok := h.load(w, r)
+	if !ok {
+		return
+	}
+	rows := [][]string{}
+	for _, kind := range []struct {
+		name   string
+		groups []models.ReportGroup
+	}{{"service", report.Services}, {"employee", report.Employees}} {
+		for _, g := range kind.groups {
+			rows = append(rows, []string{kind.name, strconv.Itoa(g.ID), g.Name, strconv.Itoa(g.Appointments), strconv.Itoa(g.Completed), fmt.Sprintf("%.2f", g.Revenue)})
+		}
+	}
+	writeCSV(w, "report.csv", []string{"type", "id", "name", "appointments", "completed", "revenue"}, rows)
 }

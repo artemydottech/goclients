@@ -76,6 +76,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	mux.HandleFunc("GET /companies", companiesHandlers.GetAllCompanies)
 	mux.HandleFunc("GET /companies/{id}", companiesHandlers.GetCompanyById)
 	mux.HandleFunc("GET /companies/{id}/report", companyReport.Get)
+	mux.HandleFunc("GET /companies/{id}/report/export", companyReport.Export)
 	mux.HandleFunc("PUT /companies/{id}", companiesHandlers.UpdateCompany)
 	mux.HandleFunc("DELETE /companies/{id}", companiesHandlers.DeleteCompany)
 
