@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"strings"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type ClientSearchRepo interface {

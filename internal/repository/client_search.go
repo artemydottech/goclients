@@ -2,8 +2,9 @@ package repository
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"strings"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func (r *ClientRepository) SearchClients(ctx context.Context, filter models.ClientSearch) ([]models.Client, error) {

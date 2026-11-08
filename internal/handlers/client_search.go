@@ -3,10 +3,11 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type ClientSearcher interface {
@@ -25,12 +26,12 @@ func (h *ClientSearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	items, err := h.service.SearchClients(r.Context(), f)
 	var invalid models.ValidationError
 	if errors.As(err, &invalid) {
-		writeError(w, 400, err.Error())
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "client search failed", "err", err)
-		writeError(w, 500, "failed to search clients")
+		writeError(w, http.StatusInternalServerError, "failed to search clients")
 		return
 	}
 	writeJSON(w, items)
@@ -43,7 +44,7 @@ func parseClientSearch(w http.ResponseWriter, r *http.Request) (models.ClientSea
 	}
 	id, err := strconv.Atoi(r.URL.Query().Get("company_id"))
 	if err != nil || id <= 0 {
-		writeError(w, 400, "invalid company_id")
+		writeError(w, http.StatusBadRequest, "invalid company_id")
 		return models.ClientSearch{}, false
 	}
 	return models.ClientSearch{CompanyID: id, Query: r.URL.Query().Get("q"), Phone: r.URL.Query().Get("phone"), Page: page}, true
@@ -56,12 +57,12 @@ func (h *ClientSearchHandler) Export(w http.ResponseWriter, r *http.Request) {
 	items, err := h.service.SearchClients(r.Context(), f)
 	var invalid models.ValidationError
 	if errors.As(err, &invalid) {
-		writeError(w, 400, err.Error())
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "client export failed", "err", err)
-		writeError(w, 500, "failed to export clients")
+		writeError(w, http.StatusInternalServerError, "failed to export clients")
 		return
 	}
 	rows := make([][]string, 0, len(items))

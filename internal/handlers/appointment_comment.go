@@ -3,9 +3,10 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type AppointmentCommenter interface {
@@ -28,22 +29,22 @@ func (h *AppointmentCommentHandler) Update(w http.ResponseWriter, r *http.Reques
 		return
 	}
 	if input.Comment == nil {
-		writeError(w, 400, "comment is required; use an empty string to clear it")
+		writeError(w, http.StatusBadRequest, "comment is required; use an empty string to clear it")
 		return
 	}
 	err := h.service.UpdateComment(r.Context(), id, *input.Comment)
 	var invalid models.ValidationError
 	if errors.As(err, &invalid) {
-		writeError(w, 400, err.Error())
+		writeError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if errors.Is(err, models.ErrNotFound) {
-		writeError(w, 404, "appointment not found")
+		writeError(w, http.StatusNotFound, "appointment not found")
 		return
 	}
 	if err != nil {
 		slog.ErrorContext(r.Context(), "update appointment comment failed", "err", err)
-		writeError(w, 500, "failed to update comment")
+		writeError(w, http.StatusInternalServerError, "failed to update comment")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

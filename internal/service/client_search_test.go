@@ -2,9 +2,10 @@ package service
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"strings"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type searchStub struct {

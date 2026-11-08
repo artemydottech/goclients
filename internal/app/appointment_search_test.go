@@ -2,11 +2,12 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/artemydottech/goclients/internal/models"
 	"net/http"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAppointmentSearchHTTPValidation(t *testing.T) {

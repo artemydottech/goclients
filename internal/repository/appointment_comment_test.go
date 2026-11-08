@@ -3,9 +3,10 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAppointmentCommentKeepsBookingDetails(t *testing.T) {

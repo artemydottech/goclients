@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestCompanyReportRevenueAndBoundaries(t *testing.T) {

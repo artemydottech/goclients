@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAppointmentSearchCombinesFilters(t *testing.T) {

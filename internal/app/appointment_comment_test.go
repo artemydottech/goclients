@@ -2,10 +2,11 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/artemydottech/goclients/internal/models"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAppointmentCommentHTTP(t *testing.T) {

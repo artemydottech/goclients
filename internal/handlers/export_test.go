@@ -3,9 +3,10 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"net/http"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type exportClientStub struct {

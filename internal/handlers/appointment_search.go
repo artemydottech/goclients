@@ -3,11 +3,12 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type AppointmentSearcher interface {
@@ -36,7 +37,7 @@ func parseAppointmentFilter(w http.ResponseWriter, r *http.Request) (models.Appo
 		}
 		id, err := strconv.Atoi(raw)
 		if err != nil || id <= 0 {
-			writeError(w, 400, "invalid "+part.key)
+			writeError(w, http.StatusBadRequest, "invalid "+part.key)
 			return f, false
 		}
 		*part.dest = id
@@ -48,7 +49,7 @@ func parseAppointmentFilter(w http.ResponseWriter, r *http.Request) (models.Appo
 		if raw := q.Get(part.key); raw != "" {
 			at, err := time.Parse(time.RFC3339, raw)
 			if err != nil {
-				writeError(w, 400, "invalid "+part.key)
+				writeError(w, http.StatusBadRequest, "invalid "+part.key)
 				return f, false
 			}
 			*part.dest = at.UTC()
@@ -56,7 +57,7 @@ func parseAppointmentFilter(w http.ResponseWriter, r *http.Request) (models.Appo
 	}
 	f.Status = models.AppointmentStatus(q.Get("status"))
 	if err := f.Validate(); err != nil {
-		writeError(w, 400, err.Error())
+		writeError(w, http.StatusBadRequest, err.Error())
 		return f, false
 	}
 	return f, true
@@ -69,7 +70,7 @@ func (h *AppointmentSearchHandler) Search(w http.ResponseWriter, r *http.Request
 	items, err := h.service.SearchAppointments(r.Context(), f)
 	if err != nil {
 		slog.ErrorContext(r.Context(), "appointment search failed", "err", err)
-		writeError(w, 500, "failed to search appointments")
+		writeError(w, http.StatusInternalServerError, "failed to search appointments")
 		return
 	}
 	writeJSON(w, items)
@@ -82,7 +83,7 @@ func (h *AppointmentSearchHandler) Export(w http.ResponseWriter, r *http.Request
 	items, err := h.service.SearchAppointments(r.Context(), f)
 	if err != nil {
 		slog.ErrorContext(r.Context(), "appointment export failed", "err", err)
-		writeError(w, 500, "failed to export appointments")
+		writeError(w, http.StatusInternalServerError, "failed to export appointments")
 		return
 	}
 	rows := make([][]string, 0, len(items))

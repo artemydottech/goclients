@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"unicode/utf8"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type AppointmentCommentRepo interface {

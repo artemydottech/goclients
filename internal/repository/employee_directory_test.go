@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestEmployeeCompanyIsolation(t *testing.T) {

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+
 	"github.com/artemydottech/goclients/internal/models"
 )
 
