@@ -18,7 +18,9 @@ func (s *countingStore) GetDueReminders(context.Context, time.Time, time.Time) (
 	return nil, nil
 }
 
-func (s *countingStore) MarkReminded(context.Context, int, time.Time) error { return nil }
+func (s *countingStore) MarkRemindedIfUnchanged(context.Context, int, time.Time, time.Time) error {
+	return nil
+}
 
 func TestRunPollsUntilTheContextIsCancelled(t *testing.T) {
 	store := &countingStore{}
