@@ -103,6 +103,13 @@ var migrations = []migration{
  CREATE INDEX IF NOT EXISTS idx_appointments_company_status ON appointments(company_id, status, starts_at);`)
 		return err
 	}},
+	{9, "persist idempotent booking requests", func(ctx context.Context, db *sql.DB) error {
+		_, err := db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS booking_requests (
+ client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+ request_key TEXT NOT NULL,fingerprint TEXT NOT NULL,appointment_id INTEGER NOT NULL DEFAULT 0,
+ PRIMARY KEY(client_id,request_key));`)
+		return err
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {
