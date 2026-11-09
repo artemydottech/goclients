@@ -56,3 +56,13 @@ func TestIdempotentBookingHTTP(t *testing.T) {
 		}
 	}
 }
+func TestBookingReplaySurvivesPriceAndStatusChanges(t *testing.T) {
+	s := newSalon(t)
+	_, id, _ := keyedBooking(t, s, "stable", "")
+	s.api.expect(http.MethodPut, "/appointments/"+itoa(id)+"/status", map[string]any{"status": "cancelled"}, http.StatusNoContent)
+	s.api.expect(http.MethodPut, "/services/"+itoa(s.serviceID), map[string]any{"name": "Changed", "duration": 90, "price": 9999}, http.StatusNoContent)
+	code, retry, replayed := keyedBooking(t, s, "stable", "")
+	if code != 201 || retry != id || replayed != "true" {
+		t.Fatalf("replay: %d %d %q", code, retry, replayed)
+	}
+}
