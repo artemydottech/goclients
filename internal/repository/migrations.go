@@ -110,6 +110,12 @@ var migrations = []migration{
  PRIMARY KEY(client_id,request_key));`)
 		return err
 	}},
+	{10, "store client tags", func(ctx context.Context, db *sql.DB) error {
+		_, err := db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS client_tags (
+ client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,tag TEXT NOT NULL,
+ PRIMARY KEY(client_id,tag));CREATE INDEX IF NOT EXISTS idx_client_tags_tag ON client_tags(tag,client_id);`)
+		return err
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {
