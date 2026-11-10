@@ -47,7 +47,7 @@ func parseClientSearch(w http.ResponseWriter, r *http.Request) (models.ClientSea
 		writeError(w, http.StatusBadRequest, "invalid company_id")
 		return models.ClientSearch{}, false
 	}
-	return models.ClientSearch{CompanyID: id, Query: r.URL.Query().Get("q"), Phone: r.URL.Query().Get("phone"), Page: page}, true
+	return models.ClientSearch{CompanyID: id, Query: r.URL.Query().Get("q"), Tag: r.URL.Query().Get("tag"), Phone: r.URL.Query().Get("phone"), Page: page}, true
 }
 func (h *ClientSearchHandler) Export(w http.ResponseWriter, r *http.Request) {
 	f, ok := parseClientSearch(w, r)

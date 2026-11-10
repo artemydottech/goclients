@@ -17,6 +17,7 @@ func NewClientSearchService(repo ClientSearchRepo) *ClientSearchService {
 }
 func (s *ClientSearchService) SearchClients(ctx context.Context, filter models.ClientSearch) ([]models.Client, error) {
 	filter.Query = strings.TrimSpace(filter.Query)
+	filter.Tag = strings.ToLower(strings.TrimSpace(filter.Tag))
 	if filter.Phone != "" {
 		filter.Phone = NormalizePhone(filter.Phone)
 		if filter.Phone == "" {

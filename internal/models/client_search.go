@@ -7,6 +7,7 @@ import (
 
 type ClientSearch struct {
 	CompanyID int
+	Tag       string
 	Query     string
 	Phone     string
 	Page      Page
@@ -21,6 +22,11 @@ func (s ClientSearch) Validate() error {
 	}
 	if s.Phone != "" && (len(s.Phone) < 10 || len(s.Phone) > 15 || strings.Trim(s.Phone, "0123456789") != "") {
 		return Invalid("phone must contain 10 to 15 ASCII digits")
+	}
+	if s.Tag != "" {
+		if _, err := NormalizeClientTags([]string{s.Tag}); err != nil {
+			return err
+		}
 	}
 	return s.Page.Validate()
 }

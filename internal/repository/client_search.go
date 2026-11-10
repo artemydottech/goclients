@@ -14,6 +14,10 @@ func (r *ClientRepository) SearchClients(ctx context.Context, filter models.Clie
 		query += " AND phone = ?"
 		args = append(args, filter.Phone)
 	}
+	if filter.Tag != "" {
+		query += " AND EXISTS(SELECT 1 FROM client_tags t WHERE t.client_id=clients.id AND t.tag=?)"
+		args = append(args, filter.Tag)
+	}
 	query += " ORDER BY id"
 	if filter.Query == "" {
 		query, args = paginate(query, args, filter.Page)
