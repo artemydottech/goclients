@@ -38,6 +38,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	clientsServ := service.NewClientService(clientsRepo)
 	clientsHandlers := handlers.NewClientHandler(clientsServ)
 	clientSearch := handlers.NewClientSearchHandler(service.NewClientSearchService(clientsRepo))
+	clientTags := handlers.NewClientTagHandler(service.NewClientTagService(clientsRepo, clientsRepo))
 
 	timeOffRepo := repository.NewTimeOffRepository(db)
 
@@ -102,6 +103,8 @@ func New(db *sql.DB, opts Options) http.Handler {
 	mux.HandleFunc("GET /clients/search", clientSearch.Search)
 	mux.HandleFunc("GET /clients/export", clientSearch.Export)
 	mux.HandleFunc("GET /clients/{id}", clientsHandlers.GetClientById)
+	mux.HandleFunc("GET /clients/{id}/tags", clientTags.Get)
+	mux.HandleFunc("PUT /clients/{id}/tags", clientTags.Replace)
 	mux.HandleFunc("PUT /clients/{id}", clientsHandlers.UpdateClient)
 	mux.HandleFunc("DELETE /clients/{id}", clientsHandlers.DeleteClient)
 	mux.HandleFunc("GET /clients/{id}/stats", appointmentsHandlers.GetClientStats)
