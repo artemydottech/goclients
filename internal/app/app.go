@@ -58,6 +58,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 		schedulesServ, appointmentsRepo, employeesRepo, servicesRepo, assignmentsRepo, companiesRepo, timeOffRepo,
 	)
 	schedulesHandlers := handlers.NewScheduleHandler(schedulesServ, slotsServ)
+	availability := handlers.NewAvailabilityHandler(service.NewAvailabilityService(servicesRepo, assignmentsRepo, slotsServ))
 
 	timeOffServ := service.NewTimeOffService(timeOffRepo, employeesRepo, appointmentsRepo)
 	timeOffHandlers := handlers.NewTimeOffHandler(timeOffServ)
@@ -122,6 +123,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	mux.HandleFunc("PUT /employees/{id}/schedule", schedulesHandlers.SetEmployeeSchedule)
 	mux.HandleFunc("GET /employees/{id}/schedule", schedulesHandlers.GetEmployeeSchedule)
 	mux.HandleFunc("GET /slots", schedulesHandlers.GetFreeSlots)
+	mux.HandleFunc("GET /services/{id}/availability", availability.Search)
 
 	mux.HandleFunc("POST /employees/{id}/time-off", timeOffHandlers.CreateTimeOff)
 	mux.HandleFunc("GET /employees/{id}/time-off", timeOffHandlers.GetTimeOff)
