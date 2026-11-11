@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/artemydottech/goclients/internal/models"
 	"testing"
 	"time"
@@ -42,5 +43,26 @@ func TestAvailabilityMergesChronologicallyAndCapsResults(t *testing.T) {
 	got, err = svc.Search(context.Background(), q)
 	if err != nil || len(got) != 1 || got[0].EmployeeID != 1 {
 		t.Fatalf("employee: %+v %v", got, err)
+	}
+}
+func TestAvailabilityFailuresAndMissingAssignments(t *testing.T) {
+	svc, slots, q := availabilityFixture()
+	q.EmployeeID = 9
+	if _, err := svc.Search(context.Background(), q); err == nil {
+		t.Fatal("foreign employee accepted")
+	}
+	q.EmployeeID = 0
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := svc.Search(ctx, q); !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancel: %v", err)
+	}
+	slots.err = errors.New("storage")
+	if _, err := svc.Search(context.Background(), q); !errors.Is(err, slots.err) {
+		t.Fatalf("storage: %v", err)
+	}
+	q.ServiceID = 999
+	if _, err := svc.Search(context.Background(), q); !errors.Is(err, models.ErrNotFound) {
+		t.Fatalf("missing service: %v", err)
 	}
 }
