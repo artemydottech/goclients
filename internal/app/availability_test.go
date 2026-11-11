@@ -39,3 +39,12 @@ func TestAvailabilityFindsAnotherEmployeeWhenFirstIsBooked(t *testing.T) {
 		t.Fatalf("second employee not offered: %s", raw)
 	}
 }
+func TestAvailabilityHonorsAbsenceAndUnassignedEmployees(t *testing.T) {
+	s := newSalon(t)
+	s.api.create("/employees/"+itoa(s.employeeID)+"/time-off", map[string]any{"starts_at": s.at(9, 0), "ends_at": s.at(18, 0), "reason": "day off"})
+	raw := s.api.expect(http.MethodGet, "/services/"+itoa(s.serviceID)+"/availability?date="+s.day.Format("2006-01-02")+"&days=1", nil, 200)
+	if string(raw) != "[]\n" {
+		t.Fatalf("absence ignored: %s", raw)
+	}
+	s.api.expect(http.MethodGet, "/services/"+itoa(s.serviceID)+"/availability?date="+s.day.Format("2006-01-02")+"&employee_id=99999", nil, 400)
+}
