@@ -66,3 +66,25 @@ func TestAvailabilityFailuresAndMissingAssignments(t *testing.T) {
 		t.Fatalf("missing service: %v", err)
 	}
 }
+func TestAvailabilityWalksCalendarDatesAndStabilizesTies(t *testing.T) {
+	svc, slots, q := availabilityFixture()
+	at := q.Date.Add(10 * time.Hour)
+	slots.times = map[int][]time.Time{1: {at}, 2: {at}}
+	got, err := svc.Search(context.Background(), q)
+	if err != nil || len(got) != 2 || got[0].EmployeeID != 1 {
+		t.Fatalf("ties: %+v %v", got, err)
+	}
+	slots.times = nil
+	slots.dates = nil
+	q.Date = time.Date(2026, 11, 1, 0, 0, 0, 0, time.FixedZone("date", -4*3600))
+	q.Days = 3
+	got, err = svc.Search(context.Background(), q)
+	if err != nil || got == nil || len(got) != 0 || len(slots.dates) != 6 {
+		t.Fatalf("empty: %+v %v dates=%d", got, err, len(slots.dates))
+	}
+	for i, day := range []int{1, 1, 2, 2, 3, 3} {
+		if slots.dates[i].Day() != day {
+			t.Fatal(slots.dates)
+		}
+	}
+}
