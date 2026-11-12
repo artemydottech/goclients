@@ -3,21 +3,24 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type AvailabilitySearcher interface {
 	Search(context.Context, models.AvailabilityQuery) ([]models.OpenSlot, error)
 }
+
 type AvailabilityHandler struct{ service AvailabilitySearcher }
 
 func NewAvailabilityHandler(s AvailabilitySearcher) *AvailabilityHandler {
 	return &AvailabilityHandler{service: s}
 }
+
 func (h *AvailabilityHandler) Search(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r)
 	if !ok {

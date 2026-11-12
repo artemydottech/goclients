@@ -2,18 +2,21 @@ package service
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type AvailabilityAssignments interface {
 	GetEmployeesByService(context.Context, int) ([]models.Employee, error)
 }
+
 type AvailabilitySlots interface {
 	FreeSlots(context.Context, int, int, time.Time, int) ([]time.Time, error)
 }
+
 type AvailabilityService struct {
 	services    ServiceLookup
 	assignments AvailabilityAssignments
@@ -23,6 +26,7 @@ type AvailabilityService struct {
 func NewAvailabilityService(s ServiceLookup, a AvailabilityAssignments, slots AvailabilitySlots) *AvailabilityService {
 	return &AvailabilityService{services: s, assignments: a, slots: slots}
 }
+
 func (s *AvailabilityService) Search(ctx context.Context, q models.AvailabilityQuery) ([]models.OpenSlot, error) {
 	if err := q.Validate(); err != nil {
 		return nil, err

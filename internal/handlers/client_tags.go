@@ -3,18 +3,21 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type ClientTagger interface {
 	Get(context.Context, int) ([]string, error)
 	Replace(context.Context, int, []string) error
 }
+
 type ClientTagHandler struct{ service ClientTagger }
 
 func NewClientTagHandler(s ClientTagger) *ClientTagHandler { return &ClientTagHandler{service: s} }
+
 func tagError(w http.ResponseWriter, r *http.Request, err error) bool {
 	if err == nil {
 		return false
@@ -31,6 +34,7 @@ func tagError(w http.ResponseWriter, r *http.Request, err error) bool {
 	}
 	return true
 }
+
 func (h *ClientTagHandler) Get(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r)
 	if !ok {
@@ -42,6 +46,7 @@ func (h *ClientTagHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, tags)
 }
+
 func (h *ClientTagHandler) Replace(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r)
 	if !ok {

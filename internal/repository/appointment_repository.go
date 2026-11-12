@@ -382,6 +382,7 @@ func (r *AppointmentRepository) MarkReminded(ctx context.Context, id int, at tim
 
 	return nil
 }
+
 func (r *AppointmentRepository) MarkRemindedIfUnchanged(ctx context.Context, id int, startsAt, at time.Time) error {
 	_, err := r.db.ExecContext(ctx, `UPDATE appointments SET reminded_at=? WHERE id=? AND starts_at=? AND status IN ('pending','confirmed')`, at.UTC().Format(timeLayout), id, startsAt.UTC().Format(timeLayout))
 	return err

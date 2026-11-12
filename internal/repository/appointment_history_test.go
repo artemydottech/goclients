@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"github.com/artemydottech/goclients/internal/models"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAppointmentHistoryCapturesLifecycleAndSkipsNoops(t *testing.T) {
@@ -46,6 +47,7 @@ func TestAppointmentHistoryCapturesLifecycleAndSkipsNoops(t *testing.T) {
 		t.Fatalf("page: %+v %v", page, err)
 	}
 }
+
 func TestHistoryFailureRollsBackAppointmentChanges(t *testing.T) {
 	f := newReminderFixture(t)
 	ctx := context.Background()

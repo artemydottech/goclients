@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestBookingRequestReplayAndConflict(t *testing.T) {
@@ -30,6 +31,7 @@ func TestBookingRequestReplayAndConflict(t *testing.T) {
 		t.Fatalf("duplicates: %+v %v", all, err)
 	}
 }
+
 func TestBookingReservationRollsBackAndSerializesRetries(t *testing.T) {
 	f := newReminderFixture(t)
 	ctx := context.Background()

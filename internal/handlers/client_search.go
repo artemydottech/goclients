@@ -13,11 +13,13 @@ import (
 type ClientSearcher interface {
 	SearchClients(context.Context, models.ClientSearch) ([]models.Client, error)
 }
+
 type ClientSearchHandler struct{ service ClientSearcher }
 
 func NewClientSearchHandler(s ClientSearcher) *ClientSearchHandler {
 	return &ClientSearchHandler{service: s}
 }
+
 func (h *ClientSearchHandler) Search(w http.ResponseWriter, r *http.Request) {
 	f, ok := parseClientSearch(w, r)
 	if !ok {
@@ -49,6 +51,7 @@ func parseClientSearch(w http.ResponseWriter, r *http.Request) (models.ClientSea
 	}
 	return models.ClientSearch{CompanyID: id, Query: r.URL.Query().Get("q"), Tag: r.URL.Query().Get("tag"), Phone: r.URL.Query().Get("phone"), Page: page}, true
 }
+
 func (h *ClientSearchHandler) Export(w http.ResponseWriter, r *http.Request) {
 	f, ok := parseClientSearch(w, r)
 	if !ok {

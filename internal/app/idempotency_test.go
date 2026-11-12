@@ -35,6 +35,7 @@ func keyedBooking(t *testing.T, s salon, key string, comment string) (int, int, 
 	}
 	return resp.StatusCode, id, resp.Header.Get("Idempotent-Replayed")
 }
+
 func TestIdempotentBookingHTTP(t *testing.T) {
 	s := newSalon(t)
 	code, id, replay := keyedBooking(t, s, "first-request", "")
@@ -56,6 +57,7 @@ func TestIdempotentBookingHTTP(t *testing.T) {
 		}
 	}
 }
+
 func TestBookingReplaySurvivesPriceAndStatusChanges(t *testing.T) {
 	s := newSalon(t)
 	_, id, _ := keyedBooking(t, s, "stable", "")

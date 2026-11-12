@@ -4,13 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"github.com/artemydottech/goclients/internal/models"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func appointmentIn(ctx context.Context, q querier, id int) (models.Appointment, error) {
 	return scanAppointment(q.QueryRowContext(ctx, `SELECT id,company_id,client_id,employee_id,service_id,starts_at,ends_at,status,comment,price FROM appointments WHERE id=?`, id))
 }
+
 func recordAppointmentEvent(ctx context.Context, e execer, kind string, before *models.Appointment, after models.Appointment) error {
 	previous, err := json.Marshal(before)
 	if err != nil {
@@ -23,6 +25,7 @@ func recordAppointmentEvent(ctx context.Context, e execer, kind string, before *
 	_, err = e.ExecContext(ctx, "INSERT INTO appointment_events(appointment_id,kind,occurred_at,before_json,after_json) VALUES(?,?,?,?,?)", after.ID, kind, time.Now().UTC().Format(time.RFC3339Nano), string(previous), string(next))
 	return err
 }
+
 func (r *AppointmentRepository) GetAppointmentHistory(ctx context.Context, id int, page models.Page) ([]models.AppointmentEvent, error) {
 	query, args := paginate("SELECT id,appointment_id,kind,occurred_at,before_json,after_json FROM appointment_events WHERE appointment_id=? ORDER BY id DESC", []any{id}, page)
 	rows, err := r.db.QueryContext(ctx, query, args...)
@@ -51,6 +54,7 @@ func (r *AppointmentRepository) GetAppointmentHistory(ctx context.Context, id in
 	}
 	return result, rows.Err()
 }
+
 func (r *AppointmentRepository) updateWithHistory(ctx context.Context, id int, kind string, update func(*sql.Tx) error) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {

@@ -25,6 +25,7 @@ func TestClientTagsHTTP(t *testing.T) {
 	}
 	s.api.expect(http.MethodGet, "/clients/999999/tags", nil, 404)
 }
+
 func TestClientTagSearchAndExportStayInCompany(t *testing.T) {
 	s := newSalon(t)
 	other := newCompany(t, s.api)

@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"testing"
 	"time"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type availabilityAssignmentStub struct {
@@ -27,12 +28,14 @@ func (s *availabilitySlotStub) FreeSlots(ctx context.Context, id, service int, d
 	s.dates = append(s.dates, date)
 	return s.times[id], s.err
 }
+
 func availabilityFixture() (*AvailabilityService, *availabilitySlotStub, models.AvailabilityQuery) {
 	at := time.Date(2027, 1, 1, 0, 0, 0, 0, time.UTC)
 	slots := &availabilitySlotStub{times: map[int][]time.Time{2: {at.Add(9 * time.Hour), at.Add(11 * time.Hour)}, 1: {at.Add(10 * time.Hour)}}}
 	svc := NewAvailabilityService(stubServiceLookup{byID: map[int]models.Service{3: {ID: 3, CompanyID: 10, Duration: 45}}}, availabilityAssignmentStub{employees: []models.Employee{{ID: 2, CompanyID: 10, Name: "B"}, {ID: 1, CompanyID: 10, Name: "A"}, {ID: 9, CompanyID: 99, Name: "Foreign"}}}, slots)
 	return svc, slots, models.AvailabilityQuery{ServiceID: 3, Date: at, Days: 1, Step: 15, Limit: 2}
 }
+
 func TestAvailabilityMergesChronologicallyAndCapsResults(t *testing.T) {
 	svc, _, q := availabilityFixture()
 	got, err := svc.Search(context.Background(), q)
@@ -45,6 +48,7 @@ func TestAvailabilityMergesChronologicallyAndCapsResults(t *testing.T) {
 		t.Fatalf("employee: %+v %v", got, err)
 	}
 }
+
 func TestAvailabilityFailuresAndMissingAssignments(t *testing.T) {
 	svc, slots, q := availabilityFixture()
 	q.EmployeeID = 9
@@ -66,6 +70,7 @@ func TestAvailabilityFailuresAndMissingAssignments(t *testing.T) {
 		t.Fatalf("missing service: %v", err)
 	}
 }
+
 func TestAvailabilityWalksCalendarDatesAndStabilizesTies(t *testing.T) {
 	svc, slots, q := availabilityFixture()
 	at := q.Date.Add(10 * time.Hour)

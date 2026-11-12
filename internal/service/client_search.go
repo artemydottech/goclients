@@ -10,11 +10,13 @@ import (
 type ClientSearchRepo interface {
 	SearchClients(context.Context, models.ClientSearch) ([]models.Client, error)
 }
+
 type ClientSearchService struct{ repo ClientSearchRepo }
 
 func NewClientSearchService(repo ClientSearchRepo) *ClientSearchService {
 	return &ClientSearchService{repo: repo}
 }
+
 func (s *ClientSearchService) SearchClients(ctx context.Context, filter models.ClientSearch) ([]models.Client, error) {
 	filter.Query = strings.TrimSpace(filter.Query)
 	filter.Tag = strings.ToLower(strings.TrimSpace(filter.Tag))

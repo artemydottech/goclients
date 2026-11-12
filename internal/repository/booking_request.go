@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/artemydottech/goclients/internal/models"
 )
 
@@ -10,9 +11,11 @@ func readBookingRequest(ctx context.Context, q querier, clientID int, key string
 	err := q.QueryRowContext(ctx, "SELECT fingerprint,appointment_id FROM booking_requests WHERE client_id=? AND request_key=?", clientID, key).Scan(&result.Fingerprint, &result.AppointmentID)
 	return result, mapNoRows(err)
 }
+
 func (r *AppointmentRepository) FindBookingRequest(ctx context.Context, clientID int, key string) (models.BookingRequest, error) {
 	return readBookingRequest(ctx, r.db, clientID, key)
 }
+
 func (r *AppointmentRepository) ReserveBooking(ctx context.Context, key, hash string, a models.Appointment) (models.BookingResult, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {

@@ -3,19 +3,22 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type IdempotentBooker interface {
 	Book(context.Context, string, models.Appointment) (models.BookingResult, error)
 }
+
 type IdempotentBookingHandler struct{ service IdempotentBooker }
 
 func NewIdempotentBookingHandler(s IdempotentBooker) *IdempotentBookingHandler {
 	return &IdempotentBookingHandler{service: s}
 }
+
 func (h *IdempotentBookingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var input models.Appointment
 	if !decodeJSON(w, r, &input) {

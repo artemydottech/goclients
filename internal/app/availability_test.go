@@ -2,9 +2,10 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/artemydottech/goclients/internal/models"
 	"net/http"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAvailabilityHTTPRejectsUnboundedRequests(t *testing.T) {
@@ -15,6 +16,7 @@ func TestAvailabilityHTTPRejectsUnboundedRequests(t *testing.T) {
 	}
 	s.api.expect(http.MethodGet, "/services/999999/availability?date=2027-01-01", nil, 404)
 }
+
 func TestAvailabilityFindsAnotherEmployeeWhenFirstIsBooked(t *testing.T) {
 	s := newSalon(t)
 	s.mustBook(s.at(10, 0))
@@ -39,6 +41,7 @@ func TestAvailabilityFindsAnotherEmployeeWhenFirstIsBooked(t *testing.T) {
 		t.Fatalf("second employee not offered: %s", raw)
 	}
 }
+
 func TestAvailabilityHonorsAbsenceAndUnassignedEmployees(t *testing.T) {
 	s := newSalon(t)
 	s.api.create("/employees/"+itoa(s.employeeID)+"/time-off", map[string]any{"starts_at": s.at(9, 0), "ends_at": s.at(18, 0), "reason": "day off"})

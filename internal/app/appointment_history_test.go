@@ -2,9 +2,10 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/artemydottech/goclients/internal/models"
 	"net/http"
 	"testing"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 func TestAppointmentHistoryHTTPAndIdempotentCreation(t *testing.T) {

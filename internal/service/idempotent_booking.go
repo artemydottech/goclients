@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"github.com/artemydottech/goclients/internal/models"
 )
 
@@ -10,6 +11,7 @@ type BookingRequestRepo interface {
 	FindBookingRequest(context.Context, int, string) (models.BookingRequest, error)
 	ReserveBooking(context.Context, string, string, models.Appointment) (models.BookingResult, error)
 }
+
 type IdempotentBookingService struct {
 	bookings *AppointmentService
 	repo     BookingRequestRepo
@@ -18,6 +20,7 @@ type IdempotentBookingService struct {
 func NewIdempotentBookingService(b *AppointmentService, r BookingRequestRepo) *IdempotentBookingService {
 	return &IdempotentBookingService{bookings: b, repo: r}
 }
+
 func (s *IdempotentBookingService) Book(ctx context.Context, key string, a models.Appointment) (models.BookingResult, error) {
 	if key == "" {
 		id, err := s.bookings.Book(ctx, a)

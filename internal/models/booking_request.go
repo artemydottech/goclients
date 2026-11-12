@@ -8,12 +8,11 @@ import (
 	"time"
 )
 
-var ErrConflict = fmt.Errorf("conflict")
-
 type BookingResult struct {
 	ID       int64
 	Replayed bool
 }
+
 type BookingRequest struct {
 	Fingerprint   string
 	AppointmentID int64
@@ -25,6 +24,7 @@ func ValidateBookingKey(key string) error {
 	}
 	return nil
 }
+
 func BookingFingerprint(a Appointment) (string, error) {
 	status := a.Status
 	if status == "" {

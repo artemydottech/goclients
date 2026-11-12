@@ -1,8 +1,6 @@
 package repository
 
-import (
-	"context"
-)
+import "context"
 
 func (r *ClientRepository) GetClientTags(ctx context.Context, id int) ([]string, error) {
 	rows, err := r.db.QueryContext(ctx, "SELECT tag FROM client_tags WHERE client_id=? ORDER BY tag", id)
@@ -20,6 +18,7 @@ func (r *ClientRepository) GetClientTags(ctx context.Context, id int) ([]string,
 	}
 	return tags, rows.Err()
 }
+
 func (r *ClientRepository) ReplaceClientTags(ctx context.Context, id int, tags []string) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {

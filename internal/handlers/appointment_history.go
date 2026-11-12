@@ -3,19 +3,22 @@ package handlers
 import (
 	"context"
 	"errors"
-	"github.com/artemydottech/goclients/internal/models"
 	"log/slog"
 	"net/http"
+
+	"github.com/artemydottech/goclients/internal/models"
 )
 
 type AppointmentHistorian interface {
 	List(context.Context, int, models.Page) ([]models.AppointmentEvent, error)
 }
+
 type AppointmentHistoryHandler struct{ service AppointmentHistorian }
 
 func NewAppointmentHistoryHandler(s AppointmentHistorian) *AppointmentHistoryHandler {
 	return &AppointmentHistoryHandler{service: s}
 }
+
 func (h *AppointmentHistoryHandler) List(w http.ResponseWriter, r *http.Request) {
 	id, ok := pathID(w, r)
 	if !ok {
