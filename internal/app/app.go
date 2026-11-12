@@ -50,6 +50,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 		appointmentsRepo, clientsRepo, employeesRepo, servicesRepo, assignmentsRepo, schedulesServ, companiesRepo, timeOffRepo,
 	)
 	appointmentsHandlers := handlers.NewAppointmentHandler(appointmentsServ)
+	appointmentHistory := handlers.NewAppointmentHistoryHandler(service.NewAppointmentHistoryService(appointmentsRepo, appointmentsRepo))
 	idempotentBooking := handlers.NewIdempotentBookingHandler(service.NewIdempotentBookingService(appointmentsServ, appointmentsRepo))
 	appointmentComment := handlers.NewAppointmentCommentHandler(service.NewAppointmentCommentService(appointmentsRepo))
 	appointmentSearch := handlers.NewAppointmentSearchHandler(service.NewAppointmentSearchService(appointmentsRepo))
@@ -115,6 +116,7 @@ func New(db *sql.DB, opts Options) http.Handler {
 	mux.HandleFunc("GET /appointments/search", appointmentSearch.Search)
 	mux.HandleFunc("GET /appointments/export", appointmentSearch.Export)
 	mux.HandleFunc("GET /appointments/{id}", appointmentsHandlers.GetAppointmentById)
+	mux.HandleFunc("GET /appointments/{id}/history", appointmentHistory.List)
 	mux.HandleFunc("PUT /appointments/{id}/status", appointmentsHandlers.SetStatus)
 	mux.HandleFunc("PUT /appointments/{id}/comment", appointmentComment.Update)
 	mux.HandleFunc("PUT /appointments/{id}/time", appointmentsHandlers.Reschedule)
