@@ -225,21 +225,10 @@ func hasOverlap(ctx context.Context, q querier, employeeID int, from, to time.Ti
 }
 
 func (r *AppointmentRepository) UpdateStatus(ctx context.Context, id int, status models.AppointmentStatus) error {
-	res, err := r.db.ExecContext(ctx, "UPDATE appointments SET status = ? WHERE id = ?", string(status), id)
-	if err != nil {
+	return r.updateWithHistory(ctx, id, "status", func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx, "UPDATE appointments SET status=? WHERE id=?", string(status), id)
 		return err
-	}
-
-	rows, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rows == 0 {
-		return errNoRows
-	}
-
-	return nil
+	})
 }
 
 func (r *AppointmentRepository) DeleteAppointmentById(ctx context.Context, id int) error {

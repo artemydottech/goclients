@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"github.com/artemydottech/goclients/internal/models"
 	"time"
@@ -49,4 +50,28 @@ func (r *AppointmentRepository) GetAppointmentHistory(ctx context.Context, id in
 		result = append(result, event)
 	}
 	return result, rows.Err()
+}
+func (r *AppointmentRepository) updateWithHistory(ctx context.Context, id int, kind string, update func(*sql.Tx) error) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	before, err := appointmentIn(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	if err := update(tx); err != nil {
+		return err
+	}
+	after, err := appointmentIn(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	if before != after {
+		if err := recordAppointmentEvent(ctx, tx, kind, &before, after); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
