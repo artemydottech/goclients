@@ -46,7 +46,16 @@ type execer interface {
 }
 
 func (r *AppointmentRepository) Create(ctx context.Context, a models.Appointment) (int64, error) {
-	return insertAppointment(ctx, r.db, a)
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	id, err := insertAppointment(ctx, tx, a)
+	if err != nil {
+		return 0, err
+	}
+	return id, tx.Commit()
 }
 
 func insertAppointment(ctx context.Context, e execer, a models.Appointment) (int64, error) {
@@ -62,7 +71,17 @@ func insertAppointment(ctx context.Context, e execer, a models.Appointment) (int
 		return 0, err
 	}
 
-	return res.LastInsertId()
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	a.ID = int(id)
+	a.StartsAt = a.StartsAt.UTC().Truncate(time.Second)
+	a.EndsAt = a.EndsAt.UTC().Truncate(time.Second)
+	if err := recordAppointmentEvent(ctx, e, "created", nil, a); err != nil {
+		return 0, err
+	}
+	return id, nil
 }
 
 func (r *AppointmentRepository) GetAllAppointments(ctx context.Context) ([]models.Appointment, error) {
