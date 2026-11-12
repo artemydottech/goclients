@@ -116,6 +116,15 @@ var migrations = []migration{
  PRIMARY KEY(client_id,tag));CREATE INDEX IF NOT EXISTS idx_client_tags_tag ON client_tags(tag,client_id);`)
 		return err
 	}},
+	{11, "record appointment change history", func(ctx context.Context, db *sql.DB) error {
+		_, err := db.ExecContext(ctx, `CREATE TABLE IF NOT EXISTS appointment_events (
+ id INTEGER PRIMARY KEY AUTOINCREMENT,
+ appointment_id INTEGER NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+ kind TEXT NOT NULL CHECK(kind IN ('created','status','rescheduled','comment')),
+ occurred_at TEXT NOT NULL,before_json TEXT NOT NULL,after_json TEXT NOT NULL);
+ CREATE INDEX IF NOT EXISTS idx_appointment_events_timeline ON appointment_events(appointment_id,id);`)
+		return err
+	}},
 }
 
 func runMigrations(ctx context.Context, db *sql.DB) error {
