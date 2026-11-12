@@ -171,6 +171,10 @@ func (r *AppointmentRepository) MoveIfFree(ctx context.Context, id int, a models
 		return false, err
 	}
 	defer tx.Rollback()
+	before, err := appointmentIn(ctx, tx, id)
+	if err != nil {
+		return false, err
+	}
 
 	busy, err := hasOverlap(ctx, tx, a.EmployeeID, a.StartsAt, a.EndsAt, id)
 	if err != nil {
@@ -196,6 +200,15 @@ func (r *AppointmentRepository) MoveIfFree(ctx context.Context, id int, a models
 		return false, errNoRows
 	}
 
+	after, err := appointmentIn(ctx, tx, id)
+	if err != nil {
+		return false, err
+	}
+	if before != after {
+		if err := recordAppointmentEvent(ctx, tx, "rescheduled", &before, after); err != nil {
+			return false, err
+		}
+	}
 	return false, tx.Commit()
 }
 
